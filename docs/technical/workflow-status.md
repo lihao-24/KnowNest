@@ -10,15 +10,15 @@
 - Phase 01：已完成并通过大节点审核。
 - Phase 02：已按新版拆分完成到 Task 02-06，并通过大节点审核。
 - Phase 03：已完成到 Task 03-04，并通过大节点审核。
-- Phase 04：Task 04-01 已完成并通过审核。
-- 下一步：执行 Task 04-02。
+- Phase 04：Task 04-01 至 Task 04-02 已完成并通过审核。
+- 下一步：执行 Task 05-01。
 
 ## 已完成阶段和任务
 
 - Phase 01 项目初始化：已完成。
 - Phase 02 Supabase 与数据库：新版 Task 02-00 至 Task 02-06 已完成。
 - Phase 03 认证与路由保护：Task 03-01 至 Task 03-04 已完成并审核通过。
-- Phase 04 应用主界面：Task 04-01 已完成并审核通过。
+- Phase 04 应用主界面：Task 04-01 至 Task 04-02 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -45,7 +45,7 @@
 
 ## 下一个建议任务
 
-- Phase 04 下一个任务建议为 Task 04-02：实现导航项。
+- Phase 05 下一个任务建议为 Task 05-01：实现知识数据访问层基础函数。
 
 ## 大节点审核记录
 
@@ -55,8 +55,11 @@
 | Phase 02 | 已审核通过 | 新版拆分至 Task 02-06 已完成。 |
 | Phase 03 | 已审核通过 | Task 03-01 至 Task 03-04 已完成。 |
 | Phase 04 Task 04-01 | 已审核通过 | AppShell 桌面布局完成，commit `fd7d469`；Spec / Quality review 均通过。 |
+| Phase 04 Task 04-02 | 已审核通过 | App navigation 完成，commit `0ad5716`；Spec / Quality review 均通过。 |
 
 ## 未决问题 / 风险
 
 - 后续实现主布局和业务页面时，需要持续检查 Supabase SDK 是否扩散到页面或业务组件。
 - 后续 CRUD 阶段必须验证 `src/lib/db` 内的用户隔离，不能只依赖前端路由保护。
+- `src/components/layout/app-sidebar-nav.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
+- Task 04-03 移动端导航为 P2，按 `development_plan` 推荐顺序排在后续。
