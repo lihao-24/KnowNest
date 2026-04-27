@@ -1428,6 +1428,8 @@ DATABASE_URL=
 
 `DATABASE_URL` 是服务端数据库连接串，用于 `src/lib/db` 内部的 Drizzle / pg 连接；不要写入真实连接串到 `.env.example`，本地真实值放在不提交的 `.env.local`。
 
+所有真实环境值只能通过环境变量读取，不得在源码、文档示例、迁移脚本或测试数据中硬编码 Supabase URL、Supabase API key、`DATABASE_URL`、Storage bucket 名称或其他 provider 配置。
+
 后续 AI 版本可能增加：
 
 ```text

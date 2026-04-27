@@ -49,6 +49,7 @@
 - 图标：lucide-react 可选。
 - 数据库：开发期可用 Supabase PostgreSQL；生产期优先腾讯云轻量应用服务器 + 自建 PostgreSQL。
 - 业务数据访问：Drizzle ORM + `pg` + `DATABASE_URL`；Supabase SDK 只保留给开发期 Auth 或必要 adapter 封装，不用于页面 / 组件业务数据访问。
+- 真实环境变量只放在不提交的 `.env.local`；不得在源码或文档示例中硬编码 Supabase URL、Supabase API key、`DATABASE_URL`、Storage bucket 或 provider 配置。V0.1 不配置 Storage，后续需要附件能力时先补 storage adapter 设计。
 - 认证：开发期可用 Supabase Auth，V0.1 优先邮箱 + 密码登录；认证调用必须经过 `src/lib/auth`。
 - 部署：开发 / 预览期可用 Vercel；生产期优先腾讯云轻量应用服务器，HTTPS 后续使用 Caddy / Let's Encrypt。
 - 开发工具：开发期可以使用 Supabase Dashboard 查看表结构、RLS 和认证状态。
