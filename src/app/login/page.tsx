@@ -2,22 +2,31 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-const LOGIN_ERROR_MESSAGE = "登录失败，请检查邮箱和密码。";
+import { LOGIN_FAILED_MESSAGE, signInWithEmailPassword } from "@/lib/auth";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
     setIsLoading(true);
 
-    window.setTimeout(() => {
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      await signInWithEmailPassword({ email, password });
+      router.push("/app");
+    } catch {
+      setErrorMessage(LOGIN_FAILED_MESSAGE);
       setIsLoading(false);
-      setErrorMessage(LOGIN_ERROR_MESSAGE);
-    }, 400);
+    }
   }
 
   return (
