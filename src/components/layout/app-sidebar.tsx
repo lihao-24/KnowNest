@@ -1,30 +1,49 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 
-const primaryNavItems = [
-  { href: "/app/items/new", label: "新建知识" },
-  { href: "/app", label: "全部内容" },
-  { href: "/app/inbox", label: "收集箱" },
-  { href: "/app/favorites", label: "收藏" },
-  { href: "/app/archive", label: "归档" },
-];
+import {
+  isSidebarNavItemActive,
+  primaryNavItems,
+  settingsNavItem,
+  spaceNavItems,
+  type SidebarNavItem,
+} from "@/components/layout/app-sidebar-nav";
 
-const spaceNavItems = [
-  { href: "/app?space=life", label: "生活" },
-  { href: "/app?space=work", label: "工作" },
-];
+const sidebarLinkBaseClass =
+  "block rounded-md px-3 py-2 text-sm font-medium transition";
 
-function SidebarLink({ href, label }: { href: string; label: string }) {
+function SidebarLink({
+  isActive,
+  item,
+}: {
+  isActive: boolean;
+  item: SidebarNavItem;
+}) {
   return (
     <Link
-      className="block rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950"
-      href={href}
+      aria-current={isActive ? "page" : undefined}
+      className={
+        isActive
+          ? `${sidebarLinkBaseClass} bg-teal-50 text-teal-800 ring-1 ring-inset ring-teal-100`
+          : `${sidebarLinkBaseClass} text-slate-700 hover:bg-slate-100 hover:text-slate-950`
+      }
+      href={item.href}
     >
-      {label}
+      {item.label}
     </Link>
   );
 }
 
 export function AppSidebar() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  function isActive(item: SidebarNavItem) {
+    return isSidebarNavItemActive(item, pathname, searchParams);
+  }
+
   return (
     <aside className="hidden min-h-dvh w-64 shrink-0 border-r border-slate-200 bg-white px-4 py-5 md:flex md:flex-col">
       <div className="px-2">
@@ -43,7 +62,11 @@ export function AppSidebar() {
           <p className="px-3 text-xs font-medium text-slate-500">知识</p>
           <div className="mt-2 space-y-1">
             {primaryNavItems.map((item) => (
-              <SidebarLink key={item.href} {...item} />
+              <SidebarLink
+                key={item.href}
+                isActive={isActive(item)}
+                item={item}
+              />
             ))}
           </div>
         </div>
@@ -52,13 +75,20 @@ export function AppSidebar() {
           <p className="px-3 text-xs font-medium text-slate-500">空间</p>
           <div className="mt-2 space-y-1">
             {spaceNavItems.map((item) => (
-              <SidebarLink key={item.href} {...item} />
+              <SidebarLink
+                key={item.href}
+                isActive={isActive(item)}
+                item={item}
+              />
             ))}
           </div>
         </div>
 
         <div className="mt-auto border-t border-slate-200 pt-4">
-          <SidebarLink href="/app/settings" label="设置" />
+          <SidebarLink
+            isActive={isActive(settingsNavItem)}
+            item={settingsNavItem}
+          />
         </div>
       </nav>
     </aside>
