@@ -1,10 +1,29 @@
 import assert from "node:assert/strict";
 
+import { getTableConfig } from "drizzle-orm/pg-core";
+
 import {
   buildKnowledgeItemFilters,
   normalizeCreateKnowledgeItemInput,
   normalizeUpdateKnowledgeItemInput,
 } from "./knowledge-items.ts";
+import * as schema from "./schema.ts";
+
+assert.ok(schema.profiles);
+
+const userIdForeignKey = getTableConfig(schema.knowledgeItems).foreignKeys.find(
+  (foreignKey) => {
+    const reference = foreignKey.reference();
+
+    return (
+      reference.columns.includes(schema.knowledgeItems.user_id) &&
+      reference.foreignTable === schema.profiles &&
+      reference.foreignColumns.includes(schema.profiles.id)
+    );
+  },
+);
+
+assert.equal(userIdForeignKey?.onDelete, "cascade");
 
 const defaultFilters = buildKnowledgeItemFilters("user-1");
 
