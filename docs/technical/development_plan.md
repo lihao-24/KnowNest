@@ -315,7 +315,7 @@ Supabase RLS / Auth 作为开发期实现细节隔离
 约束：
 
 - 页面和业务组件不要直接调用 Supabase SDK。
-- 数据库访问必须经过 `src/lib/db` 或后续确定的 repository / ORM 层。
+- 数据库访问必须经过 `src/lib/db` 暴露的函数。
 - 认证调用必须经过 `src/lib/auth`，不要在页面中散写 Supabase Auth 调用。
 - Supabase 专属 SQL，例如 `auth.users`、`auth.uid()`、RLS policies，应与通用业务表结构分清边界。
 - V0.1 暂不实现文件上传，因此不提前接入 Supabase Storage 或腾讯云 COS；后续如做文件能力，必须先设计 storage adapter。
@@ -399,6 +399,7 @@ feat: configure supabase client
 - 决定 V0.1 数据访问方案：
   - 方案 A：使用 Drizzle / Prisma / `pg` 通过 `DATABASE_URL` 连接 PostgreSQL。
   - 方案 B：短期使用 Supabase SDK，但只允许在 `src/lib/db` 内部调用。
+- 当前决策：选择 Drizzle ORM + `pg` + `DATABASE_URL` 作为业务数据库访问方案。
 - 如果采用方案 A，补充 `DATABASE_URL` 到 `.env.example`。
 - 如果采用方案 B，明确后续迁移时需要替换 `src/lib/db`，页面和组件不受影响。
 - 明确所有数据库查询函数必须接收或解析当前用户 ID，不能依赖页面层自行过滤用户数据。
@@ -416,6 +417,7 @@ docs/technical/architecture.md
 - 页面和组件只依赖 `src/lib/db` 暴露的函数。
 - Supabase SDK、ORM 或 SQL client 不直接出现在页面和业务组件中。
 - 未来切换数据库实现时，主要影响范围被控制在 `src/lib/db` 和数据库迁移文件内。
+- Supabase SDK 只保留给开发期 Auth 或必要 adapter 封装，不用于页面 / 组件内业务数据访问。
 
 ### 建议提交
 

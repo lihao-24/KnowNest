@@ -44,6 +44,7 @@ V0.1 推荐技术栈如下：
 样式：Tailwind CSS
 UI 组件：shadcn/ui，可选
 数据库：开发期 Supabase PostgreSQL；生产期优先腾讯云轻量应用服务器 + 自建 PostgreSQL
+业务数据访问：Drizzle ORM + pg，通过 DATABASE_URL 连接 PostgreSQL
 认证：开发期 Supabase Auth；调用边界统一封装在 `src/lib/auth`
 部署：开发 / 预览期可使用 Vercel；生产期优先腾讯云轻量应用服务器，HTTPS 后续使用 Caddy / Let's Encrypt
 编辑器：textarea + Markdown 渲染
@@ -78,12 +79,15 @@ Markdown 渲染：react-markdown 或同类库
 
 但 Supabase 是当前开发期的效率工具，不是 KnowNest 生产期的唯一长期架构。生产期优先迁移到腾讯云轻量应用服务器 + 自建 PostgreSQL，HTTPS 后续使用 Caddy / Let's Encrypt。
 
+业务数据访问方案确定为 Drizzle ORM + `pg` + `DATABASE_URL`。开发期 Supabase PostgreSQL 只作为 PostgreSQL 服务来源；页面和业务组件的业务数据访问不直接使用 Supabase SDK。
+
 因此 V0.1 需要把 Supabase 作为可替换实现隔离：
 
 - 页面和业务组件不得直接调用 Supabase SDK。
-- 数据库访问必须经过 `src/lib/db`，或后续明确的 repository / ORM 层。
+- 数据库访问必须经过 `src/lib/db` 暴露的函数，`src/lib/db` 内部使用 Drizzle / pg 访问 PostgreSQL。
 - 认证调用必须经过 `src/lib/auth`。
-- Supabase Auth、RLS、`auth.users`、`auth.uid()`、Dashboard 等专属能力只能出现在 adapter、服务层或迁移脚本边界内。
+- Supabase SDK 保留给开发期 Auth 或必要 adapter 封装，不用于页面、组件内业务数据访问。
+- Supabase Auth、RLS、`auth.users`、`auth.uid()`、Dashboard 等专属能力只能出现在 adapter、认证服务层或迁移脚本边界内。
 - V0.1 不实现文件上传，不接入 Supabase Storage，也不接入腾讯云 COS；后续如做附件能力，必须先设计 storage adapter。
 
 ### 3.2.3 暂不引入复杂状态管理
@@ -177,9 +181,10 @@ updateItemTags
 边界要求：
 
 - 页面和业务组件只调用 `src/lib/auth` 暴露的认证函数。
-- 页面和业务组件只调用 `src/lib/db` 或后续 repository / ORM 层暴露的数据函数。
-- 开发期如果短期使用 Supabase SDK，调用点也必须限制在 `src/lib/auth`、`src/lib/db`、`src/lib/supabase` 或明确 adapter 内部。
-- 后续从 Supabase 迁移到自建 PostgreSQL 时，应优先替换 adapter、服务层或 repository，不应改动大批页面组件。
+- 页面和业务组件只调用 `src/lib/db` 暴露的数据函数。
+- `src/lib/db` 内部使用 Drizzle ORM + `pg` 通过 `DATABASE_URL` 访问 PostgreSQL，不在页面、组件中直接使用 ORM、SQL client 或 Supabase SDK。
+- Supabase SDK 仅保留给开发期 Auth 或必要 adapter 封装，调用点必须限制在 `src/lib/auth`、`src/lib/supabase` 或明确 adapter 内部。
+- 后续从 Supabase PostgreSQL 迁移到自建 PostgreSQL 时，主要影响范围应限制在 `src/lib/db` 和数据库迁移文件，不应改动大批页面组件。
 
 ### 4.1.4 基础设施 adapter 层
 
@@ -469,9 +474,11 @@ profiles.ts
 
 该目录是 V0.1 的数据访问层。
 
-页面和组件必须调用这里的函数，或后续确定的 repository / ORM 层，而不是直接写 Supabase 查询、SQL client 查询或 ORM 查询。
+页面和组件必须调用这里的函数，而不是直接写 Supabase 查询、SQL client 查询或 ORM 查询。
 
-开发期如果使用 Supabase SDK，Supabase 查询只能封装在 `src/lib/db` 或明确 adapter 内部。所有查询函数必须接收或解析当前用户身份，不能依赖页面层自行过滤用户数据。
+`src/lib/db` 内部使用 Drizzle ORM + `pg` 通过 `DATABASE_URL` 访问 PostgreSQL。所有查询函数必须接收或解析当前用户身份，并在数据访问层强制按当前用户隔离数据，不能依赖页面层自行过滤用户数据。
+
+后续从 Supabase PostgreSQL 迁移到自建 PostgreSQL 时，优先调整 `src/lib/db` 内部连接、查询实现和迁移文件；页面和业务组件调用的数据函数边界应保持稳定。
 
 ---
 
@@ -498,7 +505,7 @@ profiles.ts
 建议包括：
 
 ```text
-database.ts    Supabase 表类型，可后续自动生成
+database.ts    数据库表类型，可由 Drizzle schema 或数据库类型生成
 knowledge.ts   知识条目领域类型
 tags.ts        标签领域类型
 ```
@@ -693,9 +700,7 @@ src/lib/db/
 src/lib/db/
 ```
 
-或后续明确的 repository / ORM 层。
-
-开发期可以在 `src/lib/db` 内部短期调用 Supabase SDK；生产期迁移自建 PostgreSQL 时，应优先替换该层内部实现，保持页面和业务组件调用不变。
+Task 02-02 已确定业务数据访问使用 Drizzle ORM + `pg` + `DATABASE_URL`。`src/lib/db` 是唯一业务数据库访问边界；Supabase SDK 不用于页面、组件或业务数据查询。生产期迁移自建 PostgreSQL 时，应优先替换该层内部连接、查询实现和迁移文件，保持页面和业务组件调用不变。
 
 ---
 
@@ -1413,12 +1418,15 @@ knowledge_item_tags
 
 ## 20. 环境变量设计
 
-V0.1 开发期连接 Supabase 时需要以下环境变量。
+V0.1 开发期连接 Supabase Auth 和 PostgreSQL 时需要以下环境变量。
 
 ```text
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+DATABASE_URL=
 ```
+
+`DATABASE_URL` 是服务端数据库连接串，用于 `src/lib/db` 内部的 Drizzle / pg 连接；不要写入真实连接串到 `.env.example`，本地真实值放在不提交的 `.env.local`。
 
 后续 AI 版本可能增加：
 
@@ -1429,12 +1437,6 @@ EMBEDDING_MODEL=
 ```
 
 V0.1 不需要 AI 相关环境变量。
-
-如果 Task 02-02 后续选择 ORM / SQL client 或生产期自建 PostgreSQL，应再引入服务端数据库连接变量，例如：
-
-```text
-DATABASE_URL=
-```
 
 认证阶段可再补充：
 
@@ -1464,6 +1466,7 @@ V0.1 不实现文件上传，因此不提前加入 Supabase Storage、腾讯云 
 ```text
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+DATABASE_URL=
 ```
 
 ---
@@ -2116,7 +2119,7 @@ V0.1 技术架构落地后，应满足：
 ### 33.3 数据访问
 
 - 页面和业务组件不直接调用 Supabase SDK、SQL client 或 ORM。
-- 核心数据操作封装在 `src/lib/db` 或后续 repository / ORM 层。
+- 核心数据操作封装在 `src/lib/db`。
 - 错误能被抛出并在页面展示。
 
 ### 33.4 权限

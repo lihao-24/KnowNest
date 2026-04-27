@@ -48,6 +48,7 @@
 - UI 组件：shadcn/ui 可选，不强制。
 - 图标：lucide-react 可选。
 - 数据库：开发期可用 Supabase PostgreSQL；生产期优先腾讯云轻量应用服务器 + 自建 PostgreSQL。
+- 业务数据访问：Drizzle ORM + `pg` + `DATABASE_URL`；Supabase SDK 只保留给开发期 Auth 或必要 adapter 封装，不用于页面 / 组件业务数据访问。
 - 认证：开发期可用 Supabase Auth，V0.1 优先邮箱 + 密码登录；认证调用必须经过 `src/lib/auth`。
 - 部署：开发 / 预览期可用 Vercel；生产期优先腾讯云轻量应用服务器，HTTPS 后续使用 Caddy / Let's Encrypt。
 - 开发工具：开发期可以使用 Supabase Dashboard 查看表结构、RLS 和认证状态。
@@ -121,7 +122,7 @@
   - `src/components/ui`：基础 UI 组件。
   - `src/lib/supabase`：开发期 Supabase client、server、middleware 工具，只作为基础设施 adapter 边界。
   - `src/lib/auth`：`getCurrentUser`、`requireUser`、登录、退出等认证辅助函数，是页面和组件唯一允许调用的认证入口。
-  - `src/lib/db`：数据库访问层，集中封装数据库查询；开发期可在内部调用 Supabase SDK，后续可替换为 repository / ORM。
+  - `src/lib/db`：数据库访问层，集中封装数据库查询；内部使用 Drizzle / pg 访问 PostgreSQL。
   - `src/lib/utils`：日期、字符串、URL 等工具。
   - `src/constants`：空间、状态、类型、路由和导航常量。
   - `src/types`：数据库类型、知识条目类型、标签类型。
@@ -129,7 +130,7 @@
   - 文件名使用 kebab-case。
   - 组件名使用 PascalCase。
   - 函数名使用 camelCase。
-- 页面和业务组件不得直接调用 Supabase SDK、SQL client 或 ORM；数据库访问必须经过 `src/lib/db` 或后续 repository / ORM 层。
+- 页面和业务组件不得直接调用 Supabase SDK、SQL client 或 ORM；数据库访问必须经过 `src/lib/db` 暴露的函数。
 - 认证调用必须经过 `src/lib/auth`；页面和业务组件不得直接调用 `supabase.auth.*`。
 - Supabase 专属能力只能封装在 adapter、服务层或迁移脚本内部，包括 Supabase Auth、RLS policies、`auth.users`、`auth.uid()` 和 Dashboard 操作。
 
@@ -156,7 +157,8 @@
 - 保持实现简单，不为小需求引入复杂抽象、复杂状态层或新依赖。
 - 遵循现有文档和代码风格，优先修改现有文件。
 - 业务类型、常量和数据库 check constraint 必须保持一致。
-- 数据访问层集中封装，页面负责组织，组件负责展示和局部交互；页面和组件不得绕过 `src/lib/db` / repository / ORM 边界访问数据库。
+- 数据访问层集中封装，页面负责组织，组件负责展示和局部交互；页面和组件不得绕过 `src/lib/db` 边界访问数据库。
+- 所有数据访问函数必须接收或解析当前用户身份，并在 `src/lib/db` 内部强制用户数据隔离。
 - 错误不能静默吞掉；页面应展示可理解的错误提示。
 - 中文文件按 UTF-8 读取和写入，发现乱码先停止判断原因。
 - 尊重工作区现有改动，不覆盖、不回滚无关内容。
