@@ -11,8 +11,8 @@
 - Phase 02：已按新版拆分完成到 Task 02-06，并通过大节点审核。
 - Phase 03：已完成到 Task 03-04，并通过大节点审核。
 - Phase 04：Task 04-01 至 Task 04-02 已完成并通过审核。
-- Phase 05：Task 05-01 已完成并通过审核。
-- 下一步：执行 Task 05-02。
+- Phase 05：Task 05-01 至 Task 05-02 已完成并通过审核。
+- 下一步：执行 Task 05-03。
 
 ## 已完成阶段和任务
 
@@ -20,7 +20,7 @@
 - Phase 02 Supabase 与数据库：新版 Task 02-00 至 Task 02-06 已完成。
 - Phase 03 认证与路由保护：Task 03-01 至 Task 03-04 已完成并审核通过。
 - Phase 04 应用主界面：Task 04-01 至 Task 04-02 已完成并审核通过。
-- Phase 05 知识数据层：Task 05-01 已完成并审核通过。
+- Phase 05 知识数据层：Task 05-01 至 Task 05-02 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -47,7 +47,7 @@
 
 ## 下一个建议任务
 
-- Phase 05 下一个任务建议为 Task 05-02：实现新建知识页基础版。
+- Phase 05 下一个任务建议为 Task 05-03：实现全部内容列表页基础版。
 
 ## 大节点审核记录
 
@@ -59,6 +59,7 @@
 | Phase 04 Task 04-01 | 已审核通过 | AppShell 桌面布局完成，commit `fd7d469`；Spec / Quality review 均通过。 |
 | Phase 04 Task 04-02 | 已审核通过 | App navigation 完成，commit `0ad5716`；Spec / Quality review 均通过。 |
 | Phase 05 Task 05-01 | 已审核通过 | 知识数据访问层基础函数完成，commit `4faf71d`；外键修复 commit `45fc26d`；Spec 复审 `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`。 |
+| Phase 05 Task 05-02 | 已审核通过 | 新建知识页基础版完成，commit `c954c6f`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
 
 ## 未决问题 / 风险
 
@@ -68,3 +69,6 @@
 - Task 04-03 移动端导航为 P2，按 `development_plan` 推荐顺序排在后续。
 - 后续实现 tags repository 前，应补齐 Drizzle schema 中 `tags` 和 `knowledge_item_tags`。
 - 后续筛选复杂后可加强 query builder 测试。
+- Task 05-02 未做真实登录态下浏览器提交和数据库写入手动验证，后续联调时需补。
+- 后续统一登录态失效处理策略。
+- 新建页 validation test 后续可接入 `package.json` 测试脚本。
