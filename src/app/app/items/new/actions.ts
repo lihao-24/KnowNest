@@ -4,8 +4,7 @@ import { redirect } from "next/navigation";
 
 import { AUTH_REQUIRED_MESSAGE, requireUser } from "@/lib/auth/server";
 import { createKnowledgeItem } from "@/lib/db/knowledge-items";
-
-import { validateKnowledgeItemDraft } from "./validation";
+import { buildKnowledgeItemDraftPayload } from "@/lib/knowledge/knowledge-item-draft";
 
 const SAVE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "保存失败，请稍后重试。";
 
@@ -17,10 +16,7 @@ export async function createKnowledgeItemAction(
   _previousState: CreateKnowledgeItemActionState,
   formData: FormData,
 ): Promise<CreateKnowledgeItemActionState> {
-  const validation = validateKnowledgeItemDraft({
-    title: String(formData.get("title") ?? ""),
-    content: String(formData.get("content") ?? ""),
-  });
+  const validation = buildKnowledgeItemDraftPayload(formData);
 
   if (!validation.ok) {
     return {

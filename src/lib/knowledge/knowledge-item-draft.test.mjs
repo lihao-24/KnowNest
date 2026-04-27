@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 
 import {
   EMPTY_KNOWLEDGE_ITEM_MESSAGE,
+  buildKnowledgeItemDraftPayload,
   validateKnowledgeItemDraft,
-} from "./validation.ts";
+} from "./knowledge-item-draft.ts";
 
 const emptyDraft = validateKnowledgeItemDraft({
   title: "   ",
@@ -16,7 +17,7 @@ assert.deepEqual(emptyDraft, {
 });
 
 const titleOnlyDraft = validateKnowledgeItemDraft({
-  title: "只写标题",
+  title: "  只写标题  ",
   content: "",
 });
 
@@ -30,7 +31,7 @@ assert.deepEqual(titleOnlyDraft, {
 
 const contentOnlyDraft = validateKnowledgeItemDraft({
   title: "",
-  content: "只写正文",
+  content: "  只写正文  ",
 });
 
 assert.deepEqual(contentOnlyDraft, {
@@ -38,5 +39,21 @@ assert.deepEqual(contentOnlyDraft, {
   value: {
     title: "",
     content: "只写正文",
+  },
+});
+
+const formData = new FormData();
+formData.set("title", "  编辑后的标题  ");
+formData.set("content", "\n编辑后的正文\n");
+formData.set("userId", "forged-user-id");
+formData.set("status", "archived");
+
+const updatePayload = buildKnowledgeItemDraftPayload(formData);
+
+assert.deepEqual(updatePayload, {
+  ok: true,
+  value: {
+    title: "编辑后的标题",
+    content: "编辑后的正文",
   },
 });

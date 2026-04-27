@@ -15,6 +15,15 @@ export type KnowledgeItemDraftValidationResult =
       error: string;
     };
 
+export function buildKnowledgeItemDraftPayload(
+  formData: FormData,
+): KnowledgeItemDraftValidationResult {
+  return validateKnowledgeItemDraft({
+    title: String(formData.get("title") ?? ""),
+    content: String(formData.get("content") ?? ""),
+  });
+}
+
 export function validateKnowledgeItemDraft(
   draft: KnowledgeItemDraft,
 ): KnowledgeItemDraftValidationResult {
