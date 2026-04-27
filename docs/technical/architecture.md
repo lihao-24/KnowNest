@@ -43,9 +43,9 @@ V0.1 推荐技术栈如下：
 语言：TypeScript
 样式：Tailwind CSS
 UI 组件：shadcn/ui，可选
-数据库：Supabase PostgreSQL
-认证：Supabase Auth
-部署：Vercel
+数据库：开发期 Supabase PostgreSQL；生产期优先腾讯云轻量应用服务器 + 自建 PostgreSQL
+认证：开发期 Supabase Auth；调用边界统一封装在 `src/lib/auth`
+部署：开发 / 预览期可使用 Vercel；生产期优先腾讯云轻量应用服务器，HTTPS 后续使用 Caddy / Let's Encrypt
 编辑器：textarea + Markdown 渲染
 Markdown 渲染：react-markdown 或同类库
 表单校验：Zod，可选
@@ -63,18 +63,28 @@ Markdown 渲染：react-markdown 或同类库
 - 适合长期 Web App 项目。
 - 可以同时支持页面、服务端逻辑和 API 能力。
 - 后续接入 AI 功能会更自然。
-- 适合部署到 Vercel。
+- 适合部署到 Vercel 预览环境，也可以部署到 Node.js 服务器。
 - 生态成熟，便于后续维护。
 
-### 3.2.2 选择 Supabase
+### 3.2.2 开发期选择 Supabase
 
-选择 Supabase 的原因：
+开发期可以使用 Supabase 的原因：
 
 - 提供 PostgreSQL 数据库。
 - 提供认证能力。
 - 支持 Row Level Security。
 - 后续可以扩展 pgvector。
 - 对个人项目和 MVP 友好。
+
+但 Supabase 是当前开发期的效率工具，不是 KnowNest 生产期的唯一长期架构。生产期优先迁移到腾讯云轻量应用服务器 + 自建 PostgreSQL，HTTPS 后续使用 Caddy / Let's Encrypt。
+
+因此 V0.1 需要把 Supabase 作为可替换实现隔离：
+
+- 页面和业务组件不得直接调用 Supabase SDK。
+- 数据库访问必须经过 `src/lib/db`，或后续明确的 repository / ORM 层。
+- 认证调用必须经过 `src/lib/auth`。
+- Supabase Auth、RLS、`auth.users`、`auth.uid()`、Dashboard 等专属能力只能出现在 adapter、服务层或迁移脚本边界内。
+- V0.1 不实现文件上传，不接入 Supabase Storage，也不接入腾讯云 COS；后续如做附件能力，必须先设计 storage adapter。
 
 ### 3.2.3 暂不引入复杂状态管理
 
@@ -117,11 +127,12 @@ UI 页面层
   ↓
 业务组件层
   ↓
-数据访问层
+认证服务层 / 数据访问层
   ↓
-Supabase Client
+基础设施 adapter
   ↓
-Supabase Auth + PostgreSQL + RLS
+开发期 Supabase Auth + PostgreSQL + RLS
+生产期自建 PostgreSQL + 服务端权限校验
 ```
 
 ### 4.1.1 UI 页面层
@@ -144,9 +155,9 @@ Supabase Auth + PostgreSQL + RLS
 - Markdown 编辑器
 - 空状态、加载状态、错误状态
 
-### 4.1.3 数据访问层
+### 4.1.3 认证服务层与数据访问层
 
-负责封装 Supabase 查询。
+负责封装认证调用和数据库查询。
 
 例如：
 
@@ -161,16 +172,25 @@ upsertTags
 updateItemTags
 ```
 
-页面不应直接散落大量 Supabase 查询逻辑。
+页面和业务组件不得直接调用 Supabase SDK 或 Supabase Auth。
 
-### 4.1.4 Supabase 层
+边界要求：
+
+- 页面和业务组件只调用 `src/lib/auth` 暴露的认证函数。
+- 页面和业务组件只调用 `src/lib/db` 或后续 repository / ORM 层暴露的数据函数。
+- 开发期如果短期使用 Supabase SDK，调用点也必须限制在 `src/lib/auth`、`src/lib/db`、`src/lib/supabase` 或明确 adapter 内部。
+- 后续从 Supabase 迁移到自建 PostgreSQL 时，应优先替换 adapter、服务层或 repository，不应改动大批页面组件。
+
+### 4.1.4 基础设施 adapter 层
 
 负责：
 
-- 用户认证
-- 数据存储
-- 权限控制
-- RLS 数据隔离
+- 连接开发期 Supabase Auth / PostgreSQL / RLS。
+- 连接生产期自建 PostgreSQL。
+- 隔离 Supabase SDK、Supabase Dashboard 操作、RLS policies 等供应商专属能力。
+- 为未来存储、备份、AI 等基础设施能力提供可替换边界。
+
+V0.1 不做文件上传，因此当前不创建 Supabase Storage 或腾讯云 COS 相关代码、环境变量和业务入口。
 
 ---
 
@@ -187,20 +207,22 @@ Components
         ↓
 Domain Services / Data Access
         ↓
-Supabase Client
+Infrastructure Adapters
         ↓
-Supabase Auth + PostgreSQL + RLS
+Dev: Supabase Auth + PostgreSQL + RLS
+Prod target: Tencent Lighthouse + PostgreSQL + Caddy / Let's Encrypt
 ```
 
 ---
 
 ## 5. 部署架构
 
-V0.1 推荐部署方式：
+V0.1 需要区分开发期、预览期和生产期目标：
 
 ```text
-前端应用：Vercel
-数据库与认证：Supabase
+开发期：本地 Next.js + Supabase PostgreSQL / Auth / Dashboard
+预览期：可使用 Vercel + Supabase
+生产期优先：腾讯云轻量应用服务器 + 自建 PostgreSQL + Caddy / Let's Encrypt
 代码仓库：GitHub
 ```
 
@@ -216,7 +238,7 @@ V0.1 可以直接连接远程 Supabase，减少本地数据库维护成本。
 
 后续如果需要更严格的开发环境，可以再引入 Supabase Local Development。
 
-### 5.2 生产环境
+### 5.2 预览环境
 
 ```text
 用户浏览器
@@ -225,6 +247,26 @@ Vercel 部署的 Next.js 应用
   ↓
 Supabase Auth / Database
 ```
+
+Vercel + Supabase 可作为开发预览和临时上线方案，但不应让业务代码与 Supabase SDK 强绑定。
+
+### 5.3 生产环境目标
+
+```text
+用户浏览器
+  ↓
+腾讯云轻量应用服务器
+  ↓
+Caddy / Let's Encrypt HTTPS
+  ↓
+Next.js 应用
+  ↓
+自建 PostgreSQL
+```
+
+生产期优先使用自建 PostgreSQL。认证和权限可以在服务端认证层、repository 查询条件和数据库约束中实现；如果仍临时使用 Supabase PostgreSQL / Auth，需要在发布说明中保留迁移计划。
+
+V0.1 不做文件上传，不配置 Supabase Storage 或腾讯云 COS。附件和备份能力后续可以迁移到腾讯云 COS，但进入实现前必须先设计 storage adapter 和备份策略。
 
 ---
 
@@ -377,7 +419,7 @@ ui：基础 UI 组件
 
 ## 7.3 `src/lib/supabase`
 
-负责 Supabase Client 初始化。
+负责开发期 Supabase Client 初始化，并把 Supabase SDK 限制在基础设施边界内。
 
 建议拆分：
 
@@ -387,11 +429,13 @@ server.ts      服务端 Supabase Client
 middleware.ts  中间件相关 Supabase 工具
 ```
 
+页面、业务组件、表单组件不应直接导入 `src/lib/supabase` 或 Supabase SDK。若后续迁移到自建 PostgreSQL，这一层应可以被替换或收缩。
+
 ---
 
 ## 7.4 `src/lib/auth`
 
-负责认证相关辅助函数。
+负责认证相关辅助函数，是页面和组件唯一允许调用的认证边界。
 
 例如：
 
@@ -405,6 +449,9 @@ requireUser()
 - 页面中不重复写获取用户逻辑。
 - 需要登录的页面可以统一校验。
 - 后续权限逻辑可集中维护。
+- 开发期可在内部调用 Supabase Auth。
+- 页面和业务组件不得直接调用 `supabase.auth.*`。
+- 生产期如替换认证方案，优先修改 `src/lib/auth` 和相关 adapter。
 
 ---
 
@@ -422,7 +469,9 @@ profiles.ts
 
 该目录是 V0.1 的数据访问层。
 
-页面和组件尽量调用这里的函数，而不是直接写 Supabase 查询。
+页面和组件必须调用这里的函数，或后续确定的 repository / ORM 层，而不是直接写 Supabase 查询、SQL client 查询或 ORM 查询。
+
+开发期如果使用 Supabase SDK，Supabase 查询只能封装在 `src/lib/db` 或明确 adapter 内部。所有查询函数必须接收或解析当前用户身份，不能依赖页面层自行过滤用户数据。
 
 ---
 
@@ -541,7 +590,7 @@ status = archived 的知识条目
 
 ## 9.1 认证方案
 
-V0.1 使用 Supabase Auth。
+V0.1 开发期可以使用 Supabase Auth。
 
 优先支持：
 
@@ -558,16 +607,25 @@ Apple 登录
 GitHub 登录
 ```
 
+认证调用边界必须统一经过：
+
+```text
+src/lib/auth
+```
+
+页面、布局和业务组件不得直接调用 Supabase Auth API。Supabase Auth 只能作为 `src/lib/auth` 或明确 auth adapter 内部的开发期实现细节。
+
 ---
 
 ## 9.2 会话管理
 
 基本原则：
 
-1. 登录状态由 Supabase Auth 维护。
+1. 开发期登录状态可由 Supabase Auth 维护。
 2. 页面刷新后应保持登录状态。
 3. 需要登录的页面必须校验用户会话。
 4. 退出登录后清除本地会话并回到登录页。
+5. 页面层只依赖 `src/lib/auth` 暴露的会话和用户函数。
 
 ---
 
@@ -578,7 +636,7 @@ GitHub 登录
   ↓
 输入邮箱和密码
   ↓
-调用 Supabase Auth 登录
+调用 `src/lib/auth` 的登录封装
   ↓
 登录成功
   ↓
@@ -594,7 +652,7 @@ GitHub 登录
   ↓
 点击退出登录
   ↓
-调用 Supabase Auth signOut
+调用 `src/lib/auth` 的退出封装
   ↓
 跳转 /login
 ```
@@ -603,7 +661,7 @@ GitHub 登录
 
 ## 9.5 用户数据隔离
 
-V0.1 采用双层保护：
+V0.1 开发期采用双层保护：
 
 ```text
 前端路由保护
@@ -613,7 +671,7 @@ Supabase RLS 数据库权限保护
 
 前端不应依赖“隐藏按钮”来保证安全。
 
-最终数据安全必须由 RLS 保证。
+如果生产期迁移到自建 PostgreSQL，用户隔离必须由服务端认证、repository 查询条件、数据库约束或 PostgreSQL RLS 共同保证。不要把 Supabase RLS 写成唯一长期权限模型。
 
 ---
 
@@ -627,7 +685,17 @@ Supabase RLS 数据库权限保护
 src/lib/db/
 ```
 
-不要在页面和组件中大量散写 Supabase 查询。
+页面和业务组件不得直接调用 Supabase SDK、SQL client 或 ORM。
+
+数据库访问必须经过：
+
+```text
+src/lib/db/
+```
+
+或后续明确的 repository / ORM 层。
+
+开发期可以在 `src/lib/db` 内部短期调用 Supabase SDK；生产期迁移自建 PostgreSQL 时，应优先替换该层内部实现，保持页面和业务组件调用不变。
 
 ---
 
@@ -698,7 +766,7 @@ V0.1 推荐简单策略：
 
 ## 10.4 错误处理约定
 
-数据访问层应统一处理 Supabase 返回的错误。
+数据访问层应统一处理底层数据库或 SDK 返回的错误。
 
 推荐返回方式：
 
@@ -835,7 +903,7 @@ export const KNOWLEDGE_TYPES = [
 职责：
 
 - 展示产品名和登录表单。
-- 调用 Supabase Auth 登录。
+- 调用 `src/lib/auth` 的登录封装。
 - 登录成功后跳转 `/app`。
 - 展示登录错误。
 
@@ -1277,16 +1345,27 @@ V0.1 不需要复杂设计系统，但需要保证：
 
 KnowNest 保存的是个人长期知识，因此 V0.1 必须重视数据隔离。
 
-核心原则：
+开发期核心原则：
 
 ```text
 前端保护用户体验
 数据库 RLS 保证真正安全
 ```
 
+生产期如果迁移到腾讯云轻量应用服务器 + 自建 PostgreSQL，安全边界应调整为：
+
+```text
+前端保护用户体验
+服务端认证校验当前用户
+repository / ORM 查询条件强制用户隔离
+数据库约束或 PostgreSQL RLS 兜底
+```
+
 ---
 
 ## 19.2 必须启用 RLS 的表
+
+在使用 Supabase 作为开发期数据库时，以下业务表必须启用 RLS：
 
 ```text
 profiles
@@ -1334,7 +1413,7 @@ knowledge_item_tags
 
 ## 20. 环境变量设计
 
-V0.1 需要以下环境变量。
+V0.1 开发期连接 Supabase 时需要以下环境变量。
 
 ```text
 NEXT_PUBLIC_SUPABASE_URL=
@@ -1350,6 +1429,21 @@ EMBEDDING_MODEL=
 ```
 
 V0.1 不需要 AI 相关环境变量。
+
+如果 Task 02-02 后续选择 ORM / SQL client 或生产期自建 PostgreSQL，应再引入服务端数据库连接变量，例如：
+
+```text
+DATABASE_URL=
+```
+
+认证阶段可再补充：
+
+```text
+AUTH_SECRET=
+APP_BASE_URL=
+```
+
+V0.1 不实现文件上传，因此不提前加入 Supabase Storage、腾讯云 COS 或 bucket 相关环境变量。
 
 ---
 
@@ -1452,7 +1546,7 @@ V0.1 推荐按以下顺序实现。
 配置 Tailwind CSS
 配置基础目录
 配置环境变量
-配置 Supabase Client
+配置开发期 Supabase Client
 ```
 
 验收：
@@ -1461,6 +1555,7 @@ V0.1 推荐按以下顺序实现。
 本地可以启动开发服务器
 首页可以正常访问
 Supabase Client 可以初始化
+Supabase Client 没有被页面或业务组件直接调用
 ```
 
 ---
@@ -1474,7 +1569,7 @@ Supabase Client 可以初始化
 ```text
 创建 Supabase 项目
 执行数据库初始化 SQL
-配置 Supabase Auth
+配置开发期 Supabase Auth
 实现登录页
 实现退出登录
 实现路由保护
@@ -1487,6 +1582,8 @@ Supabase Client 可以初始化
 刷新后登录状态保持
 退出后回到登录页
 未登录不能访问 /app
+认证调用集中在 `src/lib/auth`
+数据库访问集中在 `src/lib/db`
 ```
 
 ---
@@ -1887,8 +1984,9 @@ V0.1 不要求复杂监控。
 
 ```text
 console.error
-Supabase Dashboard
-Vercel Logs
+Supabase Dashboard（开发期）
+Vercel Logs（预览期）
+Caddy / 应用日志（生产期）
 ```
 
 后续如果产品稳定使用，可增加：
@@ -1985,11 +2083,14 @@ iOS 分享入口
 
 ```text
 attachments 表
-Supabase Storage
+storage adapter
+Supabase Storage 或腾讯云 COS provider
 图片上传
 PDF 上传
 文件预览
 ```
+
+V0.1 不做文件上传，不接入 Supabase Storage 或腾讯云 COS。后续附件能力必须先定义 storage adapter，页面和业务组件不得直接调用具体存储 provider SDK。
 
 ---
 
@@ -2001,7 +2102,8 @@ V0.1 技术架构落地后，应满足：
 
 - 项目目录清晰。
 - 页面、组件、数据访问层分离。
-- Supabase Client 封装在统一位置。
+- Supabase Client 封装在开发期 adapter 边界内。
+- 页面和业务组件不直接调用 Supabase SDK。
 - 业务常量和类型集中维护。
 
 ### 33.2 认证
@@ -2013,13 +2115,14 @@ V0.1 技术架构落地后，应满足：
 
 ### 33.3 数据访问
 
-- 页面不大量散写 Supabase 查询。
-- 核心数据操作封装在 `src/lib/db`。
+- 页面和业务组件不直接调用 Supabase SDK、SQL client 或 ORM。
+- 核心数据操作封装在 `src/lib/db` 或后续 repository / ORM 层。
 - 错误能被抛出并在页面展示。
 
 ### 33.4 权限
 
-- 数据库 RLS 生效。
+- 开发期 Supabase RLS 生效。
+- 生产期服务端用户隔离策略明确。
 - 用户无法访问其他用户数据。
 - 前端路由保护和数据库权限都存在。
 
@@ -2045,7 +2148,9 @@ KnowNest V0.1 的技术架构应保持简单、清晰、可扩展。
 核心路线是：
 
 ```text
-Next.js + TypeScript + Tailwind CSS + Supabase Auth + Supabase PostgreSQL + RLS
+Next.js + TypeScript + Tailwind CSS
+开发期：Supabase Auth + Supabase PostgreSQL + RLS
+生产期优先：腾讯云轻量应用服务器 + 自建 PostgreSQL + Caddy / Let's Encrypt
 ```
 
 核心分层是：
@@ -2054,7 +2159,7 @@ Next.js + TypeScript + Tailwind CSS + Supabase Auth + Supabase PostgreSQL + RLS
 页面层
 组件层
 数据访问层
-Supabase 层
+认证 / 基础设施 adapter 层
 ```
 
 核心开发策略是：
@@ -2071,4 +2176,3 @@ V0.1 的技术重点不是复杂，而是：
 ```text
 稳定、安全、清晰、能持续迭代。
 ```
-

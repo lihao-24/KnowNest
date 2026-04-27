@@ -33,7 +33,7 @@
 
 - 不做 AI 总结、AI 生成标题、AI 标签建议、AI 问答、RAG、Embedding、向量检索。
 - 不做 PWA、Capacitor、iOS App、原生 macOS App、推送、系统分享入口。
-- 不做文件上传、图片上传、PDF 解析、网页全文抓取、浏览器插件、剪藏工具。
+- 不做文件上传、图片上传、PDF 解析、网页全文抓取、浏览器插件、剪藏工具；V0.1 不接 Supabase Storage 或腾讯云 COS。
 - 不做多人协作、团队空间、公开分享、评论、复杂权限体系。
 - 不做知识图谱、双链、反向链接、块编辑器、版本历史、回收站。
 - 不做任务管理、日历、提醒、习惯打卡、健康数据接入。
@@ -47,9 +47,10 @@
 - 样式：Tailwind CSS。
 - UI 组件：shadcn/ui 可选，不强制。
 - 图标：lucide-react 可选。
-- 数据库：Supabase PostgreSQL。
-- 认证：Supabase Auth，V0.1 优先邮箱 + 密码登录。
-- 部署：Vercel。
+- 数据库：开发期可用 Supabase PostgreSQL；生产期优先腾讯云轻量应用服务器 + 自建 PostgreSQL。
+- 认证：开发期可用 Supabase Auth，V0.1 优先邮箱 + 密码登录；认证调用必须经过 `src/lib/auth`。
+- 部署：开发 / 预览期可用 Vercel；生产期优先腾讯云轻量应用服务器，HTTPS 后续使用 Caddy / Let's Encrypt。
+- 开发工具：开发期可以使用 Supabase Dashboard 查看表结构、RLS 和认证状态。
 - Markdown：textarea + react-markdown 或同类库。
 - 表单校验：Zod 可选；简单场景可先不用。
 - 状态管理：优先 React 局部状态、URL Search Params、服务端数据加载；暂不引入 Redux / MobX / Zustand / XState。
@@ -75,10 +76,10 @@
   - `knowledge_items`
   - `tags`
   - `knowledge_item_tags`
-- 所有业务表必须启用 Supabase RLS。
-- 用户数据隔离最终必须由 RLS 保证，前端路由保护只改善体验。
+- 开发期使用 Supabase 时，所有业务表必须启用 Supabase RLS。
+- 用户数据隔离不能只依赖前端路由保护；开发期由 Supabase RLS 兜底，生产期自建部署应由服务端认证 + repository / ORM 查询条件 + 数据库约束或 PostgreSQL RLS 保证。
 - `profiles`：
-  - `id uuid`，对应 `auth.users.id`。
+  - `id uuid`，开发期对应 Supabase `auth.users.id`；业务代码不要直接依赖 `auth.users`。
   - `email text`。
   - `display_name text`，数据库文档中存在，V0.1 可不用。
   - `created_at`、`updated_at`。
@@ -105,7 +106,7 @@
   - `tag_id uuid`
   - `created_at`
   - 主键：`(item_id, tag_id)`。
-  - 保留 `user_id` 以简化 RLS，并防止跨用户绑定。
+  - 保留 `user_id` 以简化开发期 RLS 和生产期服务端用户隔离，并防止跨用户绑定。
 - 标签不要直接作为字符串数组落库；V0.1 推荐关系表设计。
 - 搜索 V0.1 可先使用 `ilike` 搜索 `title` 和 `content`。
 
@@ -118,9 +119,9 @@
   - `src/components/tags`：标签输入、展示、筛选。
   - `src/components/markdown`：Markdown 编辑和预览。
   - `src/components/ui`：基础 UI 组件。
-  - `src/lib/supabase`：Supabase client、server、middleware 工具。
-  - `src/lib/auth`：`getCurrentUser`、`requireUser` 等认证辅助函数。
-  - `src/lib/db`：数据库访问层，集中封装 Supabase 查询。
+  - `src/lib/supabase`：开发期 Supabase client、server、middleware 工具，只作为基础设施 adapter 边界。
+  - `src/lib/auth`：`getCurrentUser`、`requireUser`、登录、退出等认证辅助函数，是页面和组件唯一允许调用的认证入口。
+  - `src/lib/db`：数据库访问层，集中封装数据库查询；开发期可在内部调用 Supabase SDK，后续可替换为 repository / ORM。
   - `src/lib/utils`：日期、字符串、URL 等工具。
   - `src/constants`：空间、状态、类型、路由和导航常量。
   - `src/types`：数据库类型、知识条目类型、标签类型。
@@ -128,7 +129,9 @@
   - 文件名使用 kebab-case。
   - 组件名使用 PascalCase。
   - 函数名使用 camelCase。
-- 页面不要散写大量 Supabase 查询；优先调用 `src/lib/db` 的数据访问函数。
+- 页面和业务组件不得直接调用 Supabase SDK、SQL client 或 ORM；数据库访问必须经过 `src/lib/db` 或后续 repository / ORM 层。
+- 认证调用必须经过 `src/lib/auth`；页面和业务组件不得直接调用 `supabase.auth.*`。
+- Supabase 专属能力只能封装在 adapter、服务层或迁移脚本内部，包括 Supabase Auth、RLS policies、`auth.users`、`auth.uid()` 和 Dashboard 操作。
 
 ## 8. UI 风格与交互
 
@@ -149,11 +152,11 @@
 - 严格控制 V0.1 范围，不临时加入后续版本能力。
 - 小步提交，每次任务只解决一个明确目标。
 - 先跑通主链路：登录 -> 进入应用 -> 新建 -> 列表 -> 编辑 -> 删除。
-- 数据安全不能后置：认证、RLS、用户隔离必须尽早完成。
+- 数据安全不能后置：认证、开发期 RLS 或生产期服务端用户隔离必须尽早完成。
 - 保持实现简单，不为小需求引入复杂抽象、复杂状态层或新依赖。
 - 遵循现有文档和代码风格，优先修改现有文件。
 - 业务类型、常量和数据库 check constraint 必须保持一致。
-- 数据访问层集中封装，页面负责组织，组件负责展示和局部交互。
+- 数据访问层集中封装，页面负责组织，组件负责展示和局部交互；页面和组件不得绕过 `src/lib/db` / repository / ORM 边界访问数据库。
 - 错误不能静默吞掉；页面应展示可理解的错误提示。
 - 中文文件按 UTF-8 读取和写入，发现乱码先停止判断原因。
 - 尊重工作区现有改动，不覆盖、不回滚无关内容。
