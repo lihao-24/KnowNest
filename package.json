@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:auth": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/auth/route-protection.test.mjs",
-    "test:knowledge-items": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/db/knowledge-items.test.mjs"
+    "test:knowledge-items": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/db/knowledge-items.test.mjs",
+    "test:knowledge-list-item": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-list-item-view-model.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
