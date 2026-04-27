@@ -9,7 +9,7 @@ export default function NewKnowledgeItemPage() {
           记录新的知识
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          先快速写下标题或正文，后续再整理空间、类型和标签。
+          写下标题或正文，也可以先设置空间、类型和状态。
         </p>
       </div>
 

@@ -33,6 +33,9 @@ export function KnowledgeListItem({ item }: { item: KnowledgeItem }) {
           <span className="rounded-md bg-slate-100 px-2 py-1">
             {viewModel.typeLabel}
           </span>
+          <span className="rounded-md bg-slate-100 px-2 py-1">
+            {viewModel.statusLabel}
+          </span>
           <span className="ml-auto w-full text-slate-500 sm:w-auto">
             更新时间：{viewModel.updatedAtLabel}
           </span>

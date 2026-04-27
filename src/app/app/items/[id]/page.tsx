@@ -36,7 +36,7 @@ export default async function KnowledgeItemPage({
             编辑知识
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            修改标题或正文后保存，整理字段将在后续任务补齐。
+            修改标题、正文或整理字段后保存。
           </p>
         </div>
 

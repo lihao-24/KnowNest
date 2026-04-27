@@ -30,9 +30,9 @@ export async function createKnowledgeItemAction(
     await createKnowledgeItem(user.id, {
       title: validation.value.title,
       content: validation.value.content,
-      space: "work",
-      type: "note",
-      status: "inbox",
+      space: validation.value.space,
+      type: validation.value.type,
+      status: validation.value.status,
     });
   } catch (error) {
     return {

@@ -24,6 +24,7 @@ const viewModel = buildKnowledgeListItemViewModel(item);
 assert.equal(viewModel.title, DEFAULT_KNOWLEDGE_ITEM_TITLE);
 assert.equal(viewModel.spaceLabel, "工作");
 assert.equal(viewModel.typeLabel, "笔记");
+assert.equal(viewModel.statusLabel, "收集箱");
 assert.equal(viewModel.favoriteLabel, "已收藏");
 assert.equal(viewModel.updatedAtLabel, "2026-04-27");
 assert.ok(viewModel.summary.startsWith("第一行内容 第二行内容"));

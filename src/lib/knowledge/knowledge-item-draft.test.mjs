@@ -26,6 +26,9 @@ assert.deepEqual(titleOnlyDraft, {
   value: {
     title: "只写标题",
     content: "",
+    space: "work",
+    type: "note",
+    status: "inbox",
   },
 });
 
@@ -39,6 +42,9 @@ assert.deepEqual(contentOnlyDraft, {
   value: {
     title: "",
     content: "只写正文",
+    space: "work",
+    type: "note",
+    status: "inbox",
   },
 });
 
@@ -46,7 +52,9 @@ const formData = new FormData();
 formData.set("title", "  编辑后的标题  ");
 formData.set("content", "\n编辑后的正文\n");
 formData.set("userId", "forged-user-id");
-formData.set("status", "archived");
+formData.set("space", "life");
+formData.set("type", "snippet");
+formData.set("status", "organized");
 
 const updatePayload = buildKnowledgeItemDraftPayload(formData);
 
@@ -55,5 +63,23 @@ assert.deepEqual(updatePayload, {
   value: {
     title: "编辑后的标题",
     content: "编辑后的正文",
+    space: "life",
+    type: "snippet",
+    status: "organized",
   },
+});
+
+const forgedMetadataFormData = new FormData();
+forgedMetadataFormData.set("title", "伪造元信息");
+forgedMetadataFormData.set("space", "personal");
+forgedMetadataFormData.set("type", "article");
+forgedMetadataFormData.set("status", "deleted");
+
+const forgedMetadataPayload = buildKnowledgeItemDraftPayload(
+  forgedMetadataFormData,
+);
+
+assert.deepEqual(forgedMetadataPayload, {
+  ok: false,
+  error: "空间、类型或状态不正确。",
 });

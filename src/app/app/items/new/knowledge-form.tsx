@@ -2,11 +2,20 @@
 
 import { useActionState } from "react";
 
+import {
+  KNOWLEDGE_SPACES,
+  KNOWLEDGE_STATUSES,
+  KNOWLEDGE_TYPES,
+} from "@/constants/knowledge";
+
 import { createKnowledgeItemAction } from "./actions";
 
 const initialCreateKnowledgeItemActionState = {
   errorMessage: "",
 };
+
+const selectClassName =
+  "h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm";
 
 export function KnowledgeForm() {
   const [state, formAction, isPending] = useActionState(
@@ -47,6 +56,74 @@ export function KnowledgeForm() {
           name="content"
           placeholder="记录正文内容"
         />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label
+            className="mb-1.5 block text-sm font-medium text-slate-700"
+            htmlFor="space"
+          >
+            空间
+          </label>
+          <select
+            className={selectClassName}
+            defaultValue="work"
+            disabled={isPending}
+            id="space"
+            name="space"
+          >
+            {KNOWLEDGE_SPACES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label
+            className="mb-1.5 block text-sm font-medium text-slate-700"
+            htmlFor="type"
+          >
+            类型
+          </label>
+          <select
+            className={selectClassName}
+            defaultValue="note"
+            disabled={isPending}
+            id="type"
+            name="type"
+          >
+            {KNOWLEDGE_TYPES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label
+            className="mb-1.5 block text-sm font-medium text-slate-700"
+            htmlFor="status"
+          >
+            状态
+          </label>
+          <select
+            className={selectClassName}
+            defaultValue="inbox"
+            disabled={isPending}
+            id="status"
+            name="status"
+          >
+            {KNOWLEDGE_STATUSES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -21,11 +21,18 @@ const typeLabels: Record<KnowledgeItem["type"], string> = {
   snippet: "代码片段",
 };
 
+const statusLabels: Record<KnowledgeItem["status"], string> = {
+  inbox: "收集箱",
+  organized: "已整理",
+  archived: "归档",
+};
+
 export type KnowledgeListItemViewModel = {
   title: string;
   summary: string;
   spaceLabel: string;
   typeLabel: string;
+  statusLabel: string;
   updatedAtLabel: string;
   favoriteLabel: string;
 };
@@ -38,6 +45,7 @@ export function buildKnowledgeListItemViewModel(
     summary: buildKnowledgeItemSummary(item.content),
     spaceLabel: spaceLabels[item.space],
     typeLabel: typeLabels[item.type],
+    statusLabel: statusLabels[item.status],
     updatedAtLabel: formatKnowledgeItemDate(item.updated_at),
     favoriteLabel: item.is_favorite ? "已收藏" : "未收藏",
   };

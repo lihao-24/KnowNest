@@ -47,6 +47,9 @@ export async function updateKnowledgeItemAction(
     const updatedItem = await updateKnowledgeItem(user.id, itemId, {
       title: validation.value.title,
       content: validation.value.content,
+      space: validation.value.space,
+      type: validation.value.type,
+      status: validation.value.status,
     });
 
     if (!updatedItem) {
