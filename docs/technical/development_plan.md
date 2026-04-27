@@ -298,11 +298,63 @@ chore: configure project basics
 
 ## 8. Phase 02：Supabase 与数据库
 
+### Phase 02 修订原则
+
+当前开发阶段可以使用 Supabase PostgreSQL、Supabase Auth 和 Supabase Dashboard 提升开发效率。
+
+但 KnowNest 的生产目标是后续部署到腾讯云轻量应用服务器，并优先使用自建 PostgreSQL。因此 Phase 02 需要同时满足：
+
+```text
+开发期可连接 Supabase
+业务代码不与 Supabase SDK 强绑定
+数据库结构尽量保持标准 PostgreSQL 兼容
+Supabase RLS / Auth 作为开发期实现细节隔离
+后续可以迁移到自建 PostgreSQL + 服务端权限校验
+```
+
+约束：
+
+- 页面和业务组件不要直接调用 Supabase SDK。
+- 数据库访问必须经过 `src/lib/db` 或后续确定的 repository / ORM 层。
+- 认证调用必须经过 `src/lib/auth`，不要在页面中散写 Supabase Auth 调用。
+- Supabase 专属 SQL，例如 `auth.users`、`auth.uid()`、RLS policies，应与通用业务表结构分清边界。
+- V0.1 暂不实现文件上传，因此不提前接入 Supabase Storage 或腾讯云 COS；后续如做文件能力，必须先设计 storage adapter。
+
+---
+
+## Task 02-00：确认开发与生产架构边界
+
+### 目标
+
+明确当前阶段使用 Supabase 只是开发期方案，避免后续业务代码与 Supabase 强绑定。
+
+### 任务内容
+
+- 确认开发阶段使用 Supabase PostgreSQL。
+- 确认生产阶段优先迁移到腾讯云轻量应用服务器 + 自建 PostgreSQL。
+- 确认 HTTPS 后续使用 Caddy / Let's Encrypt。
+- 确认附件和备份后续可迁移到腾讯云 COS，但 V0.1 不实现文件上传。
+- 在架构文档中同步数据库访问层、认证层、存储层的 adapter 边界。
+
+### 验收标准
+
+- 文档明确区分开发期 Supabase 和未来生产环境。
+- 文档明确页面和组件不得直接依赖 Supabase SDK。
+- 文档明确 Supabase 专属能力需要被封装在 adapter 或服务层内部。
+
+### 建议提交
+
+```text
+docs: clarify supabase migration boundary
+```
+
+---
+
 ## Task 02-01：创建 Supabase 项目并配置环境变量
 
 ### 目标
 
-让前端项目可以连接 Supabase。
+让前端项目可以在开发阶段连接 Supabase。
 
 ### 任务内容
 
@@ -311,6 +363,7 @@ chore: configure project basics
 - 获取 anon public key。
 - 填写 `.env.local`。
 - 创建 Supabase Client。
+- 明确 Supabase Client 只放在 `src/lib/supabase`，不在页面、组件或业务逻辑中散用。
 
 ### 建议文件
 
@@ -324,6 +377,8 @@ src/lib/supabase/server.ts
 - 应用可以读取 Supabase 环境变量。
 - Supabase Client 可以初始化。
 - 缺失环境变量时有明确错误提示。
+- 项目中没有硬编码 Supabase URL、anon key、service role key 或 `.env.local` 内容。
+- Supabase SDK 依赖没有扩散到页面和业务组件。
 
 ### 建议提交
 
@@ -333,11 +388,44 @@ feat: configure supabase client
 
 ---
 
-## Task 02-02：执行数据库初始化 SQL
+## Task 02-02：确定数据库访问方案
 
 ### 目标
 
-创建 V0.1 所需数据库表、索引、触发器和 RLS。
+在进入 CRUD 之前确定数据库访问边界，降低未来从 Supabase PostgreSQL 迁移到自建 PostgreSQL 的成本。
+
+### 任务内容
+
+- 决定 V0.1 数据访问方案：
+  - 方案 A：使用 Drizzle / Prisma / `pg` 通过 `DATABASE_URL` 连接 PostgreSQL。
+  - 方案 B：短期使用 Supabase SDK，但只允许在 `src/lib/db` 内部调用。
+- 如果采用方案 A，补充 `DATABASE_URL` 到 `.env.example`。
+- 如果采用方案 B，明确后续迁移时需要替换 `src/lib/db`，页面和组件不受影响。
+- 明确所有数据库查询函数必须接收或解析当前用户 ID，不能依赖页面层自行过滤用户数据。
+
+### 建议文件
+
+```text
+src/lib/db
+.env.example
+docs/technical/architecture.md
+```
+
+### 验收标准
+
+- 页面和组件只依赖 `src/lib/db` 暴露的函数。
+- Supabase SDK、ORM 或 SQL client 不直接出现在页面和业务组件中。
+- 未来切换数据库实现时，主要影响范围被控制在 `src/lib/db` 和数据库迁移文件内。
+
+### 建议提交
+
+```text
+docs: define database access boundary
+```
+
+---
+
+## Task 02-03：创建数据库迁移脚本
 
 ### 输入文档
 
@@ -345,9 +433,13 @@ feat: configure supabase client
 docs/technical/database-schema.md
 ```
 
+### 目标
+
+创建可版本化、可审计、可复现的数据库 schema 脚本。
+
 ### 任务内容
 
-- 在 Supabase SQL Editor 中执行初始化 SQL。
+- 将初始化 SQL 落地为独立 migration 或 schema 文件。
 - 创建以下表：
 
 ```text
@@ -358,27 +450,68 @@ knowledge_item_tags
 ```
 
 - 创建 updated_at trigger。
-- 创建新用户 profile trigger。
 - 创建索引。
-- 启用 RLS。
-- 创建 RLS policies。
+- 将 Supabase 专属 SQL 单独标注，例如：
+  - `auth.users`
+  - `auth.uid()`
+  - 新用户 profile trigger
+  - RLS policies
+- 在 Supabase SQL Editor 中执行当前开发环境所需 SQL。
 
 ### 验收标准
 
+- 仓库内存在可执行的数据库初始化 SQL / migration。
 - 数据库表创建成功。
-- RLS 已启用。
+- 通用业务表结构尽量保持标准 PostgreSQL 兼容。
+- Supabase 专属权限 SQL 有清晰注释，未来迁移时可以定位替换。
+- 如果开发期继续使用 Supabase RLS，则 RLS 已启用。
 - Supabase Dashboard 中可以看到对应表结构。
 - 新用户注册后可以自动生成 profile。
 
 ### 建议提交
 
 ```text
-docs: add database setup notes
+db: add initial schema migration
 ```
 
 ---
 
-## Task 02-03：定义前端业务类型和常量
+## Task 02-04：修订数据库 schema 的迁移说明
+
+### 目标
+
+让数据库设计同时服务开发期 Supabase 和未来自建 PostgreSQL。
+
+### 任务内容
+
+- 在数据库文档中区分：
+  - 通用 PostgreSQL 业务表结构。
+  - Supabase Auth / RLS 专属实现。
+  - 未来自建 PostgreSQL 的权限实现方向。
+- 明确 `profiles` 是业务用户资料表，不应让业务代码直接依赖 Supabase `auth.users`。
+- 明确用户隔离在 Supabase 开发期由 RLS 保证；在自建部署中应由服务端认证 + repository 查询条件保证。
+- 明确 `pg_trgm` 等扩展是可选搜索优化，不是 Phase 02 必需能力。
+
+### 建议文件
+
+```text
+docs/technical/database-schema.md
+```
+
+### 验收标准
+
+- 文档能指导开发者区分哪些 SQL 可直接迁移到自建 PostgreSQL，哪些需要替换。
+- 文档没有把 Supabase RLS 描述成唯一长期权限模型。
+
+### 建议提交
+
+```text
+docs: document database portability notes
+```
+
+---
+
+## Task 02-05：定义前端业务类型和常量
 
 ### 目标
 
@@ -411,6 +544,61 @@ src/constants/knowledge.ts
 
 ```text
 feat: add knowledge types and constants
+```
+
+---
+
+## Task 02-06：补充环境变量策略
+
+### 目标
+
+让本地开发、开发数据库和未来生产部署的配置边界更清晰。
+
+### 任务内容
+
+- 保留当前 Supabase 开发变量：
+
+```text
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+- 如果 Task 02-02 选择 ORM / SQL client，则补充：
+
+```text
+DATABASE_URL=
+```
+
+- 认证阶段再补充：
+
+```text
+AUTH_SECRET=
+APP_BASE_URL=
+```
+
+- 生产部署阶段再补充：
+
+```text
+CORS_ORIGIN=
+```
+
+- V0.1 不提前加入 Storage 配置；等文件上传进入范围时再加入：
+
+```text
+STORAGE_PROVIDER=
+STORAGE_BUCKET=
+```
+
+### 验收标准
+
+- `.env.example` 只包含当前阶段真正需要或即将需要的变量。
+- 没有硬编码 Supabase URL、API key、数据库连接串、Bucket name。
+- 文档明确 `.env.local` 不提交到 Git。
+
+### 建议提交
+
+```text
+chore: document environment variables
 ```
 
 ---
@@ -452,7 +640,7 @@ feat: add login page ui
 
 ---
 
-## Task 03-02：接入 Supabase 登录逻辑
+## Task 03-02：接入登录逻辑
 
 ### 目标
 
@@ -460,16 +648,19 @@ feat: add login page ui
 
 ### 任务内容
 
-- 调用 Supabase Auth 登录方法。
+- 通过 `src/lib/auth` 封装登录方法。
+- 当前开发期可以在 `src/lib/auth` 内部调用 Supabase Auth。
 - 登录成功后跳转 `/app`。
 - 登录失败时展示错误。
 - 登录中禁用按钮。
+- 页面不要直接调用 `supabase.auth.*`。
 
 ### 验收标准
 
 - 正确账号可以登录。
 - 错误账号显示错误提示。
 - 登录成功后进入 `/app`。
+- 登录实现集中在认证服务层，方便后续替换认证方案。
 
 ### 建议提交
 
@@ -487,14 +678,17 @@ feat: implement email password login
 
 ### 任务内容
 
-- 调用 Supabase Auth signOut。
+- 通过 `src/lib/auth` 封装退出登录方法。
+- 当前开发期可以在 `src/lib/auth` 内部调用 Supabase Auth signOut。
 - 退出后跳转 `/login`。
 - 清除当前会话状态。
+- 页面不要直接调用 `supabase.auth.*`。
 
 ### 验收标准
 
 - 登录后可以退出。
 - 退出后不能继续访问 `/app`。
+- 退出登录实现集中在认证服务层。
 
 ### 建议提交
 
@@ -653,7 +847,9 @@ deleteKnowledgeItem(id)
 
 ### 验收标准
 
-- 函数调用 Supabase 查询。
+- 函数调用 Task 02-02 确定的数据访问实现。
+- 页面和组件不直接调用 Supabase SDK、ORM 或 SQL client。
+- 查询和写入都必须按当前用户隔离数据。
 - 错误不会被静默吞掉。
 - 返回类型清晰。
 
@@ -962,6 +1158,7 @@ updateItemTags(itemId, tagNames)
 - 同一用户下不会重复创建同名标签。
 - 可以查询某条知识的标签。
 - 可以更新某条知识的标签绑定。
+- 标签数据访问集中在 `src/lib/db/tags.ts`，页面和组件不直接调用 Supabase SDK、ORM 或 SQL client。
 
 ### 建议提交
 
@@ -1367,7 +1564,7 @@ feat: add settings page
 类型筛选
 移动端布局
 多设备刷新同步
-RLS 数据隔离
+开发期 RLS 数据隔离 / 生产期服务端用户隔离策略
 ```
 
 ### 验收标准
@@ -1383,30 +1580,40 @@ test: complete v0.1 manual verification
 
 ---
 
-## Task 11-02：部署到 Vercel
+## Task 11-02：生产部署准备与上线
 
 ### 目标
 
-将 KnowNest V0.1 部署到线上环境。
+将 KnowNest V0.1 部署到线上环境，并为后续腾讯云轻量应用服务器部署做好准备。
 
 ### 任务内容
 
-- 连接 GitHub 仓库到 Vercel。
-- 配置环境变量。
-- 执行部署。
+- 确认当前上线方式：
+  - 临时预览环境可以使用 Vercel。
+  - 正式生产环境优先使用腾讯云轻量应用服务器。
+- 如果使用腾讯云轻量应用服务器，规划以下服务：
+  - app
+  - postgres
+  - caddy
+  - backup job
+- 配置生产环境变量。
+- 配置 HTTPS，优先使用 Caddy / Let's Encrypt 自动证书。
 - 验证线上登录和数据读写。
+- 验证数据库备份策略。
 
 ### 验收标准
 
 - 线上地址可以访问。
 - 可以登录。
 - 可以新建、编辑、删除知识。
-- 线上环境连接 Supabase 正常。
+- 线上环境连接目标数据库正常。
+- 如果仍临时使用 Supabase PostgreSQL，需要明确后续迁移计划。
+- 如果使用自建 PostgreSQL，需要确认备份和恢复流程。
 
 ### 建议提交
 
 ```text
-chore: deploy v0.1 to vercel
+chore: prepare production deployment
 ```
 
 ---
@@ -1450,43 +1657,47 @@ docs: update project readme
 | 1 | Task 01-01 初始化项目 | 无 | P0 |
 | 2 | Task 01-02 创建目录结构 | 01-01 | P0 |
 | 3 | Task 01-03 配置基础规范 | 01-01 | P0 |
-| 4 | Task 02-01 配置 Supabase | 01-03 | P0 |
-| 5 | Task 02-02 执行数据库 SQL | 02-01 | P0 |
-| 6 | Task 02-03 定义类型常量 | 02-02 | P0 |
-| 7 | Task 03-01 登录页 UI | 02-01 | P0 |
-| 8 | Task 03-02 登录逻辑 | 03-01 | P0 |
-| 9 | Task 03-03 退出登录 | 03-02 | P0 |
-| 10 | Task 03-04 路由保护 | 03-02 | P0 |
-| 11 | Task 04-01 AppShell | 03-04 | P0 |
-| 12 | Task 04-02 导航项 | 04-01 | P0 |
-| 13 | Task 05-01 数据访问层 | 02-03 | P0 |
-| 14 | Task 05-02 新建知识 | 05-01 | P0 |
-| 15 | Task 05-03 知识列表 | 05-02 | P0 |
-| 16 | Task 05-04 详情编辑 | 05-03 | P0 |
-| 17 | Task 05-05 删除知识 | 05-04 | P0 |
-| 18 | Task 06-01 元信息字段 | 05-04 | P1 |
-| 19 | Task 06-02 收藏 | 06-01 | P1 |
-| 20 | Task 06-03 收集箱 | 06-01 | P1 |
-| 21 | Task 06-04 收藏页 | 06-02 | P1 |
-| 22 | Task 06-05 归档页 | 06-01 | P1 |
-| 23 | Task 07-01 标签数据层 | 05-04 | P1 |
-| 24 | Task 07-02 TagInput | 07-01 | P1 |
-| 25 | Task 07-03 标签接入表单 | 07-02 | P1 |
-| 26 | Task 07-04 标签筛选 | 07-03 | P1 |
-| 27 | Task 08-01 关键词搜索 | 05-03 | P1 |
-| 28 | Task 08-02 元信息筛选 | 08-01 | P1 |
-| 29 | Task 08-03 收藏筛选 | 08-02 | P2 |
-| 30 | Task 09-01 MarkdownEditor | 05-04 | P2 |
-| 31 | Task 09-02 MarkdownPreview | 09-01 | P2 |
-| 32 | Task 09-03 编辑预览切换 | 09-02 | P2 |
-| 33 | Task 04-03 移动端导航 | 04-02 | P2 |
-| 34 | Task 10-01 状态反馈 | 核心页面完成后 | P2 |
-| 35 | Task 10-02 移动端优化 | 核心页面完成后 | P2 |
-| 36 | Task 10-03 操作反馈 | 核心 CRUD 后 | P2 |
-| 37 | Task 10-04 设置页完善 | 03-03 | P2 |
-| 38 | Task 11-01 功能自测 | 全部功能后 | P0 |
-| 39 | Task 11-02 Vercel 部署 | 自测通过 | P0 |
-| 40 | Task 11-03 README | 部署前后均可 | P2 |
+| 4 | Task 02-00 确认开发与生产架构边界 | 01-03 | P1 |
+| 5 | Task 02-01 配置 Supabase 开发连接 | 02-00 | P0 |
+| 6 | Task 02-02 确定数据库访问方案 | 02-00 | P0 |
+| 7 | Task 02-03 创建数据库迁移脚本 | 02-02 | P1 |
+| 8 | Task 02-04 修订数据库迁移说明 | 02-03 | P1 |
+| 9 | Task 02-05 定义类型常量 | 02-03 | P0 |
+| 10 | Task 02-06 补充环境变量策略 | 02-02 | P1 |
+| 11 | Task 03-01 登录页 UI | 02-01 | P0 |
+| 12 | Task 03-02 登录逻辑 | 03-01、02-00 | P0 |
+| 13 | Task 03-03 退出登录 | 03-02 | P0 |
+| 14 | Task 03-04 路由保护 | 03-02 | P0 |
+| 15 | Task 04-01 AppShell | 03-04 | P0 |
+| 16 | Task 04-02 导航项 | 04-01 | P0 |
+| 17 | Task 05-01 数据访问层 | 02-02、02-05 | P0 |
+| 18 | Task 05-02 新建知识 | 05-01 | P0 |
+| 19 | Task 05-03 知识列表 | 05-02 | P0 |
+| 20 | Task 05-04 详情编辑 | 05-03 | P0 |
+| 21 | Task 05-05 删除知识 | 05-04 | P0 |
+| 22 | Task 06-01 元信息字段 | 05-04 | P1 |
+| 23 | Task 06-02 收藏 | 06-01 | P1 |
+| 24 | Task 06-03 收集箱 | 06-01 | P1 |
+| 25 | Task 06-04 收藏页 | 06-02 | P1 |
+| 26 | Task 06-05 归档页 | 06-01 | P1 |
+| 27 | Task 07-01 标签数据层 | 05-04 | P1 |
+| 28 | Task 07-02 TagInput | 07-01 | P1 |
+| 29 | Task 07-03 标签接入表单 | 07-02 | P1 |
+| 30 | Task 07-04 标签筛选 | 07-03 | P1 |
+| 31 | Task 08-01 关键词搜索 | 05-03 | P1 |
+| 32 | Task 08-02 元信息筛选 | 08-01 | P1 |
+| 33 | Task 08-03 收藏筛选 | 08-02 | P2 |
+| 34 | Task 09-01 MarkdownEditor | 05-04 | P2 |
+| 35 | Task 09-02 MarkdownPreview | 09-01 | P2 |
+| 36 | Task 09-03 编辑预览切换 | 09-02 | P2 |
+| 37 | Task 04-03 移动端导航 | 04-02 | P2 |
+| 38 | Task 10-01 状态反馈 | 核心页面完成后 | P2 |
+| 39 | Task 10-02 移动端优化 | 核心页面完成后 | P2 |
+| 40 | Task 10-03 操作反馈 | 核心 CRUD 后 | P2 |
+| 41 | Task 10-04 设置页完善 | 03-03 | P2 |
+| 42 | Task 11-01 功能自测 | 全部功能后 | P0 |
+| 43 | Task 11-02 生产部署准备与上线 | 自测通过 | P0 |
+| 44 | Task 11-03 README | 部署前后均可 | P2 |
 
 ---
 
@@ -1496,8 +1707,9 @@ docs: update project readme
 
 ```text
 项目初始化
-Supabase 连接
+开发期 Supabase 连接
 数据库表
+数据库访问边界
 认证
 路由保护
 主布局
@@ -1513,6 +1725,9 @@ Supabase 连接
 空间
 状态
 类型
+数据库迁移脚本
+Supabase 解耦约束
+生产部署兼容性
 收藏
 收集箱
 归档
@@ -1581,6 +1796,7 @@ README 完善
 3. 优先保持实现简单、清晰、可维护。
 4. 修改完成后说明改动文件、实现内容和需要我手动验证的步骤。
 5. 如果发现文档和现有代码冲突，先说明冲突，不要擅自扩大范围。
+6. 开发期可以使用 Supabase，但页面和业务组件不要直接依赖 Supabase SDK；数据库访问走 `src/lib/db`，认证访问走 `src/lib/auth`。
 ```
 
 ---
@@ -1597,6 +1813,7 @@ README 完善
 4. 是否存在明显的类型问题。
 5. 是否存在认证或数据权限风险。
 6. 是否有可以简化的实现。
+7. 是否把 Supabase SDK、Auth 或 Storage API 扩散到了页面、组件或业务逻辑中。
 
 请给出：
 - 必须修改的问题
@@ -1752,4 +1969,3 @@ Markdown 和体验优化
 V0.1 的最终目标不是功能丰富，而是先形成一个真正可用的个人知识库底座。
 
 只要这个底座稳定，后续的 AI 辅助整理、知识库问答、PWA 和 iOS App 化都可以在此基础上继续迭代。
-
