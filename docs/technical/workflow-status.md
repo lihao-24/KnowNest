@@ -11,8 +11,8 @@
 - Phase 02：已按新版拆分完成到 Task 02-06，并通过大节点审核。
 - Phase 03：已完成到 Task 03-04，并通过大节点审核。
 - Phase 04：Task 04-01 至 Task 04-02 已完成并通过审核。
-- Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，等待大节点审核。
-- 下一步：Phase 05 大节点审核。
+- Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，大节点审核已通过。
+- 下一步：Phase 06 Task 06-01。
 
 ## 已完成阶段和任务
 
@@ -20,7 +20,7 @@
 - Phase 02 Supabase 与数据库：新版 Task 02-00 至 Task 02-06 已完成。
 - Phase 03 认证与路由保护：Task 03-01 至 Task 03-04 已完成并审核通过。
 - Phase 04 应用主界面：Task 04-01 至 Task 04-02 已完成并审核通过。
-- Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，等待大节点审核。
+- Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，大节点审核已通过。
 
 ## 最新关键技术决策
 
@@ -47,7 +47,7 @@
 
 ## 下一个建议任务
 
-- Phase 05 下一个任务建议为大节点审核；若通过，再进入 Phase 06 Task 06-01。
+- Phase 06 Task 06-01：在表单中加入空间、状态、类型字段。
 
 ## 大节点审核记录
 
@@ -63,21 +63,21 @@
 | Phase 05 Task 05-03 | 已审核通过 | 全部内容列表页基础版完成，commit `387b229`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
 | Phase 05 Task 05-04 | 已审核通过 | 知识详情 / 编辑页基础版完成，commit `a132385`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
 | Phase 05 Task 05-05 | 已审核通过 | 删除知识流程完成，commit `683d1d5`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
+| Phase 05 | 已审核通过 | 大节点审核结论 `PHASE05_APPROVED`；允许进入 Phase 06 Task 06-01；验证通过 `npm.cmd run lint`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run build`；必须修改：无。 |
 
 ## 未决问题 / 风险
 
 - 后续实现主布局和业务页面时，需要持续检查 Supabase SDK 是否扩散到页面或业务组件。
-- 后续 CRUD 阶段必须验证 `src/lib/db` 内的用户隔离，不能只依赖前端路由保护。
+- Phase 06 后重点验证跨用户不可读、不可改、不可删。
 - `src/components/layout/app-sidebar-nav.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - Task 04-03 移动端导航为 P2，按 `development_plan` 推荐顺序排在后续。
 - 后续实现 tags repository 前，应补齐 Drizzle schema 中 `tags` 和 `knowledge_item_tags`。
 - 后续筛选复杂后可加强 query builder 测试。
-- Task 05-02 未做真实登录态下浏览器提交和数据库写入手动验证，后续联调时需补。
-- Task 05-03 未做真实登录态浏览器验证和数据库内容刷新确认，后续联调时需补。
-- Task 05-04 未做真实登录态浏览器提交和数据库刷新验证，后续联调时需补。
-- Task 05-05 未做真实登录态浏览器联调和真实数据库删除手动验证，后续联调时需补。
 - 当前没有独立 `typecheck` script，build 已覆盖 Next/TypeScript 集成检查。
+- Drizzle schema 后续补齐 check constraints 和 `(id, user_id)` unique 元数据。
+- 后续抽 UUID guard，避免非法 item id 触发 DB UUID 解析错误。
 - 后续可将编辑表单的 FormData 字段读取限制为 string，避免 File 被 `String()` 转成 `[object File]`。
+- 后续补统一 test 聚合脚本和真实 DB / 浏览器联调。
 - 后续统一登录态失效处理策略。
 - 新建页 validation test 后续可接入 `package.json` 测试脚本。
 - 后续补面向用户的错误边界。
