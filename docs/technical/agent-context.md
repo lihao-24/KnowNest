@@ -78,15 +78,16 @@
   - `tags`
   - `knowledge_item_tags`
 - 开发期使用 Supabase 时，所有业务表必须启用 Supabase RLS。
-- 用户数据隔离不能只依赖前端路由保护；开发期由 Supabase RLS 兜底，生产期自建部署应由服务端认证 + repository / ORM 查询条件 + 数据库约束或 PostgreSQL RLS 保证。
+- Supabase RLS 属于开发期 Supabase-only 安全兜底；业务访问使用 Drizzle / pg + `DATABASE_URL` 时，服务端仍必须显式带入当前用户 id，并在 `src/lib/db` repository 查询条件中强制 `user_id` 过滤。
+- 用户数据隔离不能只依赖前端路由保护；开发期由 Supabase RLS + 服务端 repository 用户过滤共同保证，生产期自建部署应由服务端认证 + repository / ORM 查询条件 + 数据库约束或 PostgreSQL RLS 保证。
 - `profiles`：
-  - `id uuid`，开发期对应 Supabase `auth.users.id`；业务代码不要直接依赖 `auth.users`。
+  - `id uuid`，是业务层用户主键；开发期 Supabase Auth 下与 `auth.users.id` 一致。通用 PostgreSQL 表结构不直接依赖 `auth.users`；仅 Supabase-only 迁移段为 `profiles.id` 增加 `auth.users` 外键和新用户触发器。业务代码不要直接依赖 `auth.users`。
   - `email text`。
   - `display_name text`，数据库文档中存在，V0.1 可不用。
   - `created_at`、`updated_at`。
 - `knowledge_items`：
   - `id uuid`
-  - `user_id uuid`
+  - `user_id uuid`，外键指向 `public.profiles(id)`，不要直接指向 `auth.users(id)`。
   - `title text`
   - `content text`
   - `space text`：`life | work`
@@ -97,19 +98,19 @@
   - `created_at`、`updated_at`
 - `tags`：
   - `id uuid`
-  - `user_id uuid`
+  - `user_id uuid`，外键指向 `public.profiles(id)`，不要直接指向 `auth.users(id)`。
   - `name text`
   - `created_at`、`updated_at`
   - 同一用户下 `name` 唯一，标签名 trim 后不能为空。
 - `knowledge_item_tags`：
-  - `user_id uuid`
+  - `user_id uuid`，外键指向 `public.profiles(id)`，不要直接指向 `auth.users(id)`。
   - `item_id uuid`
   - `tag_id uuid`
   - `created_at`
   - 主键：`(item_id, tag_id)`。
   - 保留 `user_id` 以简化开发期 RLS 和生产期服务端用户隔离，并防止跨用户绑定。
 - 标签不要直接作为字符串数组落库；V0.1 推荐关系表设计。
-- 搜索 V0.1 可先使用 `ilike` 搜索 `title` 和 `content`。
+- 搜索 V0.1 可先使用 `ilike` 搜索 `title` 和 `content`；`pg_trgm` 和 trigram GIN 索引是数据量增长后的可选优化，不属于初始迁移必需项。
 
 ## 7. 目录约定
 
