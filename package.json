@@ -10,6 +10,7 @@
     "test:auth": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/auth/route-protection.test.mjs",
     "test:knowledge-items": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/db/knowledge-items.test.mjs",
     "test:knowledge-item-draft": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-item-draft.test.mjs",
+    "test:knowledge-item-delete": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-item-delete.test.mjs",
     "test:knowledge-list-item": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-list-item-view-model.test.mjs"
   },
   "dependencies": {

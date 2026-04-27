@@ -1,14 +1,26 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
+import {
+  DELETE_KNOWLEDGE_ITEM_CONFIRMATION_MESSAGE,
+  getDeleteKnowledgeItemConfirmationState,
+  initialDeleteKnowledgeItemConfirmationState,
+} from "@/lib/knowledge/knowledge-item-delete";
 import type { KnowledgeItem } from "@/types/knowledge";
 
-import { updateKnowledgeItemAction } from "./actions";
+import {
+  deleteKnowledgeItemAction,
+  updateKnowledgeItemAction,
+} from "./actions";
 
 const initialUpdateKnowledgeItemActionState = {
   errorMessage: "",
   successMessage: "",
+};
+
+const initialDeleteKnowledgeItemActionState = {
+  errorMessage: "",
 };
 
 type KnowledgeItemEditorProps = {
@@ -20,67 +32,144 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
     null,
     item.id,
   );
-  const [state, formAction, isPending] = useActionState(
+  const deleteKnowledgeItemWithId = deleteKnowledgeItemAction.bind(
+    null,
+    item.id,
+  );
+  const [updateState, updateFormAction, isUpdating] = useActionState(
     updateKnowledgeItemWithId,
     initialUpdateKnowledgeItemActionState,
   );
+  const [deleteState, deleteFormAction, isDeleting] = useActionState(
+    deleteKnowledgeItemWithId,
+    initialDeleteKnowledgeItemActionState,
+  );
+  const [confirmationState, setConfirmationState] = useState(
+    initialDeleteKnowledgeItemConfirmationState,
+  );
+  const isDisabled = isUpdating || isDeleting;
 
   return (
-    <form action={formAction} className="space-y-5">
-      <div>
-        <label
-          className="mb-1.5 block text-sm font-medium text-slate-700"
-          htmlFor="title"
-        >
-          标题
-        </label>
-        <input
-          className="h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
-          defaultValue={item.title}
-          disabled={isPending}
-          id="title"
-          name="title"
-          placeholder="输入标题"
-          type="text"
-        />
-      </div>
+    <div className="space-y-6">
+      <form action={updateFormAction} className="space-y-5">
+        <div>
+          <label
+            className="mb-1.5 block text-sm font-medium text-slate-700"
+            htmlFor="title"
+          >
+            标题
+          </label>
+          <input
+            className="h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
+            defaultValue={item.title}
+            disabled={isDisabled}
+            id="title"
+            name="title"
+            placeholder="输入标题"
+            type="text"
+          />
+        </div>
 
-      <div>
-        <label
-          className="mb-1.5 block text-sm font-medium text-slate-700"
-          htmlFor="content"
-        >
-          正文
-        </label>
-        <textarea
-          className="min-h-96 w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-3 py-3 text-base leading-6 text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
-          defaultValue={item.content}
-          disabled={isPending}
-          id="content"
-          name="content"
-          placeholder="记录正文内容"
-        />
-      </div>
+        <div>
+          <label
+            className="mb-1.5 block text-sm font-medium text-slate-700"
+            htmlFor="content"
+          >
+            正文
+          </label>
+          <textarea
+            className="min-h-96 w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-3 py-3 text-base leading-6 text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
+            defaultValue={item.content}
+            disabled={isDisabled}
+            id="content"
+            name="content"
+            placeholder="记录正文内容"
+          />
+        </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p
-          aria-live="polite"
-          className={`min-h-6 text-sm leading-6 ${
-            state.errorMessage ? "text-red-600" : "text-teal-700"
-          }`}
-          role="status"
-        >
-          {state.errorMessage || state.successMessage}
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p
+            aria-live="polite"
+            className={`min-h-6 text-sm leading-6 ${
+              updateState.errorMessage ? "text-red-600" : "text-teal-700"
+            }`}
+            role="status"
+          >
+            {updateState.errorMessage || updateState.successMessage}
+          </p>
 
-        <button
-          className="inline-flex h-11 items-center justify-center rounded-md bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-          disabled={isPending}
-          type="submit"
-        >
-          {isPending ? "保存中..." : "保存"}
-        </button>
+          <button
+            className="inline-flex h-11 items-center justify-center rounded-md bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            disabled={isDisabled}
+            type="submit"
+          >
+            {isUpdating ? "保存中..." : "保存"}
+          </button>
+        </div>
+      </form>
+
+      <div className="border-t border-slate-200 pt-5">
+        {confirmationState.isConfirming ? (
+          <div className="space-y-3 rounded-md border border-red-200 bg-red-50 p-4">
+            <p className="text-sm font-medium text-red-800">
+              {DELETE_KNOWLEDGE_ITEM_CONFIRMATION_MESSAGE}
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                className="inline-flex h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100"
+                disabled={isDeleting}
+                onClick={() =>
+                  setConfirmationState((currentState) =>
+                    getDeleteKnowledgeItemConfirmationState(
+                      currentState,
+                      "cancel",
+                    ),
+                  )
+                }
+                type="button"
+              >
+                取消
+              </button>
+
+              <form action={deleteFormAction}>
+                <button
+                  className="inline-flex h-10 w-full items-center justify-center rounded-md bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 sm:w-auto"
+                  disabled={isDeleting}
+                  type="submit"
+                >
+                  {isDeleting ? "删除中..." : "确认删除"}
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : (
+          <button
+            className="inline-flex h-10 items-center justify-center rounded-md border border-red-300 bg-white px-4 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+            disabled={isDisabled}
+            onClick={() =>
+              setConfirmationState((currentState) =>
+                getDeleteKnowledgeItemConfirmationState(
+                  currentState,
+                  "request",
+                ),
+              )
+            }
+            type="button"
+          >
+            删除
+          </button>
+        )}
+
+        {deleteState.errorMessage ? (
+          <p
+            aria-live="polite"
+            className="mt-3 text-sm leading-6 text-red-600"
+            role="alert"
+          >
+            {deleteState.errorMessage}
+          </p>
+        ) : null}
       </div>
-    </form>
+    </div>
   );
 }
