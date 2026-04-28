@@ -16,8 +16,8 @@
 - Phase 07：Task 07-01 至 Task 07-04 已完成并通过审核，大节点审核已通过。
 - Phase 08：Task 08-01 至 Task 08-03 已完成并通过审核，大节点审核已通过。
 - Phase 09：Task 09-01 至 Task 09-03 已完成并通过审核，大节点审核已通过。
-- Phase 10：Task 10-01 已完成并通过审核。
-- 下一步：Phase 10 Task 10-02 优化移动端布局。
+- Phase 10：Task 10-01 至 Task 10-02 已完成并通过审核。
+- 下一步：Phase 10 Task 10-03 完善保存与删除反馈。
 
 ## 已完成阶段和任务
 
@@ -30,7 +30,7 @@
 - Phase 07 标签系统：Task 07-01 至 Task 07-04 已完成并审核通过，大节点审核已通过。
 - Phase 08 搜索与筛选：Task 08-01 至 Task 08-03 已完成并审核通过，大节点审核已通过。
 - Phase 09 Markdown 编辑体验：Task 09-01 至 Task 09-03 已完成并审核通过，大节点审核已通过。
-- Phase 10 移动端与体验完善：Task 10-01 状态反馈 / 补齐空状态、加载状态、错误状态已完成并审核通过；Phase 10 大节点未完成。
+- Phase 10 移动端与体验完善：Task 10-01 状态反馈 / 补齐空状态、加载状态、错误状态已完成并审核通过；Task 10-02 优化移动端布局已完成并审核通过；Phase 10 大节点未完成。
 
 ## 最新关键技术决策
 
@@ -57,7 +57,7 @@
 
 ## 下一个建议任务
 
-- Phase 10 Task 10-02：优化移动端布局。
+- Phase 10 Task 10-03：完善保存与删除反馈。
 
 ## 大节点审核记录
 
@@ -94,16 +94,18 @@
 | Phase 09 Task 09-03 | 已审核通过 | 编辑 / 预览切换完成，implementation commit `e8fddc5`；新增共用 `MarkdownEditPreview` 组件，新建页和编辑页共用；编辑模式渲染 `MarkdownEditor`，预览模式渲染 `MarkdownPreview`，并用同名 hidden input 保留 `content` 提交值；未修改 DB / server action，未实现工具栏、上传、AI 等超范围功能；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-edit-preview-model.test.mjs`、`npm.cmd run test:markdown-preview`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-editor-model.test.mjs`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 09 | 已审核通过 | 大节点审核结论 `PHASE09_APPROVED`；Task 09-01 至 Task 09-03 已完成；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-editor-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-edit-preview-model.test.mjs`、`npm.cmd run test:markdown-preview`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run lint`，此前任务级验证包含 `npm.cmd run build`；必须修改：无；允许进入 Phase 10 Task 10-01。 |
 | Phase 10 Task 10-01 | 已审核通过 | 状态反馈 / 补齐空状态、加载状态、错误状态完成，implementation commit `007a635`；新增 `knowledge-feedback-state` 状态反馈模型和测试；新增 `/app` 与 `/app/items/[id]` 的 App Router `loading.tsx` / `error.tsx`；`/app` 搜索 / 筛选无结果文案走模型；`KnowledgeList` 默认空态复用模型；保存失败、删除失败沿用已有 UI 错误展示链路；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-feedback-state.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/inbox-page.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/favorites-page.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/archive-page.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-filters-model.test.mjs`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run lint`、`npm.cmd run build`。 |
+| Phase 10 Task 10-02 | 已审核通过 | 优化移动端布局完成，implementation commit `f0de390`；新增最小移动端导航抽屉，复用现有导航项和 active 判断逻辑；AppShell / 全局样式增加 `overflow-x-hidden`、`min-w-0`；登录页、列表页、新建页、编辑页、设置页补齐移动端宽度约束和触控尺寸；列表项、筛选器、标签、Markdown 编辑 / 预览补强长内容处理；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/layout/mobile-nav-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/layout/app-sidebar-nav.test.mjs`、`npm.cmd run test:markdown-preview`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:tag-input`、`npm.cmd run test:knowledge-list-item`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-filters-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run lint`、`npm.cmd run build`、Chrome CDP 390x844 验证 `/login` 无横向溢出且输入和登录按钮高度 44px、未登录 `/app` 重定向后无横向溢出；非阻断风险：无可用登录会话 / 测试账号，已登录页面和真实移动端抽屉交互待后续真实设备 / 登录态手测。 |
 
 ## 未决问题 / 风险
 
 - 后续实现主布局和业务页面时，需要持续检查 Supabase SDK 是否扩散到页面或业务组件。
 - Phase 06 后重点验证跨用户不可读、不可改、不可删。
-- `src/components/layout/app-sidebar-nav.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
+- `src/components/layout/app-sidebar-nav.test.mjs` 和 `src/components/layout/mobile-nav-model.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - `src/lib/knowledge/inbox-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - `src/lib/knowledge/favorites-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - `src/lib/knowledge/archive-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
-- Task 04-03 移动端导航为 P2，按 `development_plan` 推荐顺序排在后续。
+- 移动端已登录页面和真实 iPhone 视口手测待后续有测试账号 / 登录会话时补齐；当前浏览器级验证仅覆盖 `/login` 和未登录 `/app` 重定向后的移动端横向溢出检查。
+- MobileNav 后续可补 `aria-controls`、Esc 关闭和 focus trap，进一步完善抽屉可访问性。
 - 后续筛选复杂后可加强 query builder 测试。
 - 当前没有独立 `typecheck` script，build 已覆盖 Next/TypeScript 集成检查。
 - Drizzle schema 后续补齐 check constraints 和 `(id, user_id)` unique 元数据。
