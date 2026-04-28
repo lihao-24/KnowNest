@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { appKnowledgeListDefaultEmptyState } from "@/lib/knowledge/knowledge-feedback-state";
+
 import type { KnowledgeItem, KnowledgeItemWithTags } from "../../types/knowledge";
 import { KnowledgeListItem } from "./knowledge-list-item";
 
@@ -13,16 +15,10 @@ type KnowledgeListProps = {
   };
 };
 
-const defaultEmptyState = {
-  title: "还没有知识内容",
-  description: "先创建第一条知识，开始搭建你的个人知识库。",
-  actionLabel: "新建知识",
-};
-
 export function KnowledgeList({
   items,
   isLoading = false,
-  emptyState = defaultEmptyState,
+  emptyState = appKnowledgeListDefaultEmptyState,
 }: KnowledgeListProps) {
   if (isLoading) {
     return (

@@ -11,6 +11,7 @@ import { getSelectedTagId } from "@/components/tags/tag-filter-model";
 import { requireUser } from "@/lib/auth/server";
 import { listKnowledgeItems } from "@/lib/db/knowledge-items";
 import { attachTagsToKnowledgeItems, listTags } from "@/lib/db/tags";
+import { getAppKnowledgeListEmptyState } from "@/lib/knowledge/knowledge-feedback-state";
 
 type AppPageProps = {
   searchParams?: Promise<{
@@ -49,13 +50,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
       metadataFilters.type ||
       isFavoriteOnly,
   );
-  const emptyState = hasFilters
-    ? {
-        title: "没有找到匹配内容",
-        description: "换个条件再试试，或清除筛选查看默认列表。",
-        actionLabel: "新建知识",
-      }
-    : undefined;
+  const emptyState = getAppKnowledgeListEmptyState(hasFilters);
 
   return (
     <section className="w-full max-w-4xl">
