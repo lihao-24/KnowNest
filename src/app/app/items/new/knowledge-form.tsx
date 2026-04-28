@@ -145,7 +145,7 @@ export function KnowledgeForm() {
         <p
           aria-live="polite"
           className="min-h-6 text-sm leading-6 text-red-600"
-          role="status"
+          role={state.errorMessage ? "alert" : "status"}
         >
           {state.errorMessage}
         </p>

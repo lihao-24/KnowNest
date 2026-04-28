@@ -45,5 +45,5 @@ export async function createKnowledgeItemAction(
     };
   }
 
-  redirect("/app");
+  redirect("/app?notice=created");
 }

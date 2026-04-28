@@ -13,6 +13,14 @@ export type KnowledgeErrorFeedbackState = KnowledgeFeedbackState & {
   retryLabel: string;
 };
 
+export type KnowledgeOperationNotice = {
+  message: string;
+};
+
+export type KnowledgeOperationNoticeSearchParams = {
+  notice?: string | string[] | undefined;
+};
+
 export const appKnowledgeListDefaultEmptyState = {
   title: "还没有知识内容",
   description: "先创建第一条知识，开始搭建你的个人知识库。",
@@ -47,8 +55,22 @@ export const detailErrorFeedback = {
   retryLabel: "重试",
 } as const satisfies KnowledgeErrorFeedbackState;
 
+export const appKnowledgeItemCreatedNotice = {
+  message: "已保存。",
+} as const satisfies KnowledgeOperationNotice;
+
 export function getAppKnowledgeListEmptyState(
   hasFilters: boolean,
 ): KnowledgeEmptyState | undefined {
   return hasFilters ? appKnowledgeListFilteredEmptyState : undefined;
+}
+
+export function getAppKnowledgeOperationNotice(
+  searchParams: KnowledgeOperationNoticeSearchParams | undefined,
+): KnowledgeOperationNotice | undefined {
+  const notice = Array.isArray(searchParams?.notice)
+    ? searchParams.notice[0]
+    : searchParams?.notice;
+
+  return notice === "created" ? appKnowledgeItemCreatedNotice : undefined;
 }

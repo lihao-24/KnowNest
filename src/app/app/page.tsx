@@ -4,6 +4,7 @@ import { KnowledgeList } from "@/components/knowledge/knowledge-list";
 import { getKnowledgeFavoriteFilter } from "@/components/knowledge/knowledge-filters-model";
 import { KnowledgeMetadataFilter } from "@/components/knowledge/knowledge-metadata-filter";
 import { getKnowledgeMetadataFilters } from "@/components/knowledge/knowledge-metadata-filter-model";
+import { KnowledgeOperationNotice } from "@/components/knowledge/knowledge-operation-notice";
 import { KnowledgeSearch } from "@/components/knowledge/knowledge-search";
 import { getSearchKeyword } from "@/components/knowledge/knowledge-search-model";
 import { TagFilter } from "@/components/tags/tag-filter";
@@ -11,7 +12,10 @@ import { getSelectedTagId } from "@/components/tags/tag-filter-model";
 import { requireUser } from "@/lib/auth/server";
 import { listKnowledgeItems } from "@/lib/db/knowledge-items";
 import { attachTagsToKnowledgeItems, listTags } from "@/lib/db/tags";
-import { getAppKnowledgeListEmptyState } from "@/lib/knowledge/knowledge-feedback-state";
+import {
+  getAppKnowledgeListEmptyState,
+  getAppKnowledgeOperationNotice,
+} from "@/lib/knowledge/knowledge-feedback-state";
 
 type AppPageProps = {
   searchParams?: Promise<{
@@ -21,6 +25,7 @@ type AppPageProps = {
     status?: string | string[] | undefined;
     type?: string | string[] | undefined;
     favorite?: string | string[] | undefined;
+    notice?: string | string[] | undefined;
   }>;
 };
 
@@ -51,6 +56,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
       isFavoriteOnly,
   );
   const emptyState = getAppKnowledgeListEmptyState(hasFilters);
+  const operationNotice = getAppKnowledgeOperationNotice(resolvedSearchParams);
 
   return (
     <section className="min-w-0 w-full max-w-4xl">
@@ -73,6 +79,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
         </Link>
       </div>
 
+      <KnowledgeOperationNotice notice={operationNotice} />
       <KnowledgeSearch
         keyword={keyword}
         selectedSpace={metadataFilters.space}

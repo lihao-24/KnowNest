@@ -242,7 +242,7 @@ export function KnowledgeItemEditor({
             className={`min-h-6 text-sm leading-6 ${
               updateState.errorMessage ? "text-red-600" : "text-teal-700"
             }`}
-            role="status"
+            role={updateState.errorMessage ? "alert" : "status"}
           >
             {updateState.errorMessage || updateState.successMessage}
           </p>

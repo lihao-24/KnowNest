@@ -41,8 +41,16 @@ const createActionSource = readFileSync(
   new URL("../../app/app/items/new/actions.ts", import.meta.url),
   "utf8",
 );
+const createFormSource = readFileSync(
+  new URL("../../app/app/items/new/knowledge-form.tsx", import.meta.url),
+  "utf8",
+);
 const updateActionSource = readFileSync(
   new URL("../../app/app/items/[id]/actions.ts", import.meta.url),
+  "utf8",
+);
+const updateEditorSource = readFileSync(
+  new URL("../../app/app/items/[id]/knowledge-item-editor.tsx", import.meta.url),
   "utf8",
 );
 
@@ -51,8 +59,15 @@ assert.ok(!draftSource.includes("allowedKnowledgeTypes"));
 assert.ok(!draftSource.includes("allowedKnowledgeStatuses"));
 assert.ok(createActionSource.includes("updateItemTags"));
 assert.ok(createActionSource.includes("validation.value.tagNames"));
+assert.ok(createActionSource.includes('redirect("/app?notice=created")'));
+assert.ok(createFormSource.includes('role={state.errorMessage ? "alert" : "status"}'));
 assert.ok(updateActionSource.includes("updateItemTags"));
 assert.ok(updateActionSource.includes("validation.value.tagNames"));
+assert.ok(
+  updateEditorSource.includes(
+    'role={updateState.errorMessage ? "alert" : "status"}',
+  ),
+);
 
 const emptyDraft = validateKnowledgeItemDraft({
   title: "   ",

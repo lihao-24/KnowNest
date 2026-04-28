@@ -6,6 +6,7 @@ import {
   detailErrorFeedback,
   detailLoadingFeedback,
   getAppKnowledgeListEmptyState,
+  getAppKnowledgeOperationNotice,
   listErrorFeedback,
   listLoadingFeedback,
 } from "./knowledge-feedback-state.ts";
@@ -49,3 +50,17 @@ assert.deepEqual(detailErrorFeedback, {
   description: "刷新页面再试一次，或返回列表后重新打开这条知识。",
   retryLabel: "重试",
 });
+
+assert.deepEqual(getAppKnowledgeOperationNotice({ notice: "created" }), {
+  message: "已保存。",
+});
+
+assert.deepEqual(
+  getAppKnowledgeOperationNotice({ notice: ["created", "ignored"] }),
+  {
+    message: "已保存。",
+  },
+);
+
+assert.equal(getAppKnowledgeOperationNotice({ notice: "deleted" }), undefined);
+assert.equal(getAppKnowledgeOperationNotice(undefined), undefined);
