@@ -10,7 +10,10 @@ import {
   updateKnowledgeItem,
 } from "@/lib/db/knowledge-items";
 import { buildDeleteKnowledgeItemPayload } from "@/lib/knowledge/knowledge-item-delete";
-import { buildKnowledgeItemFavoritePayload } from "@/lib/knowledge/knowledge-item-favorite";
+import {
+  buildKnowledgeItemFavoritePayload,
+  buildKnowledgeItemFavoriteRevalidationPaths,
+} from "@/lib/knowledge/knowledge-item-favorite";
 import { buildKnowledgeItemDraftPayload } from "@/lib/knowledge/knowledge-item-draft";
 
 const DELETE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "删除失败，请稍后重试。";
@@ -149,8 +152,9 @@ export async function toggleKnowledgeItemFavoriteAction(
       };
     }
 
-    revalidatePath("/app");
-    revalidatePath(`/app/items/${payload.value.itemId}`);
+    buildKnowledgeItemFavoriteRevalidationPaths().forEach((path) => {
+      revalidatePath(path);
+    });
 
     return {
       errorMessage: "",

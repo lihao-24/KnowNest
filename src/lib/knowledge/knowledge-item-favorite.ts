@@ -52,6 +52,10 @@ export function getKnowledgeItemFavoriteStatusLabel(isFavorite: boolean) {
   return isFavorite ? "已收藏" : "未收藏";
 }
 
+export function buildKnowledgeItemFavoriteRevalidationPaths() {
+  return ["/app"];
+}
+
 function parseFavoriteValue(value: FormDataEntryValue | null) {
   if (value === "true") {
     return true;

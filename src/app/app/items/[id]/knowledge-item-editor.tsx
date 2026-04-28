@@ -70,7 +70,8 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
   const [confirmationState, setConfirmationState] = useState(
     initialDeleteKnowledgeItemConfirmationState,
   );
-  const isDisabled = isUpdating || isDeleting || isTogglingFavorite;
+  const isEditingDisabled = isUpdating || isDeleting;
+  const isMutationDisabled = isUpdating || isDeleting || isTogglingFavorite;
   const isFavorite = favoriteState.isFavorite ?? item.is_favorite;
   const favoriteButtonLabel = getKnowledgeItemFavoriteButtonLabel(
     isFavorite,
@@ -107,7 +108,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
         <button
           aria-pressed={isFavorite}
           className="inline-flex h-10 items-center justify-center rounded-md border border-amber-300 bg-white px-4 text-sm font-medium text-amber-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
-          disabled={isDisabled}
+          disabled={isMutationDisabled}
           type="submit"
         >
           <span aria-hidden="true" className="mr-2 text-base leading-none">
@@ -128,7 +129,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
           <input
             className="h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
             defaultValue={item.title}
-            disabled={isDisabled}
+            disabled={isEditingDisabled}
             id="title"
             name="title"
             placeholder="输入标题"
@@ -146,7 +147,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
           <textarea
             className="min-h-96 w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-3 py-3 text-base leading-6 text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
             defaultValue={item.content}
-            disabled={isDisabled}
+            disabled={isEditingDisabled}
             id="content"
             name="content"
             placeholder="记录正文内容"
@@ -164,7 +165,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
             <select
               className={selectClassName}
               defaultValue={item.space}
-              disabled={isDisabled}
+              disabled={isEditingDisabled}
               id="space"
               name="space"
             >
@@ -186,7 +187,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
             <select
               className={selectClassName}
               defaultValue={item.type}
-              disabled={isDisabled}
+              disabled={isEditingDisabled}
               id="type"
               name="type"
             >
@@ -208,7 +209,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
             <select
               className={selectClassName}
               defaultValue={item.status}
-              disabled={isDisabled}
+              disabled={isEditingDisabled}
               id="status"
               name="status"
             >
@@ -234,7 +235,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
 
           <button
             className="inline-flex h-11 items-center justify-center rounded-md bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-            disabled={isDisabled}
+            disabled={isMutationDisabled}
             type="submit"
           >
             {isUpdating ? "保存中..." : "保存"}
@@ -279,7 +280,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
         ) : (
           <button
             className="inline-flex h-10 items-center justify-center rounded-md border border-red-300 bg-white px-4 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
-            disabled={isDisabled}
+            disabled={isMutationDisabled}
             onClick={() =>
               setConfirmationState((currentState) =>
                 getDeleteKnowledgeItemConfirmationState(
