@@ -22,7 +22,7 @@ export function KnowledgeList({
 }: KnowledgeListProps) {
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600">
+      <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600">
         正在加载知识内容...
       </div>
     );
@@ -30,7 +30,7 @@ export function KnowledgeList({
 
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
+      <div className="min-w-0 rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center sm:p-8">
         <h2 className="text-lg font-semibold text-slate-950">
           {emptyState.title}
         </h2>
@@ -38,7 +38,7 @@ export function KnowledgeList({
           {emptyState.description}
         </p>
         <Link
-          className="mt-5 inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:h-10 sm:w-auto"
           href="/app/items/new"
         >
           {emptyState.actionLabel}
@@ -48,7 +48,7 @@ export function KnowledgeList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="min-w-0 space-y-3">
       {items.map((item) => (
         <KnowledgeListItem item={item} key={item.id} />
       ))}

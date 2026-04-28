@@ -93,7 +93,7 @@ export function KnowledgeItemEditor({
         action={favoriteFormAction}
         className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-medium text-slate-700">收藏</p>
           <p
             aria-live="polite"
@@ -108,14 +108,10 @@ export function KnowledgeItemEditor({
           </p>
         </div>
 
-        <input
-          name="nextValue"
-          type="hidden"
-          value={String(!isFavorite)}
-        />
+        <input name="nextValue" type="hidden" value={String(!isFavorite)} />
         <button
           aria-pressed={isFavorite}
-          className="inline-flex h-10 items-center justify-center rounded-md border border-amber-300 bg-white px-4 text-sm font-medium text-amber-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+          className="inline-flex h-11 w-full items-center justify-center rounded-md border border-amber-300 bg-white px-4 text-sm font-medium text-amber-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:h-10 sm:w-auto"
           disabled={isMutationDisabled}
           type="submit"
         >
@@ -252,7 +248,7 @@ export function KnowledgeItemEditor({
           </p>
 
           <button
-            className="inline-flex h-11 items-center justify-center rounded-md bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className="inline-flex h-11 w-full items-center justify-center rounded-md bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto"
             disabled={isMutationDisabled}
             type="submit"
           >
@@ -269,7 +265,7 @@ export function KnowledgeItemEditor({
             </p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
-                className="inline-flex h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100"
+                className="inline-flex h-11 w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 sm:h-10 sm:w-auto"
                 disabled={isDeleting}
                 onClick={() =>
                   setConfirmationState((currentState) =>
@@ -286,7 +282,7 @@ export function KnowledgeItemEditor({
 
               <form action={deleteFormAction}>
                 <button
-                  className="inline-flex h-10 w-full items-center justify-center rounded-md bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 sm:w-auto"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-md bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 sm:h-10 sm:w-auto"
                   disabled={isDeleting}
                   type="submit"
                 >
@@ -297,7 +293,7 @@ export function KnowledgeItemEditor({
           </div>
         ) : (
           <button
-            className="inline-flex h-10 items-center justify-center rounded-md border border-red-300 bg-white px-4 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+            className="inline-flex h-11 w-full items-center justify-center rounded-md border border-red-300 bg-white px-4 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:h-10 sm:w-auto"
             disabled={isMutationDisabled}
             onClick={() =>
               setConfirmationState((currentState) =>

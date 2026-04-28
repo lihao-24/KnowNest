@@ -53,11 +53,11 @@ export default async function AppPage({ searchParams }: AppPageProps) {
   const emptyState = getAppKnowledgeListEmptyState(hasFilters);
 
   return (
-    <section className="w-full max-w-4xl">
+    <section className="min-w-0 w-full max-w-4xl">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-medium text-teal-700">全部内容</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-normal">
+          <h1 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
             KnowNest
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
@@ -66,7 +66,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
         </div>
 
         <Link
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+          className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 sm:h-10 sm:w-auto"
           href="/app/items/new"
         >
           新建知识

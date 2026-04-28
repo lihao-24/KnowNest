@@ -51,7 +51,7 @@ export function KnowledgeMetadataFilter({
   return (
     <section
       aria-label="元信息筛选"
-      className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+      className="mb-4 min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
     >
       <div className="flex flex-col gap-4">
         <MetadataFilterGroup
@@ -79,13 +79,13 @@ export function KnowledgeMetadataFilter({
           <p className="w-10 shrink-0 text-sm font-medium text-slate-800">
             收藏
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 flex-wrap gap-2">
             <Link
               aria-current={isFavoriteOnly ? undefined : "true"}
               className={
                 isFavoriteOnly
-                  ? "inline-flex h-8 items-center rounded-md bg-slate-100 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
-                  : "inline-flex h-8 items-center rounded-md bg-teal-50 px-3 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
+                  ? "inline-flex min-h-10 max-w-full items-center rounded-md bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
+                  : "inline-flex min-h-10 max-w-full items-center rounded-md bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
               }
               href={buildKnowledgeFavoriteFilterHref({
                 currentSearchParams,
@@ -98,8 +98,8 @@ export function KnowledgeMetadataFilter({
               aria-current={isFavoriteOnly ? "true" : undefined}
               className={
                 isFavoriteOnly
-                  ? "inline-flex h-8 items-center rounded-md bg-teal-50 px-3 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
-                  : "inline-flex h-8 items-center rounded-md bg-slate-100 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
+                  ? "inline-flex min-h-10 max-w-full items-center rounded-md bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
+                  : "inline-flex min-h-10 max-w-full items-center rounded-md bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
               }
               href={buildKnowledgeFavoriteFilterHref({
                 currentSearchParams,
@@ -111,10 +111,10 @@ export function KnowledgeMetadataFilter({
           </div>
         </div>
         {hasSelectedMetadataFilter || hasSelectedFilter ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 flex-wrap gap-2">
             {hasSelectedMetadataFilter ? (
               <Link
-                className="inline-flex h-8 items-center rounded-md px-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                className="inline-flex min-h-10 max-w-full items-center rounded-md px-3 py-1 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                 href={buildKnowledgeMetadataFilterHref({
                   currentSearchParams,
                   nextFilters: {
@@ -128,7 +128,7 @@ export function KnowledgeMetadataFilter({
               </Link>
             ) : null}
             <Link
-              className="inline-flex h-8 items-center rounded-md px-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+              className="inline-flex min-h-10 max-w-full items-center rounded-md px-3 py-1 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
               href={buildClearKnowledgeFiltersHref()}
             >
               清除全部筛选
@@ -164,13 +164,13 @@ function MetadataFilterGroup<TValue extends string>({
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
       <p className="w-10 shrink-0 text-sm font-medium text-slate-800">{label}</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex min-w-0 flex-wrap gap-2">
         <Link
           aria-current={currentValue === undefined ? "true" : undefined}
           className={
             currentValue === undefined
-              ? "inline-flex h-8 items-center rounded-md bg-teal-50 px-3 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
-              : "inline-flex h-8 items-center rounded-md bg-slate-100 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
+              ? "inline-flex min-h-10 max-w-full items-center rounded-md bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
+              : "inline-flex min-h-10 max-w-full items-center rounded-md bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
           }
           href={buildKnowledgeMetadataFilterHref({
             currentSearchParams,
@@ -187,8 +187,8 @@ function MetadataFilterGroup<TValue extends string>({
               aria-current={isSelected ? "true" : undefined}
               className={
                 isSelected
-                  ? "inline-flex h-8 items-center rounded-md bg-teal-50 px-3 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
-                  : "inline-flex h-8 items-center rounded-md bg-slate-100 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
+                  ? "inline-flex min-h-10 max-w-full items-center rounded-md bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
+                  : "inline-flex min-h-10 max-w-full items-center rounded-md bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
               }
               href={buildKnowledgeMetadataFilterHref({
                 currentSearchParams,

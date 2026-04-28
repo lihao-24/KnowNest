@@ -24,10 +24,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <section className="w-full max-w-3xl">
-      <div className="mb-8">
+    <section className="min-w-0 w-full max-w-3xl">
+      <div className="mb-8 min-w-0">
         <p className="text-sm font-medium text-teal-700">设置</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-normal">
+        <h1 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
           KnowNest
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
@@ -35,9 +35,9 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+          <div className="min-w-0">
             <h2 className="text-base font-semibold">退出登录</h2>
             <p className="mt-1 text-sm leading-6 text-slate-600">
               退出当前账号后将返回登录页。
@@ -45,7 +45,7 @@ export default function SettingsPage() {
           </div>
 
           <button
-            className="inline-flex h-11 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className="inline-flex h-11 w-full items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto"
             disabled={isLoggingOut}
             onClick={handleLogout}
             type="button"

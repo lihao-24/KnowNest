@@ -14,7 +14,7 @@ export type MarkdownPreviewProps = {
 };
 
 const markdownPreviewClassName =
-  "min-h-72 w-full min-w-0 rounded-md border border-slate-200 bg-white px-4 py-4 text-sm text-slate-700 sm:min-h-96";
+  "min-h-72 w-full min-w-0 max-w-full overflow-x-hidden rounded-md border border-slate-200 bg-white px-4 py-4 text-sm text-slate-700 sm:min-h-96";
 
 export function MarkdownPreview({
   content,

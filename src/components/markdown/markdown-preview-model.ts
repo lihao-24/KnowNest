@@ -108,7 +108,7 @@ export function buildMarkdownPreviewOptions(): MarkdownPreviewOptions {
           "code",
           withClassName(
             props,
-            "rounded bg-slate-100 px-1.5 py-0.5 font-mono text-sm text-slate-900",
+            "break-words rounded bg-slate-100 px-1.5 py-0.5 font-mono text-sm text-slate-900",
           ),
         ),
       h1: (props: PropsWithOptionalNode<ComponentPropsWithoutRef<"h1">>) =>
@@ -140,7 +140,7 @@ export function buildMarkdownPreviewOptions(): MarkdownPreviewOptions {
           "pre",
           withClassName(
             props,
-            "overflow-x-auto rounded-md bg-slate-950 p-4 text-sm leading-6 text-slate-50",
+            "max-w-full overflow-x-auto rounded-md bg-slate-950 p-4 text-sm leading-6 text-slate-50",
           ),
         ),
       ul: (props: PropsWithOptionalNode<ComponentPropsWithoutRef<"ul">>) =>
