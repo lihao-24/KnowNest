@@ -1,13 +1,27 @@
 import Link from "next/link";
 
 import { KnowledgeList } from "@/components/knowledge/knowledge-list";
+import { TagFilter } from "@/components/tags/tag-filter";
+import { getSelectedTagId } from "@/components/tags/tag-filter-model";
 import { requireUser } from "@/lib/auth/server";
 import { listKnowledgeItems } from "@/lib/db/knowledge-items";
-import { attachTagsToKnowledgeItems } from "@/lib/db/tags";
+import { attachTagsToKnowledgeItems, listTags } from "@/lib/db/tags";
 
-export default async function AppPage() {
+type AppPageProps = {
+  searchParams?: Promise<{
+    tag?: string | string[] | undefined;
+  }>;
+};
+
+export default async function AppPage({ searchParams }: AppPageProps) {
   const user = await requireUser();
-  const items = await listKnowledgeItems(user.id);
+  const resolvedSearchParams = await searchParams;
+  const requestedTagId = getSelectedTagId(resolvedSearchParams);
+  const tags = await listTags(user.id);
+  const selectedTagId = tags.some((tag) => tag.id === requestedTagId)
+    ? requestedTagId
+    : undefined;
+  const items = await listKnowledgeItems(user.id, { tagId: selectedTagId });
   const itemsWithTags = await attachTagsToKnowledgeItems(user.id, items);
 
   return (
@@ -31,6 +45,7 @@ export default async function AppPage() {
         </Link>
       </div>
 
+      <TagFilter selectedTagId={selectedTagId} tags={tags} />
       <KnowledgeList items={itemsWithTags} />
     </section>
   );

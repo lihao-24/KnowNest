@@ -43,6 +43,7 @@ const archivedFilters = buildKnowledgeItemFilters("user-1", {
   keyword: "  drizzle  ",
   space: "work",
   status: "archived",
+  tagId: "  tag-1  ",
   type: "note",
   isFavorite: true,
 });
@@ -50,10 +51,17 @@ const archivedFilters = buildKnowledgeItemFilters("user-1", {
 assert.equal(archivedFilters.keyword, "drizzle");
 assert.equal(archivedFilters.space, "work");
 assert.equal(archivedFilters.status, "archived");
+assert.equal(archivedFilters.tagId, "tag-1");
 assert.equal(archivedFilters.type, "note");
 assert.equal(archivedFilters.isFavorite, true);
 assert.equal(archivedFilters.includeArchived, true);
 assert.deepEqual(archivedFilters.statusesExcluded, []);
+
+const emptyTagFilters = buildKnowledgeItemFilters("user-1", {
+  tagId: "   ",
+});
+
+assert.equal(emptyTagFilters.tagId, undefined);
 
 const createPayload = normalizeCreateKnowledgeItemInput("user-1", {
   user_id: "other-user",

@@ -5,6 +5,7 @@ import {
   ilike,
   ne,
   or,
+  sql,
   type SQL,
 } from "drizzle-orm";
 
@@ -21,6 +22,7 @@ export type ListKnowledgeItemsParams = {
   status?: KnowledgeStatus;
   type?: KnowledgeType;
   isFavorite?: boolean;
+  tagId?: string;
   includeArchived?: boolean;
 };
 
@@ -31,6 +33,7 @@ export type NormalizedKnowledgeItemFilters = {
   status?: KnowledgeStatus;
   type?: KnowledgeType;
   isFavorite?: boolean;
+  tagId?: string;
   includeArchived: boolean;
   statusesExcluded: KnowledgeStatus[];
   orderBy: "updated_at_desc";
@@ -85,6 +88,7 @@ export function buildKnowledgeItemFilters(
   params: ListKnowledgeItemsParams = {},
 ): NormalizedKnowledgeItemFilters {
   const keyword = params.keyword?.trim();
+  const tagId = params.tagId?.trim();
   const includeArchived = params.includeArchived === true;
   const shouldExcludeArchived = !includeArchived && params.status === undefined;
 
@@ -95,6 +99,7 @@ export function buildKnowledgeItemFilters(
     status: params.status,
     type: params.type,
     isFavorite: params.isFavorite,
+    tagId: tagId ? tagId : undefined,
     includeArchived,
     statusesExcluded: shouldExcludeArchived ? ["archived"] : [],
     orderBy: "updated_at_desc",
@@ -158,13 +163,13 @@ export async function listKnowledgeItems(
   params: ListKnowledgeItemsParams = {},
 ): Promise<KnowledgeItem[]> {
   const { db } = await import("./client");
-  const { knowledgeItems } = await import("./schema");
+  const { knowledgeItems, knowledgeItemTags } = await import("./schema");
   const filters = buildKnowledgeItemFilters(userId, params);
 
   return db
     .select()
     .from(knowledgeItems)
-    .where(buildKnowledgeItemWhereClause(knowledgeItems, filters))
+    .where(buildKnowledgeItemWhereClause(knowledgeItems, knowledgeItemTags, filters))
     .orderBy(desc(knowledgeItems.updated_at));
 }
 
@@ -252,6 +257,7 @@ function normalizeNullableText(value: string | null | undefined) {
 
 function buildKnowledgeItemWhereClause(
   knowledgeItems: typeof import("./schema").knowledgeItems,
+  knowledgeItemTags: typeof import("./schema").knowledgeItemTags,
   filters: NormalizedKnowledgeItemFilters,
 ): SQL {
   const conditions: SQL[] = [eq(knowledgeItems.user_id, filters.userId)];
@@ -284,6 +290,18 @@ function buildKnowledgeItemWhereClause(
 
   if (filters.isFavorite !== undefined) {
     conditions.push(eq(knowledgeItems.is_favorite, filters.isFavorite));
+  }
+
+  if (filters.tagId) {
+    conditions.push(
+      sql`exists (
+        select 1
+        from ${knowledgeItemTags}
+        where ${knowledgeItemTags.item_id} = ${knowledgeItems.id}
+          and ${knowledgeItemTags.user_id} = ${filters.userId}
+          and ${knowledgeItemTags.tag_id} = ${filters.tagId}
+      )`,
+    );
   }
 
   return and(...conditions)!;
