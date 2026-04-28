@@ -15,7 +15,8 @@
 - Phase 06：Task 06-01 至 Task 06-05 已完成并通过审核，大节点审核已通过。
 - Phase 07：Task 07-01 至 Task 07-04 已完成并通过审核，大节点审核已通过。
 - Phase 08：Task 08-01 至 Task 08-03 已完成并通过审核，大节点审核已通过。
-- 下一步：Phase 09 Task 09-01 MarkdownEditor 组件。
+- Phase 09：Task 09-01 已完成并通过审核。
+- 下一步：Phase 09 Task 09-02 MarkdownPreview 组件。
 
 ## 已完成阶段和任务
 
@@ -27,6 +28,7 @@
 - Phase 06 知识元数据与交互：Task 06-01 至 Task 06-05 已完成并审核通过，大节点审核已通过。
 - Phase 07 标签系统：Task 07-01 至 Task 07-04 已完成并审核通过，大节点审核已通过。
 - Phase 08 搜索与筛选：Task 08-01 至 Task 08-03 已完成并审核通过，大节点审核已通过。
+- Phase 09 Markdown 编辑体验：Task 09-01 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -53,7 +55,7 @@
 
 ## 下一个建议任务
 
-- Phase 09 Task 09-01 MarkdownEditor 组件。
+- Phase 09 Task 09-02 MarkdownPreview 组件。
 
 ## 大节点审核记录
 
@@ -85,6 +87,7 @@
 | Phase 08 Task 08-02 | 已审核通过 | 空间、状态、类型筛选完成，implementation commit `f739d90`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-search-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、inbox/favorites/archive page helper tests、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 08 Task 08-03 | 已审核通过 | 收藏筛选和清除筛选完成，implementation commit `abf28dd`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-filters-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-search-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 08 | 已审核通过 | 大节点审核结论 `PHASE08_APPROVED`；Task 08-01 至 Task 08-03 已完成；验证通过 `npm.cmd run lint`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:tags`、`src/components/knowledge/knowledge-search-model.test.mjs`、`src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`src/components/knowledge/knowledge-filters-model.test.mjs`、`src/components/tags/tag-filter-model.test.mjs`、inbox/favorites/archive page helper tests、`npm.cmd run build`；必须修改：无；允许进入 Phase 09 Task 09-01。 |
+| Phase 09 Task 09-01 | 已审核通过 | MarkdownEditor 组件完成，implementation commit `ba84729`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-editor-model.test.mjs`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run lint`、`npm.cmd run build`。 |
 
 ## 未决问题 / 风险
 
@@ -129,3 +132,5 @@
 - 后续可补齐 `MetadataFilterGroupProps.currentSearchParams` 的 favorite 类型。
 - helper tests 后续可接入聚合脚本。
 - 移动端筛选器折叠可后续作为 UX 小任务收敛。
+- `src/components/markdown/markdown-editor-model.test.mjs` 后续可接入 `package.json` scripts。
+- MarkdownEditor props 后续如增多可考虑继承 textarea 原生属性。
