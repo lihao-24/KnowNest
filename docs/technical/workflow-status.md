@@ -13,8 +13,8 @@
 - Phase 04：Task 04-01 至 Task 04-02 已完成并通过审核。
 - Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，大节点审核已通过。
 - Phase 06：Task 06-01 至 Task 06-05 已完成并通过审核，大节点审核已通过。
-- Phase 07：Task 07-01 至 Task 07-02 已完成并通过审核。
-- 下一步：Phase 07 Task 07-03 标签接入新建和编辑流程。
+- Phase 07：Task 07-01 至 Task 07-03 已完成并通过审核。
+- 下一步：Phase 07 Task 07-04 标签筛选基础能力。
 
 ## 已完成阶段和任务
 
@@ -24,7 +24,7 @@
 - Phase 04 应用主界面：Task 04-01 至 Task 04-02 已完成并审核通过。
 - Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，大节点审核已通过。
 - Phase 06 知识元数据与交互：Task 06-01 至 Task 06-05 已完成并审核通过，大节点审核已通过。
-- Phase 07 标签系统：Task 07-01 至 Task 07-02 已完成并审核通过。
+- Phase 07 标签系统：Task 07-01 至 Task 07-03 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -51,7 +51,7 @@
 
 ## 下一个建议任务
 
-- Phase 07 Task 07-03 标签接入新建和编辑流程。
+- Phase 07 Task 07-04 标签筛选基础能力。
 
 ## 大节点审核记录
 
@@ -76,6 +76,7 @@
 | Phase 06 | 已审核通过 | 大节点审核结论 `PHASE06_APPROVED`；Task 06-01 至 Task 06-05 已完成；验证通过 `npm.cmd run lint`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-list-item`、inbox/favorites/archive page helper tests、`src/components/layout/app-sidebar-nav.test.mjs`、`npm.cmd run build`；必须修改：无；允许进入 Phase 07 Task 07-01。 |
 | Phase 07 Task 07-01 | 已审核通过 | 标签数据访问层完成，implementation commit `2049694`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:tags`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 07 Task 07-02 | 已审核通过 | TagInput 组件完成，implementation commit `7baab633`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:tag-input`、`npm.cmd run lint`、`npm.cmd run build`。 |
+| Phase 07 Task 07-03 | 已审核通过 | 标签接入新建和编辑流程完成，implementation commit `679af9d`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:tags`、`npm.cmd run test:tag-input`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-items`、`npm.cmd run lint`、`npm.cmd run build`。 |
 
 ## 未决问题 / 风险
 
@@ -107,3 +108,6 @@
 - 若引入 drizzle-kit schema diff，再统一约束命名以减少 schema drift 噪音。
 - 后续接入表单时可补 TagInput 组件交互层测试。
 - TagInput 空白 Enter 保留草稿可后续统一 UX 决策。
+- 后续可批量加载列表标签以减少 N+1。
+- 后续可考虑创建 item + 保存标签合并事务。
+- TagInput 未提交草稿随保存自动提交可后续 UX 决策。
