@@ -12,8 +12,8 @@
 - Phase 03：已完成到 Task 03-04，并通过大节点审核。
 - Phase 04：Task 04-01 至 Task 04-02 已完成并通过审核。
 - Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，大节点审核已通过。
-- Phase 06：Task 06-01 至 Task 06-04 已完成并通过审核。
-- 下一步：Phase 06 Task 06-05。
+- Phase 06：Task 06-01 至 Task 06-05 已完成并通过审核。
+- 下一步：Phase 06 大节点审核。
 
 ## 已完成阶段和任务
 
@@ -22,7 +22,7 @@
 - Phase 03 认证与路由保护：Task 03-01 至 Task 03-04 已完成并审核通过。
 - Phase 04 应用主界面：Task 04-01 至 Task 04-02 已完成并审核通过。
 - Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，大节点审核已通过。
-- Phase 06 知识元数据与交互：Task 06-01 至 Task 06-04 已完成并审核通过。
+- Phase 06 知识元数据与交互：Task 06-01 至 Task 06-05 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -49,7 +49,7 @@
 
 ## 下一个建议任务
 
-- Phase 06 Task 06-05：实现归档页。
+- Phase 06 大节点审核。
 
 ## 大节点审核记录
 
@@ -70,6 +70,7 @@
 | Phase 06 Task 06-02 | 已审核通过 | 收藏功能完成，implementation commit `0cb4c06`，fix commit `bbfd5c6`；Spec review `SPEC_APPROVED`，Quality review 复审 `QUALITY_APPROVED`，无阻断问题。 |
 | Phase 06 Task 06-03 | 已审核通过 | 收集箱页完成，implementation commit `f7ad3bf`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
 | Phase 06 Task 06-04 | 已审核通过 | 收藏页完成，implementation commit `831a781`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
+| Phase 06 Task 06-05 | 已审核通过 | 归档页完成，implementation commit `e266e5c`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
 
 ## 未决问题 / 风险
 
@@ -78,6 +79,7 @@
 - `src/components/layout/app-sidebar-nav.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - `src/lib/knowledge/inbox-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - `src/lib/knowledge/favorites-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
+- `src/lib/knowledge/archive-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - Task 04-03 移动端导航为 P2，按 `development_plan` 推荐顺序排在后续。
 - 后续实现 tags repository 前，应补齐 Drizzle schema 中 `tags` 和 `knowledge_item_tags`。
 - 后续筛选复杂后可加强 query builder 测试。
@@ -96,3 +98,4 @@
 - 后续可区分 create / update metadata 缺字段策略，避免编辑缺字段回落默认值。
 - 后续可将 `toggleFavorite` 命名澄清为 set / update favorite。
 - 后续统一收藏影响路径 revalidation。
+- 后续删除流程可加强列表页 revalidate 覆盖面。
