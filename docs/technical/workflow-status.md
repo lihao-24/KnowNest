@@ -14,8 +14,8 @@
 - Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，大节点审核已通过。
 - Phase 06：Task 06-01 至 Task 06-05 已完成并通过审核，大节点审核已通过。
 - Phase 07：Task 07-01 至 Task 07-04 已完成并通过审核，大节点审核已通过。
-- Phase 08：Task 08-01 已完成并通过审核。
-- 下一步：Phase 08 Task 08-02 空间、状态、类型筛选。
+- Phase 08：Task 08-01 至 Task 08-02 已完成并通过审核。
+- 下一步：Phase 08 Task 08-03 收藏筛选和清除筛选。
 
 ## 已完成阶段和任务
 
@@ -26,7 +26,7 @@
 - Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，大节点审核已通过。
 - Phase 06 知识元数据与交互：Task 06-01 至 Task 06-05 已完成并审核通过，大节点审核已通过。
 - Phase 07 标签系统：Task 07-01 至 Task 07-04 已完成并审核通过，大节点审核已通过。
-- Phase 08 搜索与筛选：Task 08-01 已完成并审核通过。
+- Phase 08 搜索与筛选：Task 08-01 至 Task 08-02 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -53,7 +53,7 @@
 
 ## 下一个建议任务
 
-- Phase 08 Task 08-02 空间、状态、类型筛选。
+- Phase 08 Task 08-03 收藏筛选和清除筛选。
 
 ## 大节点审核记录
 
@@ -82,6 +82,7 @@
 | Phase 07 Task 07-04 | 已审核通过 | 标签筛选基础能力完成，implementation commit `3bb8f2e`，spec fix commit `43ca34f`；Spec 复审 `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:knowledge-items`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、inbox/favorites/archive page helper tests、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 07 | 已审核通过 | 大节点审核结论 `PHASE07_APPROVED`；Task 07-01 至 Task 07-04 已完成；验证通过 `npm.cmd run lint`、`npm.cmd run test:tags`、`npm.cmd run test:tag-input`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-item-delete`、`src/components/tags/tag-filter-model.test.mjs`、inbox/favorites/archive page helper tests、`npm.cmd run build`；必须修改：无；允许进入 Phase 08 Task 08-01。 |
 | Phase 08 Task 08-01 | 已审核通过 | 关键词搜索完成，implementation commit `3fe3c2c`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-search-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run lint`、`npm.cmd run build`。 |
+| Phase 08 Task 08-02 | 已审核通过 | 空间、状态、类型筛选完成，implementation commit `f739d90`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-search-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、inbox/favorites/archive page helper tests、`npm.cmd run lint`、`npm.cmd run build`。 |
 
 ## 未决问题 / 风险
 
@@ -121,3 +122,5 @@
 - `currentTagId` 当前未使用，后续可在交互需要时接入或清理。
 - 无效 tag 参数当前会展示默认列表但不清理 URL，后续可统一 URL 参数清理策略。
 - URL 中 `q` 不强制 canonical trim，后续可统一 URL 参数规范化策略。
+- `VALID_SPACES` / `VALID_STATUSES` / `VALID_TYPES` 在多个 model 中重复，后续可抽共享 URL 参数工具。
+- `src/components/knowledge/knowledge-metadata-filter-model.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
