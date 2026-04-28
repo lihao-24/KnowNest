@@ -14,8 +14,8 @@
 - Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，大节点审核已通过。
 - Phase 06：Task 06-01 至 Task 06-05 已完成并通过审核，大节点审核已通过。
 - Phase 07：Task 07-01 至 Task 07-04 已完成并通过审核，大节点审核已通过。
-- Phase 08：Task 08-01 至 Task 08-03 已完成并通过审核。
-- 下一步：Phase 08 大节点审核。
+- Phase 08：Task 08-01 至 Task 08-03 已完成并通过审核，大节点审核已通过。
+- 下一步：Phase 09 Task 09-01 MarkdownEditor 组件。
 
 ## 已完成阶段和任务
 
@@ -26,7 +26,7 @@
 - Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，大节点审核已通过。
 - Phase 06 知识元数据与交互：Task 06-01 至 Task 06-05 已完成并审核通过，大节点审核已通过。
 - Phase 07 标签系统：Task 07-01 至 Task 07-04 已完成并审核通过，大节点审核已通过。
-- Phase 08 搜索与筛选：Task 08-01 至 Task 08-03 已完成并审核通过。
+- Phase 08 搜索与筛选：Task 08-01 至 Task 08-03 已完成并审核通过，大节点审核已通过。
 
 ## 最新关键技术决策
 
@@ -53,7 +53,7 @@
 
 ## 下一个建议任务
 
-- Phase 08 大节点审核。
+- Phase 09 Task 09-01 MarkdownEditor 组件。
 
 ## 大节点审核记录
 
@@ -84,6 +84,7 @@
 | Phase 08 Task 08-01 | 已审核通过 | 关键词搜索完成，implementation commit `3fe3c2c`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-search-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 08 Task 08-02 | 已审核通过 | 空间、状态、类型筛选完成，implementation commit `f739d90`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-search-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、inbox/favorites/archive page helper tests、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 08 Task 08-03 | 已审核通过 | 收藏筛选和清除筛选完成，implementation commit `abf28dd`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-filters-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-search-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run lint`、`npm.cmd run build`。 |
+| Phase 08 | 已审核通过 | 大节点审核结论 `PHASE08_APPROVED`；Task 08-01 至 Task 08-03 已完成；验证通过 `npm.cmd run lint`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:tags`、`src/components/knowledge/knowledge-search-model.test.mjs`、`src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`src/components/knowledge/knowledge-filters-model.test.mjs`、`src/components/tags/tag-filter-model.test.mjs`、inbox/favorites/archive page helper tests、`npm.cmd run build`；必须修改：无；允许进入 Phase 09 Task 09-01。 |
 
 ## 未决问题 / 风险
 
