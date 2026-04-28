@@ -6,9 +6,24 @@ import { KnowledgeListItem } from "./knowledge-list-item";
 type KnowledgeListProps = {
   items: KnowledgeItem[];
   isLoading?: boolean;
+  emptyState?: {
+    title: string;
+    description: string;
+    actionLabel: string;
+  };
 };
 
-export function KnowledgeList({ items, isLoading = false }: KnowledgeListProps) {
+const defaultEmptyState = {
+  title: "还没有知识内容",
+  description: "先创建第一条知识，开始搭建你的个人知识库。",
+  actionLabel: "新建知识",
+};
+
+export function KnowledgeList({
+  items,
+  isLoading = false,
+  emptyState = defaultEmptyState,
+}: KnowledgeListProps) {
   if (isLoading) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600">
@@ -21,16 +36,16 @@ export function KnowledgeList({ items, isLoading = false }: KnowledgeListProps) 
     return (
       <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
         <h2 className="text-lg font-semibold text-slate-950">
-          还没有知识内容
+          {emptyState.title}
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          先创建第一条知识，开始搭建你的个人知识库。
+          {emptyState.description}
         </p>
         <Link
           className="mt-5 inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
           href="/app/items/new"
         >
-          新建知识
+          {emptyState.actionLabel}
         </Link>
       </div>
     );
