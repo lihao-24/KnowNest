@@ -7,12 +7,18 @@ type TagFilterProps = {
   tags: Tag[];
   selectedTagId: string | undefined;
   searchKeyword?: string | undefined;
+  selectedSpace?: string | undefined;
+  selectedStatus?: string | undefined;
+  selectedType?: string | undefined;
 };
 
 export function TagFilter({
   tags,
   selectedTagId,
   searchKeyword,
+  selectedSpace,
+  selectedStatus,
+  selectedType,
 }: TagFilterProps) {
   if (tags.length === 0) {
     return null;
@@ -38,7 +44,12 @@ export function TagFilter({
                     : "inline-flex h-8 items-center rounded-md bg-slate-100 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
                 }
                 href={buildTagFilterHref({
-                  currentSearchParams: { q: searchKeyword },
+                  currentSearchParams: {
+                    q: searchKeyword,
+                    space: selectedSpace,
+                    status: selectedStatus,
+                    type: selectedType,
+                  },
                   currentTagId: selectedTagId,
                   nextTagId: tag.id,
                 })}
@@ -52,7 +63,12 @@ export function TagFilter({
             <Link
               className="inline-flex h-8 items-center rounded-md px-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
               href={buildTagFilterHref({
-                currentSearchParams: { q: searchKeyword },
+                currentSearchParams: {
+                  q: searchKeyword,
+                  space: selectedSpace,
+                  status: selectedStatus,
+                  type: selectedType,
+                },
                 currentTagId: selectedTagId,
                 nextTagId: undefined,
               })}

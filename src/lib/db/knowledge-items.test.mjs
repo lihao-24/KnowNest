@@ -39,6 +39,19 @@ const archivedOnlyFilters = buildKnowledgeItemFilters("user-1", {
 assert.equal(archivedOnlyFilters.status, "archived");
 assert.deepEqual(archivedOnlyFilters.statusesExcluded, []);
 
+const metadataFilters = buildKnowledgeItemFilters("user-1", {
+  keyword: "drizzle",
+  space: "life",
+  status: "organized",
+  tagId: "tag-1",
+  type: "link",
+});
+
+assert.equal(metadataFilters.space, "life");
+assert.equal(metadataFilters.status, "organized");
+assert.equal(metadataFilters.type, "link");
+assert.deepEqual(metadataFilters.statusesExcluded, []);
+
 const archivedFilters = buildKnowledgeItemFilters("user-1", {
   includeArchived: true,
   keyword: "  drizzle  ",
@@ -94,6 +107,53 @@ assert.deepEqual(keywordAndTagSql.params, [
   "user-1",
   "tag-1",
 ]);
+
+const metadataFilterSql = new PgDialect().sqlToQuery(
+  buildKnowledgeItemWhereClause(
+    schema.knowledgeItems,
+    schema.knowledgeItemTags,
+    metadataFilters,
+  ),
+);
+
+assert.match(
+  metadataFilterSql.sql,
+  /"knowledge_items"\."user_id" = \$\d+/,
+);
+assert.doesNotMatch(
+  metadataFilterSql.sql,
+  /"knowledge_items"\."status" <> \$\d+/,
+);
+assert.match(metadataFilterSql.sql, /"knowledge_items"\."title" ilike \$\d+/);
+assert.match(metadataFilterSql.sql, /"knowledge_items"\."space" = \$\d+/);
+assert.match(metadataFilterSql.sql, /"knowledge_items"\."status" = \$\d+/);
+assert.match(metadataFilterSql.sql, /"knowledge_items"\."type" = \$\d+/);
+assert.match(metadataFilterSql.sql, /exists\s*\(/);
+assert.deepEqual(metadataFilterSql.params, [
+  "user-1",
+  "%drizzle%",
+  "%drizzle%",
+  "life",
+  "organized",
+  "link",
+  "user-1",
+  "tag-1",
+]);
+
+const archivedStatusSql = new PgDialect().sqlToQuery(
+  buildKnowledgeItemWhereClause(
+    schema.knowledgeItems,
+    schema.knowledgeItemTags,
+    buildKnowledgeItemFilters("user-1", { status: "archived" }),
+  ),
+);
+
+assert.doesNotMatch(
+  archivedStatusSql.sql,
+  /"knowledge_items"\."status" <> \$\d+/,
+);
+assert.match(archivedStatusSql.sql, /"knowledge_items"\."status" = \$\d+/);
+assert.deepEqual(archivedStatusSql.params, ["user-1", "archived"]);
 
 const tagFilterSql = new PgDialect().sqlToQuery(
   buildKnowledgeItemWhereClause(

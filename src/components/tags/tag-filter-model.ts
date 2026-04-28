@@ -1,7 +1,23 @@
 type TagFilterSearchParams = {
   tag?: string | string[] | undefined;
   q?: string | string[] | undefined;
+  space?: string | string[] | undefined;
+  status?: string | string[] | undefined;
+  type?: string | string[] | undefined;
 };
+
+const VALID_SPACES = new Set(["life", "work"]);
+const VALID_STATUSES = new Set(["inbox", "organized", "archived"]);
+const VALID_TYPES = new Set([
+  "note",
+  "link",
+  "prompt",
+  "project",
+  "log",
+  "excerpt",
+  "plan",
+  "snippet",
+]);
 
 export function getSelectedTagId(
   searchParams: TagFilterSearchParams | undefined,
@@ -24,9 +40,24 @@ export function buildTagFilterHref({
 }) {
   const searchParams = new URLSearchParams();
   const keyword = getFirstTrimmedParam(currentSearchParams?.q);
+  const space = getFirstTrimmedParam(currentSearchParams?.space);
+  const status = getFirstTrimmedParam(currentSearchParams?.status);
+  const type = getFirstTrimmedParam(currentSearchParams?.type);
 
   if (keyword) {
     searchParams.set("q", keyword);
+  }
+
+  if (space && VALID_SPACES.has(space)) {
+    searchParams.set("space", space);
+  }
+
+  if (status && VALID_STATUSES.has(status)) {
+    searchParams.set("status", status);
+  }
+
+  if (type && VALID_TYPES.has(type)) {
+    searchParams.set("type", type);
   }
 
   if (nextTagId) {

@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { KnowledgeList } from "@/components/knowledge/knowledge-list";
+import { KnowledgeMetadataFilter } from "@/components/knowledge/knowledge-metadata-filter";
+import { getKnowledgeMetadataFilters } from "@/components/knowledge/knowledge-metadata-filter-model";
 import { KnowledgeSearch } from "@/components/knowledge/knowledge-search";
 import { getSearchKeyword } from "@/components/knowledge/knowledge-search-model";
 import { TagFilter } from "@/components/tags/tag-filter";
@@ -13,6 +15,9 @@ type AppPageProps = {
   searchParams?: Promise<{
     tag?: string | string[] | undefined;
     q?: string | string[] | undefined;
+    space?: string | string[] | undefined;
+    status?: string | string[] | undefined;
+    type?: string | string[] | undefined;
   }>;
 };
 
@@ -21,6 +26,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
   const resolvedSearchParams = await searchParams;
   const requestedTagId = getSelectedTagId(resolvedSearchParams);
   const keyword = getSearchKeyword(resolvedSearchParams);
+  const metadataFilters = getKnowledgeMetadataFilters(resolvedSearchParams);
   const tags = await listTags(user.id);
   const selectedTagId = tags.some((tag) => tag.id === requestedTagId)
     ? requestedTagId
@@ -28,12 +34,20 @@ export default async function AppPage({ searchParams }: AppPageProps) {
   const items = await listKnowledgeItems(user.id, {
     keyword,
     tagId: selectedTagId,
+    ...metadataFilters,
   });
   const itemsWithTags = await attachTagsToKnowledgeItems(user.id, items);
-  const emptyState = keyword
+  const hasFilters = Boolean(
+    keyword ||
+      selectedTagId ||
+      metadataFilters.space ||
+      metadataFilters.status ||
+      metadataFilters.type,
+  );
+  const emptyState = hasFilters
     ? {
         title: "没有找到匹配内容",
-        description: "换个关键词再试试，或清除搜索查看全部内容。",
+        description: "换个条件再试试，或清除筛选查看默认列表。",
         actionLabel: "新建知识",
       }
     : undefined;
@@ -59,10 +73,24 @@ export default async function AppPage({ searchParams }: AppPageProps) {
         </Link>
       </div>
 
-      <KnowledgeSearch keyword={keyword} selectedTagId={selectedTagId} />
-      <TagFilter
+      <KnowledgeSearch
+        keyword={keyword}
+        selectedSpace={metadataFilters.space}
+        selectedStatus={metadataFilters.status}
+        selectedTagId={selectedTagId}
+        selectedType={metadataFilters.type}
+      />
+      <KnowledgeMetadataFilter
+        filters={metadataFilters}
         searchKeyword={keyword}
         selectedTagId={selectedTagId}
+      />
+      <TagFilter
+        searchKeyword={keyword}
+        selectedSpace={metadataFilters.space}
+        selectedStatus={metadataFilters.status}
+        selectedTagId={selectedTagId}
+        selectedType={metadataFilters.type}
         tags={tags}
       />
       <KnowledgeList emptyState={emptyState} items={itemsWithTags} />

@@ -38,18 +38,28 @@ assert.equal(
 
 assert.equal(
   buildTagFilterHref({
-    currentSearchParams: { q: "  drizzle  " },
+    currentSearchParams: {
+      q: "  drizzle  ",
+      space: "life",
+      status: "archived",
+      type: "link",
+    },
     currentTagId: undefined,
     nextTagId: "tag-1",
   }),
-  "/app?q=drizzle&tag=tag-1",
+  "/app?q=drizzle&space=life&status=archived&type=link&tag=tag-1",
 );
 
 assert.equal(
   buildTagFilterHref({
-    currentSearchParams: { q: "  drizzle  " },
+    currentSearchParams: {
+      q: "  drizzle  ",
+      space: "life",
+      status: "archived",
+      type: "link",
+    },
     currentTagId: "tag-1",
     nextTagId: undefined,
   }),
-  "/app?q=drizzle",
+  "/app?q=drizzle&space=life&status=archived&type=link",
 );

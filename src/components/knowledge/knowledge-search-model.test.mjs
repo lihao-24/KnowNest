@@ -13,9 +13,15 @@ assert.equal(getSearchKeyword(undefined), undefined);
 
 assert.equal(
   buildKnowledgeSearchClearHref({
-    currentSearchParams: { q: "drizzle", tag: "tag-1" },
+    currentSearchParams: {
+      q: "drizzle",
+      tag: "tag-1",
+      space: "life",
+      status: "archived",
+      type: "link",
+    },
   }),
-  "/app?tag=tag-1",
+  "/app?tag=tag-1&space=life&status=archived&type=link",
 );
 
 assert.equal(

@@ -5,11 +5,17 @@ import { buildKnowledgeSearchClearHref } from "./knowledge-search-model";
 type KnowledgeSearchProps = {
   keyword: string | undefined;
   selectedTagId: string | undefined;
+  selectedSpace?: string | undefined;
+  selectedStatus?: string | undefined;
+  selectedType?: string | undefined;
 };
 
 export function KnowledgeSearch({
   keyword,
   selectedTagId,
+  selectedSpace,
+  selectedStatus,
+  selectedType,
 }: KnowledgeSearchProps) {
   return (
     <form
@@ -19,6 +25,15 @@ export function KnowledgeSearch({
     >
       {selectedTagId ? (
         <input name="tag" type="hidden" value={selectedTagId} />
+      ) : null}
+      {selectedSpace ? (
+        <input name="space" type="hidden" value={selectedSpace} />
+      ) : null}
+      {selectedStatus ? (
+        <input name="status" type="hidden" value={selectedStatus} />
+      ) : null}
+      {selectedType ? (
+        <input name="type" type="hidden" value={selectedType} />
       ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -44,7 +59,13 @@ export function KnowledgeSearch({
             <Link
               className="inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
               href={buildKnowledgeSearchClearHref({
-                currentSearchParams: { q: keyword, tag: selectedTagId },
+                currentSearchParams: {
+                  q: keyword,
+                  tag: selectedTagId,
+                  space: selectedSpace,
+                  status: selectedStatus,
+                  type: selectedType,
+                },
               })}
             >
               清除
