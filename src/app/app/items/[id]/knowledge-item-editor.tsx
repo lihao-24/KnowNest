@@ -7,7 +7,7 @@ import {
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "@/constants/knowledge";
-import { MarkdownEditor } from "@/components/markdown/markdown-editor";
+import { MarkdownEditPreview } from "@/components/markdown/markdown-edit-preview";
 import { TagInput } from "@/components/tags/tag-input";
 import {
   DELETE_KNOWLEDGE_ITEM_CONFIRMATION_MESSAGE,
@@ -156,7 +156,7 @@ export function KnowledgeItemEditor({
           >
             正文
           </label>
-          <MarkdownEditor
+          <MarkdownEditPreview
             disabled={isEditingDisabled}
             id="content"
             name="content"

@@ -7,7 +7,7 @@ import {
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "@/constants/knowledge";
-import { MarkdownEditor } from "@/components/markdown/markdown-editor";
+import { MarkdownEditPreview } from "@/components/markdown/markdown-edit-preview";
 import { TagInput } from "@/components/tags/tag-input";
 
 import { createKnowledgeItemAction } from "./actions";
@@ -57,7 +57,7 @@ export function KnowledgeForm() {
         >
           正文
         </label>
-        <MarkdownEditor
+        <MarkdownEditPreview
           disabled={isPending}
           id="content"
           name="content"
