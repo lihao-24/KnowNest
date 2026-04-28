@@ -1,5 +1,6 @@
 type TagFilterSearchParams = {
   tag?: string | string[] | undefined;
+  q?: string | string[] | undefined;
 };
 
 export function getSelectedTagId(
@@ -14,17 +15,34 @@ export function getSelectedTagId(
 }
 
 export function buildTagFilterHref({
+  currentSearchParams,
   nextTagId,
 }: {
+  currentSearchParams: TagFilterSearchParams | undefined;
   currentTagId: string | undefined;
   nextTagId: string | undefined;
 }) {
-  if (!nextTagId) {
-    return "/app";
+  const searchParams = new URLSearchParams();
+  const keyword = getFirstTrimmedParam(currentSearchParams?.q);
+
+  if (keyword) {
+    searchParams.set("q", keyword);
   }
 
-  const searchParams = new URLSearchParams();
-  searchParams.set("tag", nextTagId);
+  if (nextTagId) {
+    searchParams.set("tag", nextTagId);
+  }
 
-  return `/app?${searchParams.toString()}`;
+  const queryString = searchParams.toString();
+
+  return queryString ? `/app?${queryString}` : "/app";
+}
+
+function getFirstTrimmedParam(
+  value: string | string[] | undefined,
+): string | undefined {
+  const firstValue = Array.isArray(value) ? value[0] : value;
+  const trimmed = firstValue?.trim();
+
+  return trimmed ? trimmed : undefined;
 }

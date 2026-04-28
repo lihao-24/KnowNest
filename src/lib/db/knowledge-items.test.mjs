@@ -64,6 +64,37 @@ const emptyTagFilters = buildKnowledgeItemFilters("user-1", {
 
 assert.equal(emptyTagFilters.tagId, undefined);
 
+const keywordAndTagSql = new PgDialect().sqlToQuery(
+  buildKnowledgeItemWhereClause(
+    schema.knowledgeItems,
+    schema.knowledgeItemTags,
+    buildKnowledgeItemFilters("user-1", {
+      keyword: "  drizzle  ",
+      tagId: "tag-1",
+    }),
+  ),
+);
+
+assert.match(
+  keywordAndTagSql.sql,
+  /"knowledge_items"\."user_id" = \$\d+/,
+);
+assert.match(keywordAndTagSql.sql, /"knowledge_items"\."status" <> \$\d+/);
+assert.match(keywordAndTagSql.sql, /"knowledge_items"\."title" ilike \$\d+/);
+assert.match(
+  keywordAndTagSql.sql,
+  /"knowledge_items"\."content" ilike \$\d+/,
+);
+assert.match(keywordAndTagSql.sql, /exists\s*\(/);
+assert.deepEqual(keywordAndTagSql.params, [
+  "user-1",
+  "archived",
+  "%drizzle%",
+  "%drizzle%",
+  "user-1",
+  "tag-1",
+]);
+
 const tagFilterSql = new PgDialect().sqlToQuery(
   buildKnowledgeItemWhereClause(
     schema.knowledgeItems,

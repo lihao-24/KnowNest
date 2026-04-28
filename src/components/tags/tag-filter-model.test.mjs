@@ -10,16 +10,46 @@ assert.equal(getSelectedTagId({ tag: "" }), undefined);
 assert.equal(getSelectedTagId({}), undefined);
 
 assert.equal(
-  buildTagFilterHref({ currentTagId: undefined, nextTagId: "tag-1" }),
+  buildTagFilterHref({
+    currentSearchParams: undefined,
+    currentTagId: undefined,
+    nextTagId: "tag-1",
+  }),
   "/app?tag=tag-1",
 );
 
 assert.equal(
-  buildTagFilterHref({ currentTagId: "tag-1", nextTagId: "tag-2" }),
+  buildTagFilterHref({
+    currentSearchParams: undefined,
+    currentTagId: "tag-1",
+    nextTagId: "tag-2",
+  }),
   "/app?tag=tag-2",
 );
 
 assert.equal(
-  buildTagFilterHref({ currentTagId: "tag-1", nextTagId: undefined }),
+  buildTagFilterHref({
+    currentSearchParams: undefined,
+    currentTagId: "tag-1",
+    nextTagId: undefined,
+  }),
   "/app",
+);
+
+assert.equal(
+  buildTagFilterHref({
+    currentSearchParams: { q: "  drizzle  " },
+    currentTagId: undefined,
+    nextTagId: "tag-1",
+  }),
+  "/app?q=drizzle&tag=tag-1",
+);
+
+assert.equal(
+  buildTagFilterHref({
+    currentSearchParams: { q: "  drizzle  " },
+    currentTagId: "tag-1",
+    nextTagId: undefined,
+  }),
+  "/app?q=drizzle",
 );
