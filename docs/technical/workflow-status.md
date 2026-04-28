@@ -15,8 +15,8 @@
 - Phase 06：Task 06-01 至 Task 06-05 已完成并通过审核，大节点审核已通过。
 - Phase 07：Task 07-01 至 Task 07-04 已完成并通过审核，大节点审核已通过。
 - Phase 08：Task 08-01 至 Task 08-03 已完成并通过审核，大节点审核已通过。
-- Phase 09：Task 09-01 至 Task 09-02 已完成并通过审核。
-- 下一步：Phase 09 Task 09-03 编辑 / 预览切换。
+- Phase 09：Task 09-01 至 Task 09-03 已完成并通过审核。
+- 下一步：Phase 09 大节点审核。
 
 ## 已完成阶段和任务
 
@@ -28,7 +28,7 @@
 - Phase 06 知识元数据与交互：Task 06-01 至 Task 06-05 已完成并审核通过，大节点审核已通过。
 - Phase 07 标签系统：Task 07-01 至 Task 07-04 已完成并审核通过，大节点审核已通过。
 - Phase 08 搜索与筛选：Task 08-01 至 Task 08-03 已完成并审核通过，大节点审核已通过。
-- Phase 09 Markdown 编辑体验：Task 09-01 至 Task 09-02 已完成并审核通过。
+- Phase 09 Markdown 编辑体验：Task 09-01 至 Task 09-03 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -55,7 +55,7 @@
 
 ## 下一个建议任务
 
-- Phase 09 Task 09-03 编辑 / 预览切换。
+- Phase 09 大节点审核。
 
 ## 大节点审核记录
 
@@ -89,6 +89,7 @@
 | Phase 08 | 已审核通过 | 大节点审核结论 `PHASE08_APPROVED`；Task 08-01 至 Task 08-03 已完成；验证通过 `npm.cmd run lint`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:tags`、`src/components/knowledge/knowledge-search-model.test.mjs`、`src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`src/components/knowledge/knowledge-filters-model.test.mjs`、`src/components/tags/tag-filter-model.test.mjs`、inbox/favorites/archive page helper tests、`npm.cmd run build`；必须修改：无；允许进入 Phase 09 Task 09-01。 |
 | Phase 09 Task 09-01 | 已审核通过 | MarkdownEditor 组件完成，implementation commit `ba84729`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-editor-model.test.mjs`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 09 Task 09-02 | 已审核通过 | MarkdownPreview 组件完成，implementation commit `bcefdb7`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:markdown-preview`、`npm.cmd run lint`、`npm.cmd run build`、`npm.cmd exec tsc -- --noEmit --incremental false`；依赖新增 `react-markdown@^10.1.0`，`package-lock.json` 已更新。 |
+| Phase 09 Task 09-03 | 已审核通过 | 编辑 / 预览切换完成，implementation commit `e8fddc5`；新增共用 `MarkdownEditPreview` 组件，新建页和编辑页共用；编辑模式渲染 `MarkdownEditor`，预览模式渲染 `MarkdownPreview`，并用同名 hidden input 保留 `content` 提交值；未修改 DB / server action，未实现工具栏、上传、AI 等超范围功能；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-edit-preview-model.test.mjs`、`npm.cmd run test:markdown-preview`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-editor-model.test.mjs`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run lint`、`npm.cmd run build`。 |
 
 ## 未决问题 / 风险
 
@@ -136,5 +137,6 @@
 - `src/components/markdown/markdown-editor-model.test.mjs` 后续可接入 `package.json` scripts。
 - MarkdownEditor props 后续如增多可考虑继承 textarea 原生属性。
 - MarkdownPreview 后续可补 `mailto:` 更严格校验。
-- Phase 09 Task 09-03 接入时可增加 MarkdownPreview 组件级渲染测试。
 - `src/components/markdown/markdown-preview-model.test.mjs` 后续可接入 `package.json` scripts。
+- `src/components/markdown/markdown-edit-preview-model.test.mjs` 后续可接入 `package.json` scripts。
+- MarkdownEditPreview 后续可补 DOM / 组件级交互测试或 Tab aria 关联优化。
