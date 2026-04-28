@@ -29,6 +29,7 @@ registerHooks({
 const {
   EMPTY_KNOWLEDGE_ITEM_MESSAGE,
   buildKnowledgeItemDraftPayload,
+  buildKnowledgeItemDraftRevalidationPaths,
   validateKnowledgeItemDraft,
 } = await import("./knowledge-item-draft.ts");
 
@@ -157,3 +158,11 @@ assert.deepEqual(forgedMetadataPayload, {
   ok: false,
   error: "空间、类型或状态不正确。",
 });
+
+assert.deepEqual(buildKnowledgeItemDraftRevalidationPaths("item-1"), [
+  "/app",
+  "/app/inbox",
+  "/app/favorites",
+  "/app/archive",
+  "/app/items/item-1",
+]);

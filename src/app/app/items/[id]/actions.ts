@@ -14,7 +14,10 @@ import {
   buildKnowledgeItemFavoritePayload,
   buildKnowledgeItemFavoriteRevalidationPaths,
 } from "@/lib/knowledge/knowledge-item-favorite";
-import { buildKnowledgeItemDraftPayload } from "@/lib/knowledge/knowledge-item-draft";
+import {
+  buildKnowledgeItemDraftPayload,
+  buildKnowledgeItemDraftRevalidationPaths,
+} from "@/lib/knowledge/knowledge-item-draft";
 
 const DELETE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "删除失败，请稍后重试。";
 const DELETE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE =
@@ -82,8 +85,9 @@ export async function updateKnowledgeItemAction(
     };
   }
 
-  revalidatePath("/app");
-  revalidatePath(`/app/items/${itemId}`);
+  buildKnowledgeItemDraftRevalidationPaths(itemId).forEach((path) => {
+    revalidatePath(path);
+  });
 
   return {
     errorMessage: "",

@@ -58,6 +58,16 @@ export function buildKnowledgeItemDraftPayload(
   });
 }
 
+export function buildKnowledgeItemDraftRevalidationPaths(itemId: string) {
+  return [
+    "/app",
+    "/app/inbox",
+    "/app/favorites",
+    "/app/archive",
+    `/app/items/${itemId}`,
+  ];
+}
+
 export function validateKnowledgeItemDraft(
   draft: KnowledgeItemDraftInput,
 ): KnowledgeItemDraftValidationResult {
