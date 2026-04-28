@@ -7,6 +7,7 @@ import {
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "@/constants/knowledge";
+import { MarkdownEditor } from "@/components/markdown/markdown-editor";
 import { TagInput } from "@/components/tags/tag-input";
 import {
   DELETE_KNOWLEDGE_ITEM_CONFIRMATION_MESSAGE,
@@ -75,6 +76,7 @@ export function KnowledgeItemEditor({
   const [confirmationState, setConfirmationState] = useState(
     initialDeleteKnowledgeItemConfirmationState,
   );
+  const [content, setContent] = useState(item.content);
   const [tagNames, setTagNames] = useState(initialTagNames);
   const isEditingDisabled = isUpdating || isDeleting;
   const isMutationDisabled = isUpdating || isDeleting || isTogglingFavorite;
@@ -154,13 +156,13 @@ export function KnowledgeItemEditor({
           >
             正文
           </label>
-          <textarea
-            className="min-h-96 w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-3 py-3 text-base leading-6 text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
-            defaultValue={item.content}
+          <MarkdownEditor
             disabled={isEditingDisabled}
             id="content"
             name="content"
+            onChange={setContent}
             placeholder="记录正文内容"
+            value={content}
           />
         </div>
 

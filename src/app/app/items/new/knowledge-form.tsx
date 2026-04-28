@@ -7,6 +7,7 @@ import {
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "@/constants/knowledge";
+import { MarkdownEditor } from "@/components/markdown/markdown-editor";
 import { TagInput } from "@/components/tags/tag-input";
 
 import { createKnowledgeItemAction } from "./actions";
@@ -23,6 +24,7 @@ export function KnowledgeForm() {
     createKnowledgeItemAction,
     initialCreateKnowledgeItemActionState,
   );
+  const [content, setContent] = useState("");
   const [tagNames, setTagNames] = useState<string[]>([]);
 
   return (
@@ -55,12 +57,13 @@ export function KnowledgeForm() {
         >
           正文
         </label>
-        <textarea
-          className="min-h-72 w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-3 py-3 text-base leading-6 text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
+        <MarkdownEditor
           disabled={isPending}
           id="content"
           name="content"
+          onChange={setContent}
           placeholder="记录正文内容"
+          value={content}
         />
       </div>
 
