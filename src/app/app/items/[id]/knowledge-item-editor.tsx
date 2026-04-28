@@ -11,6 +11,7 @@ import { MarkdownEditPreview } from "@/components/markdown/markdown-edit-preview
 import { TagInput } from "@/components/tags/tag-input";
 import {
   DELETE_KNOWLEDGE_ITEM_CONFIRMATION_MESSAGE,
+  getDeleteKnowledgeItemConfirmationButtonState,
   getDeleteKnowledgeItemConfirmationState,
   initialDeleteKnowledgeItemConfirmationState,
 } from "@/lib/knowledge/knowledge-item-delete";
@@ -80,6 +81,11 @@ export function KnowledgeItemEditor({
   const [tagNames, setTagNames] = useState(initialTagNames);
   const isEditingDisabled = isUpdating || isDeleting;
   const isMutationDisabled = isUpdating || isDeleting || isTogglingFavorite;
+  const deleteConfirmationButtonState =
+    getDeleteKnowledgeItemConfirmationButtonState({
+      isDeleting,
+      isMutationDisabled,
+    });
   const isFavorite = favoriteState.isFavorite ?? item.is_favorite;
   const favoriteButtonLabel = getKnowledgeItemFavoriteButtonLabel(
     isFavorite,
@@ -283,10 +289,10 @@ export function KnowledgeItemEditor({
               <form action={deleteFormAction}>
                 <button
                   className="inline-flex h-11 w-full items-center justify-center rounded-md bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 sm:h-10 sm:w-auto"
-                  disabled={isDeleting}
+                  disabled={deleteConfirmationButtonState.isDisabled}
                   type="submit"
                 >
-                  {isDeleting ? "删除中..." : "确认删除"}
+                  {deleteConfirmationButtonState.label}
                 </button>
               </form>
             </div>

@@ -11,6 +11,11 @@ export type DeleteKnowledgeItemPayload = {
   itemId: string;
 };
 
+export type DeleteKnowledgeItemConfirmationButtonState = {
+  isDisabled: boolean;
+  label: "确认删除" | "删除中...";
+};
+
 export const initialDeleteKnowledgeItemConfirmationState: DeleteKnowledgeItemConfirmationState =
   {
     isConfirming: false,
@@ -33,5 +38,18 @@ export function buildDeleteKnowledgeItemPayload(
 
   return {
     itemId,
+  };
+}
+
+export function getDeleteKnowledgeItemConfirmationButtonState({
+  isDeleting,
+  isMutationDisabled,
+}: {
+  isDeleting: boolean;
+  isMutationDisabled: boolean;
+}): DeleteKnowledgeItemConfirmationButtonState {
+  return {
+    isDisabled: isMutationDisabled,
+    label: isDeleting ? "删除中..." : "确认删除",
   };
 }

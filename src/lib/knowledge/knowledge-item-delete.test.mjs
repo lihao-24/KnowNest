@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   DELETE_KNOWLEDGE_ITEM_CONFIRMATION_MESSAGE,
   buildDeleteKnowledgeItemPayload,
+  getDeleteKnowledgeItemConfirmationButtonState,
   getDeleteKnowledgeItemConfirmationState,
   initialDeleteKnowledgeItemConfirmationState,
 } from "./knowledge-item-delete.ts";
@@ -40,3 +41,25 @@ assert.deepEqual(deletePayload, {
   itemId: "item-1",
 });
 assert.equal(Object.hasOwn(deletePayload, "userId"), false);
+
+assert.deepEqual(
+  getDeleteKnowledgeItemConfirmationButtonState({
+    isDeleting: false,
+    isMutationDisabled: true,
+  }),
+  {
+    isDisabled: true,
+    label: "确认删除",
+  },
+);
+
+assert.deepEqual(
+  getDeleteKnowledgeItemConfirmationButtonState({
+    isDeleting: true,
+    isMutationDisabled: true,
+  }),
+  {
+    isDisabled: true,
+    label: "删除中...",
+  },
+);
