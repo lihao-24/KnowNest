@@ -12,10 +12,15 @@ import {
   getDeleteKnowledgeItemConfirmationState,
   initialDeleteKnowledgeItemConfirmationState,
 } from "@/lib/knowledge/knowledge-item-delete";
+import {
+  getKnowledgeItemFavoriteButtonLabel,
+  getKnowledgeItemFavoriteStatusLabel,
+} from "@/lib/knowledge/knowledge-item-favorite";
 import type { KnowledgeItem } from "@/types/knowledge";
 
 import {
   deleteKnowledgeItemAction,
+  toggleKnowledgeItemFavoriteAction,
   updateKnowledgeItemAction,
 } from "./actions";
 
@@ -44,6 +49,10 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
     null,
     item.id,
   );
+  const toggleFavoriteWithId = toggleKnowledgeItemFavoriteAction.bind(
+    null,
+    item.id,
+  );
   const [updateState, updateFormAction, isUpdating] = useActionState(
     updateKnowledgeItemWithId,
     initialUpdateKnowledgeItemActionState,
@@ -52,13 +61,62 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
     deleteKnowledgeItemWithId,
     initialDeleteKnowledgeItemActionState,
   );
+  const [favoriteState, favoriteFormAction, isTogglingFavorite] =
+    useActionState(toggleFavoriteWithId, {
+      errorMessage: "",
+      successMessage: "",
+      isFavorite: item.is_favorite,
+    });
   const [confirmationState, setConfirmationState] = useState(
     initialDeleteKnowledgeItemConfirmationState,
   );
-  const isDisabled = isUpdating || isDeleting;
+  const isDisabled = isUpdating || isDeleting || isTogglingFavorite;
+  const isFavorite = favoriteState.isFavorite ?? item.is_favorite;
+  const favoriteButtonLabel = getKnowledgeItemFavoriteButtonLabel(
+    isFavorite,
+    isTogglingFavorite,
+  );
+  const favoriteStatusLabel = getKnowledgeItemFavoriteStatusLabel(isFavorite);
 
   return (
     <div className="space-y-6">
+      <form
+        action={favoriteFormAction}
+        className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div>
+          <p className="text-sm font-medium text-slate-700">收藏</p>
+          <p
+            aria-live="polite"
+            className={`mt-1 min-h-6 text-sm leading-6 ${
+              favoriteState.errorMessage ? "text-red-600" : "text-slate-600"
+            }`}
+            role={favoriteState.errorMessage ? "alert" : "status"}
+          >
+            {favoriteState.errorMessage ||
+              favoriteState.successMessage ||
+              favoriteStatusLabel}
+          </p>
+        </div>
+
+        <input
+          name="nextValue"
+          type="hidden"
+          value={String(!isFavorite)}
+        />
+        <button
+          aria-pressed={isFavorite}
+          className="inline-flex h-10 items-center justify-center rounded-md border border-amber-300 bg-white px-4 text-sm font-medium text-amber-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+          disabled={isDisabled}
+          type="submit"
+        >
+          <span aria-hidden="true" className="mr-2 text-base leading-none">
+            {isFavorite ? "★" : "☆"}
+          </span>
+          {favoriteButtonLabel}
+        </button>
+      </form>
+
       <form action={updateFormAction} className="space-y-5">
         <div>
           <label
