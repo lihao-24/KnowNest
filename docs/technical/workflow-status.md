@@ -16,8 +16,8 @@
 - Phase 07：Task 07-01 至 Task 07-04 已完成并通过审核，大节点审核已通过。
 - Phase 08：Task 08-01 至 Task 08-03 已完成并通过审核，大节点审核已通过。
 - Phase 09：Task 09-01 至 Task 09-03 已完成并通过审核，大节点审核已通过。
-- Phase 10：Task 10-01 至 Task 10-02 已完成并通过审核。
-- 下一步：Phase 10 Task 10-03 完善保存与删除反馈。
+- Phase 10：Task 10-01 至 Task 10-03 已完成并通过审核。
+- 下一步：Phase 10 Task 10-04 设置页完善。
 
 ## 已完成阶段和任务
 
@@ -30,7 +30,7 @@
 - Phase 07 标签系统：Task 07-01 至 Task 07-04 已完成并审核通过，大节点审核已通过。
 - Phase 08 搜索与筛选：Task 08-01 至 Task 08-03 已完成并审核通过，大节点审核已通过。
 - Phase 09 Markdown 编辑体验：Task 09-01 至 Task 09-03 已完成并审核通过，大节点审核已通过。
-- Phase 10 移动端与体验完善：Task 10-01 状态反馈 / 补齐空状态、加载状态、错误状态已完成并审核通过；Task 10-02 优化移动端布局已完成并审核通过；Phase 10 大节点未完成。
+- Phase 10 移动端与体验完善：Task 10-01 状态反馈 / 补齐空状态、加载状态、错误状态已完成并审核通过；Task 10-02 优化移动端布局已完成并审核通过；Task 10-03 完善保存与删除反馈已完成并审核通过；Phase 10 大节点未完成。
 
 ## 最新关键技术决策
 
@@ -57,7 +57,7 @@
 
 ## 下一个建议任务
 
-- Phase 10 Task 10-03：完善保存与删除反馈。
+- Phase 10 Task 10-04：设置页完善。
 
 ## 大节点审核记录
 
@@ -95,6 +95,7 @@
 | Phase 09 | 已审核通过 | 大节点审核结论 `PHASE09_APPROVED`；Task 09-01 至 Task 09-03 已完成；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-editor-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-edit-preview-model.test.mjs`、`npm.cmd run test:markdown-preview`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run lint`，此前任务级验证包含 `npm.cmd run build`；必须修改：无；允许进入 Phase 10 Task 10-01。 |
 | Phase 10 Task 10-01 | 已审核通过 | 状态反馈 / 补齐空状态、加载状态、错误状态完成，implementation commit `007a635`；新增 `knowledge-feedback-state` 状态反馈模型和测试；新增 `/app` 与 `/app/items/[id]` 的 App Router `loading.tsx` / `error.tsx`；`/app` 搜索 / 筛选无结果文案走模型；`KnowledgeList` 默认空态复用模型；保存失败、删除失败沿用已有 UI 错误展示链路；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-feedback-state.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/inbox-page.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/favorites-page.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/archive-page.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-filters-model.test.mjs`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 10 Task 10-02 | 已审核通过 | 优化移动端布局完成，implementation commit `f0de390`；新增最小移动端导航抽屉，复用现有导航项和 active 判断逻辑；AppShell / 全局样式增加 `overflow-x-hidden`、`min-w-0`；登录页、列表页、新建页、编辑页、设置页补齐移动端宽度约束和触控尺寸；列表项、筛选器、标签、Markdown 编辑 / 预览补强长内容处理；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/layout/mobile-nav-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/layout/app-sidebar-nav.test.mjs`、`npm.cmd run test:markdown-preview`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:tag-input`、`npm.cmd run test:knowledge-list-item`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-filters-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run lint`、`npm.cmd run build`、Chrome CDP 390x844 验证 `/login` 无横向溢出且输入和登录按钮高度 44px、未登录 `/app` 重定向后无横向溢出；非阻断风险：无可用登录会话 / 测试账号，已登录页面和真实移动端抽屉交互待后续真实设备 / 登录态手测。 |
+| Phase 10 Task 10-03 | 已审核通过 | 完善保存与删除反馈完成，implementation commit `86dc77b`，fix commit `140235f`；新建保存成功 redirect 到 `/app?notice=created`，`/app` 展示“已保存。”并用本页级 `KnowledgeOperationNotice` 清理 notice query；新建 / 编辑保存失败使用 `role="alert"`；保留 pending 禁用与“保存中...”/“删除中...”；删除确认按钮通过全局 `isMutationDisabled` 禁用，避免保存 / 收藏 / 删除并发；Spec review `SPEC_APPROVED`，Quality review 首轮 `QUALITY_CHANGES_REQUESTED`，修复后复审 `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-feedback-state.test.mjs`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-filters-model.test.mjs`、`npm.cmd run lint`、`npm.cmd run build`。 |
 
 ## 未决问题 / 风险
 
@@ -147,4 +148,6 @@
 - `src/components/markdown/markdown-edit-preview-model.test.mjs` 后续可接入 `package.json` scripts。
 - MarkdownEditPreview 后续可补 DOM / 组件级交互测试或 Tab aria 关联优化。
 - `src/lib/knowledge/knowledge-feedback-state.test.mjs` 后续可接入 `package.json` scripts。
+- `KnowledgeOperationNotice` 后续可补更接近行为层的组件测试。
+- 删除失败 UI role 后续可补组件级断言。
 - 无效 tag 参数仍按既有策略忽略，后续可结合 URL 参数清理策略统一处理。
