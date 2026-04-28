@@ -12,8 +12,8 @@
 - Phase 03：已完成到 Task 03-04，并通过大节点审核。
 - Phase 04：Task 04-01 至 Task 04-02 已完成并通过审核。
 - Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，大节点审核已通过。
-- Phase 06：Task 06-01 已完成并通过审核。
-- 下一步：Phase 06 Task 06-02。
+- Phase 06：Task 06-01 至 Task 06-02 已完成并通过审核。
+- 下一步：Phase 06 Task 06-03。
 
 ## 已完成阶段和任务
 
@@ -22,7 +22,7 @@
 - Phase 03 认证与路由保护：Task 03-01 至 Task 03-04 已完成并审核通过。
 - Phase 04 应用主界面：Task 04-01 至 Task 04-02 已完成并审核通过。
 - Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，大节点审核已通过。
-- Phase 06 知识元数据与交互：Task 06-01 已完成并审核通过。
+- Phase 06 知识元数据与交互：Task 06-01 至 Task 06-02 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -49,7 +49,7 @@
 
 ## 下一个建议任务
 
-- Phase 06 Task 06-02：实现收藏功能。
+- Phase 06 Task 06-03：实现收集箱页。
 
 ## 大节点审核记录
 
@@ -67,6 +67,7 @@
 | Phase 05 Task 05-05 | 已审核通过 | 删除知识流程完成，commit `683d1d5`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
 | Phase 05 | 已审核通过 | 大节点审核结论 `PHASE05_APPROVED`；允许进入 Phase 06 Task 06-01；验证通过 `npm.cmd run lint`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run build`；必须修改：无。 |
 | Phase 06 Task 06-01 | 已审核通过 | 知识元数据字段完成，implementation commit `a98df59`，fix commit `82a553c`；Spec 复审 `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
+| Phase 06 Task 06-02 | 已审核通过 | 收藏功能完成，implementation commit `0cb4c06`，fix commit `bbfd5c6`；Spec review `SPEC_APPROVED`，Quality review 复审 `QUALITY_APPROVED`，无阻断问题。 |
 
 ## 未决问题 / 风险
 
@@ -89,3 +90,5 @@
 - 后续可抽 `MetadataSelect` 或 `KnowledgeMetadataFields`，减少新建 / 编辑重复。
 - 后续可在 `src/constants/knowledge.ts` 导出 `DEFAULT_KNOWLEDGE_METADATA`。
 - 后续可区分 create / update metadata 缺字段策略，避免编辑缺字段回落默认值。
+- 后续可将 `toggleFavorite` 命名澄清为 set / update favorite。
+- 后续实现收藏页 / 收藏筛选时统一收藏影响路径 revalidation。
