@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import {
   KNOWLEDGE_SPACES,
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "@/constants/knowledge";
+import { TagInput } from "@/components/tags/tag-input";
 
 import { createKnowledgeItemAction } from "./actions";
 
@@ -22,9 +23,14 @@ export function KnowledgeForm() {
     createKnowledgeItemAction,
     initialCreateKnowledgeItemActionState,
   );
+  const [tagNames, setTagNames] = useState<string[]>([]);
 
   return (
     <form action={formAction} className="space-y-5">
+      {tagNames.map((tagName) => (
+        <input key={tagName} name="tagNames" type="hidden" value={tagName} />
+      ))}
+
       <div>
         <label
           className="mb-1.5 block text-sm font-medium text-slate-700"
@@ -125,6 +131,12 @@ export function KnowledgeForm() {
           </select>
         </div>
       </div>
+
+      <TagInput
+        disabled={isPending}
+        onChange={setTagNames}
+        value={tagNames}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p

@@ -67,6 +67,7 @@ assert.equal(
   labelByValue(KNOWLEDGE_STATUSES, item.status),
 );
 assert.equal(viewModel.favoriteLabel, "已收藏");
+assert.deepEqual(viewModel.tagNames, []);
 assert.equal(viewModel.updatedAtLabel, "2026-04-27");
 assert.ok(viewModel.summary.startsWith("第一行内容 第二行内容"));
 assert.ok(viewModel.summary.length <= 123);
@@ -81,3 +82,25 @@ const emptyContentViewModel = buildKnowledgeListItemViewModel({
 assert.equal(emptyContentViewModel.title, "有标题");
 assert.equal(emptyContentViewModel.summary, "暂无正文内容");
 assert.equal(emptyContentViewModel.favoriteLabel, "未收藏");
+
+const taggedViewModel = buildKnowledgeListItemViewModel({
+  ...item,
+  tags: [
+    {
+      id: "tag-1",
+      user_id: "user-1",
+      name: "work",
+      created_at: "2026-04-26T00:00:00.000Z",
+      updated_at: "2026-04-26T00:00:00.000Z",
+    },
+    {
+      id: "tag-2",
+      user_id: "user-1",
+      name: "life",
+      created_at: "2026-04-26T00:00:00.000Z",
+      updated_at: "2026-04-26T00:00:00.000Z",
+    },
+  ],
+});
+
+assert.deepEqual(taggedViewModel.tagNames, ["work", "life"]);

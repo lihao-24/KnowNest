@@ -8,6 +8,7 @@ import type {
   KnowledgeStatus,
   KnowledgeType,
 } from "../../types/knowledge";
+import { normalizeTagNames } from "../db/tags";
 
 export const EMPTY_KNOWLEDGE_ITEM_MESSAGE = "标题和正文不能同时为空。";
 export const INVALID_KNOWLEDGE_ITEM_METADATA_MESSAGE =
@@ -26,6 +27,7 @@ export type KnowledgeItemDraftInput = {
   space?: string;
   type?: string;
   status?: string;
+  tagNames?: string[];
 };
 
 export type KnowledgeItemDraft = {
@@ -34,6 +36,7 @@ export type KnowledgeItemDraft = {
   space: KnowledgeSpace;
   type: KnowledgeType;
   status: KnowledgeStatus;
+  tagNames: string[];
 };
 
 export type KnowledgeItemDraftValidationResult =
@@ -55,6 +58,7 @@ export function buildKnowledgeItemDraftPayload(
     space: getFormDataString(formData, "space"),
     type: getFormDataString(formData, "type"),
     status: getFormDataString(formData, "status"),
+    tagNames: getFormDataStrings(formData, "tagNames"),
   });
 }
 
@@ -96,6 +100,7 @@ export function validateKnowledgeItemDraft(
       title,
       content,
       ...metadata,
+      tagNames: normalizeTagNames(draft.tagNames ?? []),
     },
   };
 }
@@ -162,4 +167,10 @@ function getFormDataString(formData: FormData, key: string) {
   const value = formData.get(key);
 
   return typeof value === "string" ? value : undefined;
+}
+
+function getFormDataStrings(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .filter((value): value is string => typeof value === "string");
 }

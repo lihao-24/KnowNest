@@ -3,10 +3,12 @@ import Link from "next/link";
 import { KnowledgeList } from "@/components/knowledge/knowledge-list";
 import { requireUser } from "@/lib/auth/server";
 import { listKnowledgeItems } from "@/lib/db/knowledge-items";
+import { attachTagsToKnowledgeItems } from "@/lib/db/tags";
 
 export default async function AppPage() {
   const user = await requireUser();
   const items = await listKnowledgeItems(user.id);
+  const itemsWithTags = await attachTagsToKnowledgeItems(user.id, items);
 
   return (
     <section className="w-full max-w-4xl">
@@ -29,7 +31,7 @@ export default async function AppPage() {
         </Link>
       </div>
 
-      <KnowledgeList items={items} />
+      <KnowledgeList items={itemsWithTags} />
     </section>
   );
 }

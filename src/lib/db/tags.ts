@@ -5,6 +5,7 @@ import {
 } from "drizzle-orm";
 
 import type { Tag } from "../../types/tags";
+import type { KnowledgeItem, KnowledgeItemWithTags } from "../../types/knowledge";
 
 export type ItemTagLinkValues = {
   user_id: string;
@@ -150,6 +151,18 @@ export async function listTagsByItemId(
       ),
     )
     .orderBy(asc(tags.name));
+}
+
+export async function attachTagsToKnowledgeItems(
+  userId: string,
+  items: KnowledgeItem[],
+): Promise<KnowledgeItemWithTags[]> {
+  return Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      tags: await listTagsByItemId(userId, item.id),
+    })),
+  );
 }
 
 export async function updateItemTags(

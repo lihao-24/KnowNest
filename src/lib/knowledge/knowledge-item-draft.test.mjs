@@ -37,10 +37,22 @@ const draftSource = readFileSync(
   new URL("./knowledge-item-draft.ts", import.meta.url),
   "utf8",
 );
+const createActionSource = readFileSync(
+  new URL("../../app/app/items/new/actions.ts", import.meta.url),
+  "utf8",
+);
+const updateActionSource = readFileSync(
+  new URL("../../app/app/items/[id]/actions.ts", import.meta.url),
+  "utf8",
+);
 
 assert.ok(!draftSource.includes("allowedKnowledgeSpaces"));
 assert.ok(!draftSource.includes("allowedKnowledgeTypes"));
 assert.ok(!draftSource.includes("allowedKnowledgeStatuses"));
+assert.ok(createActionSource.includes("updateItemTags"));
+assert.ok(createActionSource.includes("validation.value.tagNames"));
+assert.ok(updateActionSource.includes("updateItemTags"));
+assert.ok(updateActionSource.includes("validation.value.tagNames"));
 
 const emptyDraft = validateKnowledgeItemDraft({
   title: "   ",
@@ -65,6 +77,7 @@ assert.deepEqual(titleOnlyDraft, {
     space: "work",
     type: "note",
     status: "inbox",
+    tagNames: [],
   },
 });
 
@@ -81,6 +94,7 @@ assert.deepEqual(contentOnlyDraft, {
     space: "work",
     type: "note",
     status: "inbox",
+    tagNames: [],
   },
 });
 
@@ -91,6 +105,10 @@ formData.set("userId", "forged-user-id");
 formData.set("space", "life");
 formData.set("type", "snippet");
 formData.set("status", "organized");
+formData.append("tagNames", " work ");
+formData.append("tagNames", "");
+formData.append("tagNames", "life");
+formData.append("tagNames", "work");
 
 const updatePayload = buildKnowledgeItemDraftPayload(formData);
 
@@ -102,6 +120,7 @@ assert.deepEqual(updatePayload, {
     space: "life",
     type: "snippet",
     status: "organized",
+    tagNames: ["work", "life"],
   },
 });
 

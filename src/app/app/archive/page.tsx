@@ -3,6 +3,7 @@ import Link from "next/link";
 import { KnowledgeList } from "@/components/knowledge/knowledge-list";
 import { requireUser } from "@/lib/auth/server";
 import { listKnowledgeItems } from "@/lib/db/knowledge-items";
+import { attachTagsToKnowledgeItems } from "@/lib/db/tags";
 import {
   archiveKnowledgeListEmptyState,
   archivePageHeader,
@@ -15,6 +16,7 @@ export default async function ArchivePage() {
     user.id,
     buildArchiveKnowledgeListParams(),
   );
+  const itemsWithTags = await attachTagsToKnowledgeItems(user.id, items);
 
   return (
     <section className="w-full max-w-4xl">
@@ -39,7 +41,10 @@ export default async function ArchivePage() {
         </Link>
       </div>
 
-      <KnowledgeList emptyState={archiveKnowledgeListEmptyState} items={items} />
+      <KnowledgeList
+        emptyState={archiveKnowledgeListEmptyState}
+        items={itemsWithTags}
+      />
     </section>
   );
 }

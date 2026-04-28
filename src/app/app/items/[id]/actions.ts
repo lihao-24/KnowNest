@@ -9,6 +9,7 @@ import {
   toggleFavorite,
   updateKnowledgeItem,
 } from "@/lib/db/knowledge-items";
+import { updateItemTags } from "@/lib/db/tags";
 import { buildDeleteKnowledgeItemPayload } from "@/lib/knowledge/knowledge-item-delete";
 import {
   buildKnowledgeItemFavoritePayload,
@@ -75,6 +76,8 @@ export async function updateKnowledgeItemAction(
         successMessage: "",
       };
     }
+
+    await updateItemTags(user.id, itemId, validation.value.tagNames);
   } catch (error) {
     return {
       errorMessage:

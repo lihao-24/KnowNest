@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { requireUser } from "@/lib/auth/server";
 import { getKnowledgeItemById } from "@/lib/db/knowledge-items";
+import { listTagsByItemId } from "@/lib/db/tags";
 
 import { KnowledgeItemEditor } from "./knowledge-item-editor";
 
@@ -21,6 +22,8 @@ export default async function KnowledgeItemPage({
   if (!item) {
     return <KnowledgeItemNotFound />;
   }
+
+  const tags = await listTagsByItemId(user.id, item.id);
 
   return (
     <section className="w-full max-w-4xl">
@@ -47,7 +50,10 @@ export default async function KnowledgeItemPage({
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <KnowledgeItemEditor item={item} />
+        <KnowledgeItemEditor
+          initialTagNames={tags.map((tag) => tag.name)}
+          item={item}
+        />
       </div>
     </section>
   );

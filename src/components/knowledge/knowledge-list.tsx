@@ -1,10 +1,10 @@
 import Link from "next/link";
 
-import type { KnowledgeItem } from "../../types/knowledge";
+import type { KnowledgeItem, KnowledgeItemWithTags } from "../../types/knowledge";
 import { KnowledgeListItem } from "./knowledge-list-item";
 
 type KnowledgeListProps = {
-  items: KnowledgeItem[];
+  items: Array<KnowledgeItem | KnowledgeItemWithTags>;
   isLoading?: boolean;
   emptyState?: {
     title: string;

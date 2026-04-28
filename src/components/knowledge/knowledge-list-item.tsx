@@ -1,9 +1,13 @@
 import Link from "next/link";
 
-import type { KnowledgeItem } from "../../types/knowledge";
+import type { KnowledgeItem, KnowledgeItemWithTags } from "../../types/knowledge";
 import { buildKnowledgeListItemViewModel } from "./knowledge-list-item-view-model";
 
-export function KnowledgeListItem({ item }: { item: KnowledgeItem }) {
+export function KnowledgeListItem({
+  item,
+}: {
+  item: KnowledgeItem | KnowledgeItemWithTags;
+}) {
   const viewModel = buildKnowledgeListItemViewModel(item);
 
   return (
@@ -36,6 +40,14 @@ export function KnowledgeListItem({ item }: { item: KnowledgeItem }) {
           <span className="rounded-md bg-slate-100 px-2 py-1">
             {viewModel.statusLabel}
           </span>
+          {viewModel.tagNames.map((tagName) => (
+            <span
+              className="rounded-md bg-teal-50 px-2 py-1 text-teal-700"
+              key={tagName}
+            >
+              #{tagName}
+            </span>
+          ))}
           <span className="ml-auto w-full text-slate-500 sm:w-auto">
             更新时间：{viewModel.updatedAtLabel}
           </span>

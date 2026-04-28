@@ -7,6 +7,7 @@ import {
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "@/constants/knowledge";
+import { TagInput } from "@/components/tags/tag-input";
 import {
   DELETE_KNOWLEDGE_ITEM_CONFIRMATION_MESSAGE,
   getDeleteKnowledgeItemConfirmationState,
@@ -38,9 +39,13 @@ const selectClassName =
 
 type KnowledgeItemEditorProps = {
   item: KnowledgeItem;
+  initialTagNames?: string[];
 };
 
-export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
+export function KnowledgeItemEditor({
+  item,
+  initialTagNames = [],
+}: KnowledgeItemEditorProps) {
   const updateKnowledgeItemWithId = updateKnowledgeItemAction.bind(
     null,
     item.id,
@@ -70,6 +75,7 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
   const [confirmationState, setConfirmationState] = useState(
     initialDeleteKnowledgeItemConfirmationState,
   );
+  const [tagNames, setTagNames] = useState(initialTagNames);
   const isEditingDisabled = isUpdating || isDeleting;
   const isMutationDisabled = isUpdating || isDeleting || isTogglingFavorite;
   const isFavorite = favoriteState.isFavorite ?? item.is_favorite;
@@ -119,6 +125,10 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
       </form>
 
       <form action={updateFormAction} className="space-y-5">
+        {tagNames.map((tagName) => (
+          <input key={tagName} name="tagNames" type="hidden" value={tagName} />
+        ))}
+
         <div>
           <label
             className="mb-1.5 block text-sm font-medium text-slate-700"
@@ -221,6 +231,12 @@ export function KnowledgeItemEditor({ item }: KnowledgeItemEditorProps) {
             </select>
           </div>
         </div>
+
+        <TagInput
+          disabled={isEditingDisabled}
+          onChange={setTagNames}
+          value={tagNames}
+        />
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p
