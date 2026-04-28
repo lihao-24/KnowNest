@@ -1,6 +1,6 @@
-type TagFilterSearchParams = {
-  tag?: string | string[] | undefined;
+type KnowledgeFiltersSearchParams = {
   q?: string | string[] | undefined;
+  tag?: string | string[] | undefined;
   space?: string | string[] | undefined;
   status?: string | string[] | undefined;
   type?: string | string[] | undefined;
@@ -20,34 +20,55 @@ const VALID_TYPES = new Set([
   "snippet",
 ]);
 
-export function getSelectedTagId(
-  searchParams: TagFilterSearchParams | undefined,
-): string | undefined {
-  const tagParam = Array.isArray(searchParams?.tag)
-    ? searchParams.tag[0]
-    : searchParams?.tag;
-  const selectedTagId = tagParam?.trim();
-
-  return selectedTagId ? selectedTagId : undefined;
+export function getKnowledgeFavoriteFilter(
+  searchParams: KnowledgeFiltersSearchParams | undefined,
+): boolean | undefined {
+  return getFirstTrimmedParam(searchParams?.favorite) === "true"
+    ? true
+    : undefined;
 }
 
-export function buildTagFilterHref({
+export function buildKnowledgeFavoriteFilterHref({
   currentSearchParams,
-  nextTagId,
+  isFavorite,
 }: {
-  currentSearchParams: TagFilterSearchParams | undefined;
-  currentTagId: string | undefined;
-  nextTagId: string | undefined;
+  currentSearchParams: KnowledgeFiltersSearchParams | undefined;
+  isFavorite: boolean;
 }) {
+  const searchParams = buildBaseKnowledgeFilterSearchParams(currentSearchParams);
+
+  if (isFavorite) {
+    searchParams.set("favorite", "true");
+  } else {
+    searchParams.delete("favorite");
+  }
+
+  const queryString = searchParams.toString();
+
+  return queryString ? `/app?${queryString}` : "/app";
+}
+
+export function buildClearKnowledgeFiltersHref() {
+  return "/app";
+}
+
+export function buildBaseKnowledgeFilterSearchParams(
+  currentSearchParams: KnowledgeFiltersSearchParams | undefined,
+) {
   const searchParams = new URLSearchParams();
   const keyword = getFirstTrimmedParam(currentSearchParams?.q);
+  const selectedTagId = getFirstTrimmedParam(currentSearchParams?.tag);
   const space = getFirstTrimmedParam(currentSearchParams?.space);
   const status = getFirstTrimmedParam(currentSearchParams?.status);
   const type = getFirstTrimmedParam(currentSearchParams?.type);
-  const favorite = getFirstTrimmedParam(currentSearchParams?.favorite);
+  const isFavorite = getKnowledgeFavoriteFilter(currentSearchParams);
 
   if (keyword) {
     searchParams.set("q", keyword);
+  }
+
+  if (selectedTagId) {
+    searchParams.set("tag", selectedTagId);
   }
 
   if (space && VALID_SPACES.has(space)) {
@@ -62,17 +83,11 @@ export function buildTagFilterHref({
     searchParams.set("type", type);
   }
 
-  if (favorite === "true") {
+  if (isFavorite) {
     searchParams.set("favorite", "true");
   }
 
-  if (nextTagId) {
-    searchParams.set("tag", nextTagId);
-  }
-
-  const queryString = searchParams.toString();
-
-  return queryString ? `/app?${queryString}` : "/app";
+  return searchParams;
 }
 
 function getFirstTrimmedParam(

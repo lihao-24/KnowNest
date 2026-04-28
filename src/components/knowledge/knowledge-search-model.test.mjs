@@ -19,9 +19,10 @@ assert.equal(
       space: "life",
       status: "archived",
       type: "link",
+      favorite: "true",
     },
   }),
-  "/app?tag=tag-1&space=life&status=archived&type=link",
+  "/app?tag=tag-1&space=life&status=archived&type=link&favorite=true",
 );
 
 assert.equal(

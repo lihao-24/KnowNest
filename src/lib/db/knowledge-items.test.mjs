@@ -140,6 +140,42 @@ assert.deepEqual(metadataFilterSql.params, [
   "tag-1",
 ]);
 
+const favoriteCombinedFilterSql = new PgDialect().sqlToQuery(
+  buildKnowledgeItemWhereClause(
+    schema.knowledgeItems,
+    schema.knowledgeItemTags,
+    buildKnowledgeItemFilters("user-1", {
+      keyword: "drizzle",
+      space: "life",
+      status: "organized",
+      tagId: "tag-1",
+      type: "link",
+      isFavorite: true,
+    }),
+  ),
+);
+
+assert.match(
+  favoriteCombinedFilterSql.sql,
+  /"knowledge_items"\."user_id" = \$\d+/,
+);
+assert.match(
+  favoriteCombinedFilterSql.sql,
+  /"knowledge_items"\."is_favorite" = \$\d+/,
+);
+assert.match(favoriteCombinedFilterSql.sql, /exists\s*\(/);
+assert.deepEqual(favoriteCombinedFilterSql.params, [
+  "user-1",
+  "%drizzle%",
+  "%drizzle%",
+  "life",
+  "organized",
+  "link",
+  true,
+  "user-1",
+  "tag-1",
+]);
+
 const archivedStatusSql = new PgDialect().sqlToQuery(
   buildKnowledgeItemWhereClause(
     schema.knowledgeItems,

@@ -45,10 +45,11 @@ assert.equal(
       space: "life",
       status: "organized",
       type: "note",
+      favorite: "true",
     },
     nextFilters: { space: "work" },
   }),
-  "/app?q=drizzle&tag=tag-1&space=work&status=organized&type=note",
+  "/app?q=drizzle&tag=tag-1&favorite=true&space=work&status=organized&type=note",
 );
 
 assert.equal(
@@ -59,10 +60,11 @@ assert.equal(
       space: "life",
       status: "archived",
       type: "link",
+      favorite: "true",
     },
     nextFilters: { status: undefined },
   }),
-  "/app?q=drizzle&tag=tag-1&space=life&type=link",
+  "/app?q=drizzle&tag=tag-1&favorite=true&space=life&type=link",
 );
 
 assert.equal(

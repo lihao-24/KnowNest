@@ -8,6 +8,7 @@ type KnowledgeSearchProps = {
   selectedSpace?: string | undefined;
   selectedStatus?: string | undefined;
   selectedType?: string | undefined;
+  isFavoriteOnly?: boolean | undefined;
 };
 
 export function KnowledgeSearch({
@@ -16,6 +17,7 @@ export function KnowledgeSearch({
   selectedSpace,
   selectedStatus,
   selectedType,
+  isFavoriteOnly,
 }: KnowledgeSearchProps) {
   return (
     <form
@@ -34,6 +36,9 @@ export function KnowledgeSearch({
       ) : null}
       {selectedType ? (
         <input name="type" type="hidden" value={selectedType} />
+      ) : null}
+      {isFavoriteOnly ? (
+        <input name="favorite" type="hidden" value="true" />
       ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -65,6 +70,7 @@ export function KnowledgeSearch({
                   space: selectedSpace,
                   status: selectedStatus,
                   type: selectedType,
+                  favorite: isFavoriteOnly ? "true" : undefined,
                 },
               })}
             >

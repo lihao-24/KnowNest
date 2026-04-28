@@ -7,6 +7,10 @@ import {
 } from "@/constants/knowledge";
 
 import {
+  buildClearKnowledgeFiltersHref,
+  buildKnowledgeFavoriteFilterHref,
+} from "./knowledge-filters-model";
+import {
   buildKnowledgeMetadataFilterHref,
   type KnowledgeMetadataFilters,
 } from "./knowledge-metadata-filter-model";
@@ -15,12 +19,14 @@ type KnowledgeMetadataFilterProps = {
   filters: KnowledgeMetadataFilters;
   searchKeyword?: string | undefined;
   selectedTagId?: string | undefined;
+  isFavoriteOnly?: boolean | undefined;
 };
 
 export function KnowledgeMetadataFilter({
   filters,
   searchKeyword,
   selectedTagId,
+  isFavoriteOnly,
 }: KnowledgeMetadataFilterProps) {
   const currentSearchParams = {
     q: searchKeyword,
@@ -28,8 +34,19 @@ export function KnowledgeMetadataFilter({
     space: filters.space,
     status: filters.status,
     type: filters.type,
+    favorite: isFavoriteOnly ? "true" : undefined,
   };
-  const hasSelectedFilter = Boolean(filters.space || filters.status || filters.type);
+  const hasSelectedMetadataFilter = Boolean(
+    filters.space || filters.status || filters.type,
+  );
+  const hasSelectedFilter = Boolean(
+    searchKeyword ||
+      selectedTagId ||
+      filters.space ||
+      filters.status ||
+      filters.type ||
+      isFavoriteOnly,
+  );
 
   return (
     <section
@@ -58,20 +75,63 @@ export function KnowledgeMetadataFilter({
           nextFilterKey="type"
           options={KNOWLEDGE_TYPES}
         />
-        {hasSelectedFilter ? (
-          <div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <p className="w-10 shrink-0 text-sm font-medium text-slate-800">
+            收藏
+          </p>
+          <div className="flex flex-wrap gap-2">
             <Link
-              className="inline-flex h-8 items-center rounded-md px-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-              href={buildKnowledgeMetadataFilterHref({
+              aria-current={isFavoriteOnly ? undefined : "true"}
+              className={
+                isFavoriteOnly
+                  ? "inline-flex h-8 items-center rounded-md bg-slate-100 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
+                  : "inline-flex h-8 items-center rounded-md bg-teal-50 px-3 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
+              }
+              href={buildKnowledgeFavoriteFilterHref({
                 currentSearchParams,
-                nextFilters: {
-                  space: undefined,
-                  status: undefined,
-                  type: undefined,
-                },
+                isFavorite: false,
               })}
             >
-              清除元信息筛选
+              全部
+            </Link>
+            <Link
+              aria-current={isFavoriteOnly ? "true" : undefined}
+              className={
+                isFavoriteOnly
+                  ? "inline-flex h-8 items-center rounded-md bg-teal-50 px-3 text-sm font-medium text-teal-800 ring-1 ring-inset ring-teal-100"
+                  : "inline-flex h-8 items-center rounded-md bg-slate-100 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200 hover:text-slate-950"
+              }
+              href={buildKnowledgeFavoriteFilterHref({
+                currentSearchParams,
+                isFavorite: true,
+              })}
+            >
+              只看收藏
+            </Link>
+          </div>
+        </div>
+        {hasSelectedMetadataFilter || hasSelectedFilter ? (
+          <div className="flex flex-wrap gap-2">
+            {hasSelectedMetadataFilter ? (
+              <Link
+                className="inline-flex h-8 items-center rounded-md px-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                href={buildKnowledgeMetadataFilterHref({
+                  currentSearchParams,
+                  nextFilters: {
+                    space: undefined,
+                    status: undefined,
+                    type: undefined,
+                  },
+                })}
+              >
+                清除元信息筛选
+              </Link>
+            ) : null}
+            <Link
+              className="inline-flex h-8 items-center rounded-md px-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+              href={buildClearKnowledgeFiltersHref()}
+            >
+              清除全部筛选
             </Link>
           </div>
         ) : null}

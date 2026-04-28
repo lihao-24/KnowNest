@@ -10,6 +10,7 @@ type KnowledgeMetadataFilterSearchParams = {
   space?: string | string[] | undefined;
   status?: string | string[] | undefined;
   type?: string | string[] | undefined;
+  favorite?: string | string[] | undefined;
 };
 
 export type KnowledgeMetadataFilters = {
@@ -55,6 +56,7 @@ export function buildKnowledgeMetadataFilterHref({
   const searchParams = new URLSearchParams();
   const keyword = getFirstTrimmedParam(currentSearchParams?.q);
   const selectedTagId = getFirstTrimmedParam(currentSearchParams?.tag);
+  const favorite = getFirstTrimmedParam(currentSearchParams?.favorite);
   const currentFilters = getKnowledgeMetadataFilters(currentSearchParams);
   const filters = {
     ...currentFilters,
@@ -67,6 +69,10 @@ export function buildKnowledgeMetadataFilterHref({
 
   if (selectedTagId) {
     searchParams.set("tag", selectedTagId);
+  }
+
+  if (favorite === "true") {
+    searchParams.set("favorite", "true");
   }
 
   if (filters.space) {

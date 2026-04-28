@@ -4,6 +4,7 @@ type KnowledgeSearchParams = {
   space?: string | string[] | undefined;
   status?: string | string[] | undefined;
   type?: string | string[] | undefined;
+  favorite?: string | string[] | undefined;
 };
 
 const VALID_SPACES = new Set(["life", "work"]);
@@ -35,6 +36,7 @@ export function buildKnowledgeSearchClearHref({
   const space = getFirstTrimmedParam(currentSearchParams?.space);
   const status = getFirstTrimmedParam(currentSearchParams?.status);
   const type = getFirstTrimmedParam(currentSearchParams?.type);
+  const favorite = getFirstTrimmedParam(currentSearchParams?.favorite);
 
   if (selectedTagId) {
     searchParams.set("tag", selectedTagId);
@@ -50,6 +52,10 @@ export function buildKnowledgeSearchClearHref({
 
   if (type && VALID_TYPES.has(type)) {
     searchParams.set("type", type);
+  }
+
+  if (favorite === "true") {
+    searchParams.set("favorite", "true");
   }
 
   const queryString = searchParams.toString();

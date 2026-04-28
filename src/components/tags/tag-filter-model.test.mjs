@@ -43,11 +43,12 @@ assert.equal(
       space: "life",
       status: "archived",
       type: "link",
+      favorite: "true",
     },
     currentTagId: undefined,
     nextTagId: "tag-1",
   }),
-  "/app?q=drizzle&space=life&status=archived&type=link&tag=tag-1",
+  "/app?q=drizzle&space=life&status=archived&type=link&favorite=true&tag=tag-1",
 );
 
 assert.equal(
@@ -57,9 +58,10 @@ assert.equal(
       space: "life",
       status: "archived",
       type: "link",
+      favorite: "true",
     },
     currentTagId: "tag-1",
     nextTagId: undefined,
   }),
-  "/app?q=drizzle&space=life&status=archived&type=link",
+  "/app?q=drizzle&space=life&status=archived&type=link&favorite=true",
 );

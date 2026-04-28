@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { KnowledgeList } from "@/components/knowledge/knowledge-list";
+import { getKnowledgeFavoriteFilter } from "@/components/knowledge/knowledge-filters-model";
 import { KnowledgeMetadataFilter } from "@/components/knowledge/knowledge-metadata-filter";
 import { getKnowledgeMetadataFilters } from "@/components/knowledge/knowledge-metadata-filter-model";
 import { KnowledgeSearch } from "@/components/knowledge/knowledge-search";
@@ -18,6 +19,7 @@ type AppPageProps = {
     space?: string | string[] | undefined;
     status?: string | string[] | undefined;
     type?: string | string[] | undefined;
+    favorite?: string | string[] | undefined;
   }>;
 };
 
@@ -27,6 +29,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
   const requestedTagId = getSelectedTagId(resolvedSearchParams);
   const keyword = getSearchKeyword(resolvedSearchParams);
   const metadataFilters = getKnowledgeMetadataFilters(resolvedSearchParams);
+  const isFavoriteOnly = getKnowledgeFavoriteFilter(resolvedSearchParams);
   const tags = await listTags(user.id);
   const selectedTagId = tags.some((tag) => tag.id === requestedTagId)
     ? requestedTagId
@@ -34,6 +37,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
   const items = await listKnowledgeItems(user.id, {
     keyword,
     tagId: selectedTagId,
+    isFavorite: isFavoriteOnly,
     ...metadataFilters,
   });
   const itemsWithTags = await attachTagsToKnowledgeItems(user.id, items);
@@ -42,7 +46,8 @@ export default async function AppPage({ searchParams }: AppPageProps) {
       selectedTagId ||
       metadataFilters.space ||
       metadataFilters.status ||
-      metadataFilters.type,
+      metadataFilters.type ||
+      isFavoriteOnly,
   );
   const emptyState = hasFilters
     ? {
@@ -79,9 +84,11 @@ export default async function AppPage({ searchParams }: AppPageProps) {
         selectedStatus={metadataFilters.status}
         selectedTagId={selectedTagId}
         selectedType={metadataFilters.type}
+        isFavoriteOnly={isFavoriteOnly}
       />
       <KnowledgeMetadataFilter
         filters={metadataFilters}
+        isFavoriteOnly={isFavoriteOnly}
         searchKeyword={keyword}
         selectedTagId={selectedTagId}
       />
@@ -91,6 +98,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
         selectedStatus={metadataFilters.status}
         selectedTagId={selectedTagId}
         selectedType={metadataFilters.type}
+        isFavoriteOnly={isFavoriteOnly}
         tags={tags}
       />
       <KnowledgeList emptyState={emptyState} items={itemsWithTags} />
