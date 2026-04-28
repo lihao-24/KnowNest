@@ -255,7 +255,7 @@ function normalizeNullableText(value: string | null | undefined) {
   return trimmed ? trimmed : null;
 }
 
-function buildKnowledgeItemWhereClause(
+export function buildKnowledgeItemWhereClause(
   knowledgeItems: typeof import("./schema").knowledgeItems,
   knowledgeItemTags: typeof import("./schema").knowledgeItemTags,
   filters: NormalizedKnowledgeItemFilters,

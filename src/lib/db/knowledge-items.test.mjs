@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 
-import { getTableConfig } from "drizzle-orm/pg-core";
+import { getTableConfig, PgDialect } from "drizzle-orm/pg-core";
 
 import {
+  buildKnowledgeItemWhereClause,
   buildKnowledgeItemFilters,
   normalizeCreateKnowledgeItemInput,
   normalizeUpdateKnowledgeItemInput,
@@ -62,6 +63,27 @@ const emptyTagFilters = buildKnowledgeItemFilters("user-1", {
 });
 
 assert.equal(emptyTagFilters.tagId, undefined);
+
+const tagFilterSql = new PgDialect().sqlToQuery(
+  buildKnowledgeItemWhereClause(
+    schema.knowledgeItems,
+    schema.knowledgeItemTags,
+    buildKnowledgeItemFilters("user-1", {
+      includeArchived: true,
+      tagId: "tag-1",
+    }),
+  ),
+);
+
+assert.match(tagFilterSql.sql, /exists\s*\(/);
+assert.match(tagFilterSql.sql, /from "knowledge_item_tags"/);
+assert.match(
+  tagFilterSql.sql,
+  /"knowledge_item_tags"\."item_id" = "knowledge_items"\."id"/,
+);
+assert.match(tagFilterSql.sql, /"knowledge_item_tags"\."user_id" = \$\d+/);
+assert.match(tagFilterSql.sql, /"knowledge_item_tags"\."tag_id" = \$\d+/);
+assert.deepEqual(tagFilterSql.params, ["user-1", "user-1", "tag-1"]);
 
 const createPayload = normalizeCreateKnowledgeItemInput("user-1", {
   user_id: "other-user",
