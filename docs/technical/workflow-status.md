@@ -13,8 +13,8 @@
 - Phase 04：Task 04-01 至 Task 04-02 已完成并通过审核。
 - Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，大节点审核已通过。
 - Phase 06：Task 06-01 至 Task 06-05 已完成并通过审核，大节点审核已通过。
-- Phase 07：Task 07-01 至 Task 07-03 已完成并通过审核。
-- 下一步：Phase 07 Task 07-04 标签筛选基础能力。
+- Phase 07：Task 07-01 至 Task 07-04 已完成并通过审核。
+- 下一步：Phase 07 大节点审核。
 
 ## 已完成阶段和任务
 
@@ -24,7 +24,7 @@
 - Phase 04 应用主界面：Task 04-01 至 Task 04-02 已完成并审核通过。
 - Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，大节点审核已通过。
 - Phase 06 知识元数据与交互：Task 06-01 至 Task 06-05 已完成并审核通过，大节点审核已通过。
-- Phase 07 标签系统：Task 07-01 至 Task 07-03 已完成并审核通过。
+- Phase 07 标签系统：Task 07-01 至 Task 07-04 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -51,7 +51,7 @@
 
 ## 下一个建议任务
 
-- Phase 07 Task 07-04 标签筛选基础能力。
+- Phase 07 大节点审核。
 
 ## 大节点审核记录
 
@@ -77,6 +77,7 @@
 | Phase 07 Task 07-01 | 已审核通过 | 标签数据访问层完成，implementation commit `2049694`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:tags`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 07 Task 07-02 | 已审核通过 | TagInput 组件完成，implementation commit `7baab633`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:tag-input`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 07 Task 07-03 | 已审核通过 | 标签接入新建和编辑流程完成，implementation commit `679af9d`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:tags`、`npm.cmd run test:tag-input`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-items`、`npm.cmd run lint`、`npm.cmd run build`。 |
+| Phase 07 Task 07-04 | 已审核通过 | 标签筛选基础能力完成，implementation commit `3bb8f2e`，spec fix commit `43ca34f`；Spec 复审 `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:knowledge-items`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-list-item`、inbox/favorites/archive page helper tests、`npm.cmd run lint`、`npm.cmd run build`。 |
 
 ## 未决问题 / 风险
 
@@ -111,3 +112,6 @@
 - 后续可批量加载列表标签以减少 N+1。
 - 后续可考虑创建 item + 保存标签合并事务。
 - TagInput 未提交草稿随保存自动提交可后续 UX 决策。
+- `src/components/tags/tag-filter-model.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
+- `currentTagId` 当前未使用，后续可在交互需要时接入或清理。
+- 无效 tag 参数当前会展示默认列表但不清理 URL，后续可统一 URL 参数清理策略。
