@@ -14,6 +14,7 @@
     "test:knowledge-item-delete": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-item-delete.test.mjs",
     "test:knowledge-item-favorite": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-item-favorite.test.mjs",
     "test:knowledge-list-item": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-list-item-view-model.test.mjs",
+    "test:markdown-preview": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-preview-model.test.mjs",
     "test:tag-input": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-input-model.test.mjs"
   },
   "dependencies": {
@@ -23,7 +24,8 @@
     "next": "16.2.4",
     "pg": "^8.20.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
