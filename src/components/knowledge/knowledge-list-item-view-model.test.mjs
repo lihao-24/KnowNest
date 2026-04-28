@@ -1,9 +1,47 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { registerHooks } from "node:module";
 
 import {
+  KNOWLEDGE_SPACES,
+  KNOWLEDGE_STATUSES,
+  KNOWLEDGE_TYPES,
+} from "../../constants/knowledge.ts";
+
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    try {
+      return nextResolve(specifier, context);
+    } catch (error) {
+      if (
+        error?.code === "ERR_MODULE_NOT_FOUND" &&
+        specifier.startsWith("../") &&
+        !specifier.endsWith(".ts")
+      ) {
+        return nextResolve(`${specifier}.ts`, context);
+      }
+
+      throw error;
+    }
+  },
+});
+
+const {
   buildKnowledgeListItemViewModel,
   DEFAULT_KNOWLEDGE_ITEM_TITLE,
-} from "./knowledge-list-item-view-model.ts";
+} = await import("./knowledge-list-item-view-model.ts");
+
+const viewModelSource = readFileSync(
+  new URL("./knowledge-list-item-view-model.ts", import.meta.url),
+  "utf8",
+);
+
+assert.ok(!viewModelSource.includes("const spaceLabels"));
+assert.ok(!viewModelSource.includes("const typeLabels"));
+assert.ok(!viewModelSource.includes("const statusLabels"));
+
+const labelByValue = (options, value) =>
+  options.find((option) => option.value === value)?.label;
 
 const item = {
   id: "item-1",
@@ -22,9 +60,12 @@ const item = {
 const viewModel = buildKnowledgeListItemViewModel(item);
 
 assert.equal(viewModel.title, DEFAULT_KNOWLEDGE_ITEM_TITLE);
-assert.equal(viewModel.spaceLabel, "工作");
-assert.equal(viewModel.typeLabel, "笔记");
-assert.equal(viewModel.statusLabel, "收集箱");
+assert.equal(viewModel.spaceLabel, labelByValue(KNOWLEDGE_SPACES, item.space));
+assert.equal(viewModel.typeLabel, labelByValue(KNOWLEDGE_TYPES, item.type));
+assert.equal(
+  viewModel.statusLabel,
+  labelByValue(KNOWLEDGE_STATUSES, item.status),
+);
 assert.equal(viewModel.favoriteLabel, "已收藏");
 assert.equal(viewModel.updatedAtLabel, "2026-04-27");
 assert.ok(viewModel.summary.startsWith("第一行内容 第二行内容"));

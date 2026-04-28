@@ -1,3 +1,8 @@
+import {
+  KNOWLEDGE_SPACES,
+  KNOWLEDGE_STATUSES,
+  KNOWLEDGE_TYPES,
+} from "../../constants/knowledge";
 import type {
   KnowledgeSpace,
   KnowledgeStatus,
@@ -11,22 +16,9 @@ export const INVALID_KNOWLEDGE_ITEM_METADATA_MESSAGE =
 const DEFAULT_KNOWLEDGE_SPACE: KnowledgeSpace = "work";
 const DEFAULT_KNOWLEDGE_TYPE: KnowledgeType = "note";
 const DEFAULT_KNOWLEDGE_STATUS: KnowledgeStatus = "inbox";
-const allowedKnowledgeSpaces = new Set<string>(["life", "work"]);
-const allowedKnowledgeTypes = new Set<string>([
-  "note",
-  "link",
-  "prompt",
-  "project",
-  "log",
-  "excerpt",
-  "plan",
-  "snippet",
-]);
-const allowedKnowledgeStatuses = new Set<string>([
-  "inbox",
-  "organized",
-  "archived",
-]);
+const knowledgeSpaceValues = buildKnowledgeValueSet(KNOWLEDGE_SPACES);
+const knowledgeTypeValues = buildKnowledgeValueSet(KNOWLEDGE_TYPES);
+const knowledgeStatusValues = buildKnowledgeValueSet(KNOWLEDGE_STATUSES);
 
 export type KnowledgeItemDraftInput = {
   title: string;
@@ -139,15 +131,21 @@ function normalizeKnowledgeOption<TValue extends string>(
 }
 
 function isKnowledgeSpace(value: string): value is KnowledgeSpace {
-  return allowedKnowledgeSpaces.has(value);
+  return knowledgeSpaceValues.has(value);
 }
 
 function isKnowledgeType(value: string): value is KnowledgeType {
-  return allowedKnowledgeTypes.has(value);
+  return knowledgeTypeValues.has(value);
 }
 
 function isKnowledgeStatus(value: string): value is KnowledgeStatus {
-  return allowedKnowledgeStatuses.has(value);
+  return knowledgeStatusValues.has(value);
+}
+
+function buildKnowledgeValueSet<TValue extends string>(
+  options: readonly { value: TValue }[],
+) {
+  return new Set<string>(options.map((option) => option.value));
 }
 
 function getFormDataString(formData: FormData, key: string) {

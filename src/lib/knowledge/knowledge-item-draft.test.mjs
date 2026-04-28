@@ -1,10 +1,45 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { registerHooks } from "node:module";
 
 import {
+  KNOWLEDGE_SPACES,
+  KNOWLEDGE_STATUSES,
+  KNOWLEDGE_TYPES,
+} from "../../constants/knowledge.ts";
+
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    try {
+      return nextResolve(specifier, context);
+    } catch (error) {
+      if (
+        error?.code === "ERR_MODULE_NOT_FOUND" &&
+        specifier.startsWith("../") &&
+        !specifier.endsWith(".ts")
+      ) {
+        return nextResolve(`${specifier}.ts`, context);
+      }
+
+      throw error;
+    }
+  },
+});
+
+const {
   EMPTY_KNOWLEDGE_ITEM_MESSAGE,
   buildKnowledgeItemDraftPayload,
   validateKnowledgeItemDraft,
-} from "./knowledge-item-draft.ts";
+} = await import("./knowledge-item-draft.ts");
+
+const draftSource = readFileSync(
+  new URL("./knowledge-item-draft.ts", import.meta.url),
+  "utf8",
+);
+
+assert.ok(!draftSource.includes("allowedKnowledgeSpaces"));
+assert.ok(!draftSource.includes("allowedKnowledgeTypes"));
+assert.ok(!draftSource.includes("allowedKnowledgeStatuses"));
 
 const emptyDraft = validateKnowledgeItemDraft({
   title: "   ",
@@ -68,6 +103,45 @@ assert.deepEqual(updatePayload, {
     status: "organized",
   },
 });
+
+for (const space of KNOWLEDGE_SPACES) {
+  assert.equal(
+    validateKnowledgeItemDraft({
+      title: "有效元信息",
+      content: "",
+      space: space.value,
+      type: "note",
+      status: "inbox",
+    }).ok,
+    true,
+  );
+}
+
+for (const type of KNOWLEDGE_TYPES) {
+  assert.equal(
+    validateKnowledgeItemDraft({
+      title: "有效元信息",
+      content: "",
+      space: "work",
+      type: type.value,
+      status: "inbox",
+    }).ok,
+    true,
+  );
+}
+
+for (const status of KNOWLEDGE_STATUSES) {
+  assert.equal(
+    validateKnowledgeItemDraft({
+      title: "有效元信息",
+      content: "",
+      space: "work",
+      type: "note",
+      status: status.value,
+    }).ok,
+    true,
+  );
+}
 
 const forgedMetadataFormData = new FormData();
 forgedMetadataFormData.set("title", "伪造元信息");

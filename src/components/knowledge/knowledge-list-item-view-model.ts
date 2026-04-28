@@ -1,3 +1,8 @@
+import {
+  KNOWLEDGE_SPACES,
+  KNOWLEDGE_STATUSES,
+  KNOWLEDGE_TYPES,
+} from "../../constants/knowledge";
 import type { KnowledgeItem } from "../../types/knowledge";
 
 export const DEFAULT_KNOWLEDGE_ITEM_TITLE = "未命名内容";
@@ -5,27 +10,9 @@ export const EMPTY_KNOWLEDGE_ITEM_SUMMARY = "暂无正文内容";
 
 const SUMMARY_MAX_LENGTH = 120;
 
-const spaceLabels: Record<KnowledgeItem["space"], string> = {
-  life: "生活",
-  work: "工作",
-};
-
-const typeLabels: Record<KnowledgeItem["type"], string> = {
-  excerpt: "摘录",
-  link: "链接",
-  log: "日志",
-  note: "笔记",
-  plan: "计划",
-  project: "项目记录",
-  prompt: "Prompt",
-  snippet: "代码片段",
-};
-
-const statusLabels: Record<KnowledgeItem["status"], string> = {
-  inbox: "收集箱",
-  organized: "已整理",
-  archived: "归档",
-};
+const knowledgeSpaceLabels = buildKnowledgeLabelMap(KNOWLEDGE_SPACES);
+const knowledgeTypeLabels = buildKnowledgeLabelMap(KNOWLEDGE_TYPES);
+const knowledgeStatusLabels = buildKnowledgeLabelMap(KNOWLEDGE_STATUSES);
 
 export type KnowledgeListItemViewModel = {
   title: string;
@@ -43,12 +30,20 @@ export function buildKnowledgeListItemViewModel(
   return {
     title: formatKnowledgeItemTitle(item.title),
     summary: buildKnowledgeItemSummary(item.content),
-    spaceLabel: spaceLabels[item.space],
-    typeLabel: typeLabels[item.type],
-    statusLabel: statusLabels[item.status],
+    spaceLabel: knowledgeSpaceLabels[item.space],
+    typeLabel: knowledgeTypeLabels[item.type],
+    statusLabel: knowledgeStatusLabels[item.status],
     updatedAtLabel: formatKnowledgeItemDate(item.updated_at),
     favoriteLabel: item.is_favorite ? "已收藏" : "未收藏",
   };
+}
+
+function buildKnowledgeLabelMap<TValue extends string>(
+  options: readonly { value: TValue; label: string }[],
+) {
+  return Object.fromEntries(
+    options.map((option) => [option.value, option.label]),
+  ) as Record<TValue, string>;
 }
 
 function formatKnowledgeItemTitle(title: string) {
