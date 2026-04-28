@@ -57,4 +57,7 @@ assert.equal(getKnowledgeItemFavoriteButtonLabel(true, false), "取消收藏");
 assert.equal(getKnowledgeItemFavoriteButtonLabel(false, true), "处理中...");
 assert.equal(getKnowledgeItemFavoriteStatusLabel(false), "未收藏");
 assert.equal(getKnowledgeItemFavoriteStatusLabel(true), "已收藏");
-assert.deepEqual(buildKnowledgeItemFavoriteRevalidationPaths(), ["/app"]);
+assert.deepEqual(buildKnowledgeItemFavoriteRevalidationPaths(), [
+  "/app",
+  "/app/favorites",
+]);

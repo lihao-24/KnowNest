@@ -53,7 +53,7 @@ export function getKnowledgeItemFavoriteStatusLabel(isFavorite: boolean) {
 }
 
 export function buildKnowledgeItemFavoriteRevalidationPaths() {
-  return ["/app"];
+  return ["/app", "/app/favorites"];
 }
 
 function parseFavoriteValue(value: FormDataEntryValue | null) {
