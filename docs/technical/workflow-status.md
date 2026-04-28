@@ -13,7 +13,8 @@
 - Phase 04：Task 04-01 至 Task 04-02 已完成并通过审核。
 - Phase 05：Task 05-01 至 Task 05-05 已完成并通过审核，大节点审核已通过。
 - Phase 06：Task 06-01 至 Task 06-05 已完成并通过审核，大节点审核已通过。
-- 下一步：Phase 07 Task 07-01 标签数据访问层。
+- Phase 07：Task 07-01 已完成并通过审核。
+- 下一步：Phase 07 Task 07-02 TagInput 组件。
 
 ## 已完成阶段和任务
 
@@ -23,6 +24,7 @@
 - Phase 04 应用主界面：Task 04-01 至 Task 04-02 已完成并审核通过。
 - Phase 05 知识数据层：Task 05-01 至 Task 05-05 已完成并审核通过，大节点审核已通过。
 - Phase 06 知识元数据与交互：Task 06-01 至 Task 06-05 已完成并审核通过，大节点审核已通过。
+- Phase 07 标签系统：Task 07-01 已完成并审核通过。
 
 ## 最新关键技术决策
 
@@ -49,7 +51,7 @@
 
 ## 下一个建议任务
 
-- Phase 07 Task 07-01 标签数据访问层。
+- Phase 07 Task 07-02 TagInput 组件。
 
 ## 大节点审核记录
 
@@ -72,6 +74,7 @@
 | Phase 06 Task 06-04 | 已审核通过 | 收藏页完成，implementation commit `831a781`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
 | Phase 06 Task 06-05 | 已审核通过 | 归档页完成，implementation commit `e266e5c`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题。 |
 | Phase 06 | 已审核通过 | 大节点审核结论 `PHASE06_APPROVED`；Task 06-01 至 Task 06-05 已完成；验证通过 `npm.cmd run lint`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-list-item`、inbox/favorites/archive page helper tests、`src/components/layout/app-sidebar-nav.test.mjs`、`npm.cmd run build`；必须修改：无；允许进入 Phase 07 Task 07-01。 |
+| Phase 07 Task 07-01 | 已审核通过 | 标签数据访问层完成，implementation commit `2049694`；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `npm.cmd run test:tags`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run lint`、`npm.cmd run build`。 |
 
 ## 未决问题 / 风险
 
@@ -82,7 +85,6 @@
 - `src/lib/knowledge/favorites-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - `src/lib/knowledge/archive-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - Task 04-03 移动端导航为 P2，按 `development_plan` 推荐顺序排在后续。
-- 后续实现 tags repository 前，应补齐 Drizzle schema 中 `tags` 和 `knowledge_item_tags`。
 - 后续筛选复杂后可加强 query builder 测试。
 - 当前没有独立 `typecheck` script，build 已覆盖 Next/TypeScript 集成检查。
 - Drizzle schema 后续补齐 check constraints 和 `(id, user_id)` unique 元数据。
@@ -100,3 +102,5 @@
 - 后续可将 `toggleFavorite` 命名澄清为 set / update favorite。
 - 后续统一收藏影响路径 revalidation。
 - 后续删除流程可加强列表页 revalidate 覆盖面。
+- 后续可补真实 PostgreSQL 集成测试。
+- 若引入 drizzle-kit schema diff，再统一约束命名以减少 schema drift 噪音。
