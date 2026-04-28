@@ -13,7 +13,8 @@
     "test:knowledge-item-draft": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-item-draft.test.mjs",
     "test:knowledge-item-delete": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-item-delete.test.mjs",
     "test:knowledge-item-favorite": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-item-favorite.test.mjs",
-    "test:knowledge-list-item": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-list-item-view-model.test.mjs"
+    "test:knowledge-list-item": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-list-item-view-model.test.mjs",
+    "test:tag-input": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-input-model.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
