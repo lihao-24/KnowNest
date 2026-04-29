@@ -44,10 +44,10 @@
 
 ```text
 docs/product-outline.md
-docs/requirements/v0.1-mvp.md
+docs/versions/v0.1/requirements.md
 docs/technical/database-schema.md
 docs/technical/architecture.md
-docs/design/page-structure.md
+docs/versions/v0.1/page-structure.md
 ```
 
 本文档依赖以上文档。
@@ -137,10 +137,10 @@ Phase 11：验收、部署与收尾
 
 ```text
 docs/product-outline.md
-docs/requirements/v0.1-mvp.md
+docs/versions/v0.1/requirements.md
 docs/technical/database-schema.md
 docs/technical/architecture.md
-docs/design/page-structure.md
+docs/versions/v0.1/page-structure.md
 ```
 
 ### 任务内容
@@ -616,7 +616,7 @@ chore: document environment variables
 ### 输入文档
 
 ```text
-docs/design/page-structure.md
+docs/versions/v0.1/page-structure.md
 ```
 
 ### 任务内容
@@ -1784,10 +1784,10 @@ README 完善
 
 请先阅读以下项目文档：
 - docs/product-outline.md
-- docs/requirements/v0.1-mvp.md
+- docs/versions/v0.1/requirements.md
 - docs/technical/database-schema.md
 - docs/technical/architecture.md
-- docs/design/page-structure.md
+- docs/versions/v0.1/page-structure.md
 - docs/technical/development-plan.md
 
 当前只执行一个任务：{任务编号 + 任务名称}

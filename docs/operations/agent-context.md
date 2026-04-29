@@ -186,6 +186,6 @@
 
 ## 11. 已知文档差异
 
-- `docs/technical/development_plan.md` 文件名使用下划线，但文档内部建议路径写作 `docs/technical/development-plan.md`。
+- V0.1 开发计划已整理到 `docs/versions/v0.1/implementation-plan.md`。
 - 产品总纲早期 `KnowledgeItem` 示例把 `tags` 写成 `string[]`，但 V0.1 需求和数据库文档明确推荐 `tags` + `knowledge_item_tags` 关系表设计；实现时以后者为准。
 - 需求文档的 `profiles` 字段表未列出 `display_name`，数据库文档包含 `display_name` 且标注 V0.1 可不用；实现时可保留字段但不必在界面暴露。

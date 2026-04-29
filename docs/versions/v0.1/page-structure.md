@@ -7,7 +7,7 @@
 | 产品名称 | KnowNest |
 | 中文名 | 知巢 |
 | 文档名称 | V0.1 页面结构与交互设计文档 |
-| 建议路径 | `docs/design/page-structure.md` |
+| 建议路径 | `docs/versions/v0.1/page-structure.md` |
 | 文档版本 | v0.1 |
 | 适用阶段 | V0.1 MVP |
 | 主要目标 | 指导页面布局、组件拆分、交互状态和移动端适配 |
@@ -1920,4 +1920,3 @@ PWA
 iOS App
 附件与导入导出
 ```
-
