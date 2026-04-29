@@ -57,17 +57,17 @@ export async function applyKnowledgeItemSummaryAction(
   itemId: string,
   summary: string,
 ): Promise<{ errorMessage: string; successMessage: string }> {
-  const trimmedSummary = summary.trim();
-
-  if (!trimmedSummary) {
-    return {
-      errorMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_EMPTY_MESSAGE,
-      successMessage: "",
-    };
-  }
-
   try {
     const user = await requireUser();
+    const trimmedSummary = summary.trim();
+
+    if (!trimmedSummary) {
+      return {
+        errorMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_EMPTY_MESSAGE,
+        successMessage: "",
+      };
+    }
+
     const now = new Date().toISOString();
     const updatedItem = await updateKnowledgeItem(user.id, itemId, {
       summary: trimmedSummary,

@@ -93,6 +93,29 @@ const summaryViewModel = buildKnowledgeListItemViewModel({
 
 assert.equal(summaryViewModel.summary, "AI 摘要内容");
 
+const trimmedSummaryViewModel = buildKnowledgeListItemViewModel({
+  ...item,
+  summary: "  AI 摘要内容  ",
+});
+
+assert.equal(trimmedSummaryViewModel.summary, "AI 摘要内容");
+
+const blankSummaryViewModel = buildKnowledgeListItemViewModel({
+  ...item,
+  summary: "   ",
+  content: " 摘要为空时使用正文片段 ",
+});
+
+assert.equal(blankSummaryViewModel.summary, "摘要为空时使用正文片段");
+
+const longSummary = "AI 摘要内容".repeat(30);
+const longSummaryViewModel = buildKnowledgeListItemViewModel({
+  ...item,
+  summary: longSummary,
+});
+
+assert.equal(longSummaryViewModel.summary, longSummary);
+
 const taggedViewModel = buildKnowledgeListItemViewModel({
   ...item,
   category: {

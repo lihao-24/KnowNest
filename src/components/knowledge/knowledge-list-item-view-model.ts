@@ -33,11 +33,11 @@ export type KnowledgeListItemViewModel = {
 export function buildKnowledgeListItemViewModel(
   item: KnowledgeItem | KnowledgeItemWithTags | KnowledgeItemWithMetadata,
 ): KnowledgeListItemViewModel {
-  const summarySource = item.summary?.trim() ? item.summary : item.content;
+  const trimmedSummary = item.summary?.trim();
 
   return {
     title: formatKnowledgeItemTitle(item.title),
-    summary: buildKnowledgeItemSummary(summarySource),
+    summary: trimmedSummary || buildKnowledgeItemSummary(item.content),
     spaceLabel: knowledgeSpaceLabels[item.space],
     typeLabel: knowledgeTypeLabels[item.type],
     statusLabel: knowledgeStatusLabels[item.status],
