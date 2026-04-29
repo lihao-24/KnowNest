@@ -6,6 +6,10 @@ export function getAuthRedirect(
   pathname: string,
   isAuthenticated: boolean,
 ): string | null {
+  if (pathname === "/") {
+    return isAuthenticated ? "/app" : "/login";
+  }
+
   if (isProtectedAppPath(pathname) && !isAuthenticated) {
     return "/login";
   }
