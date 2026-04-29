@@ -78,6 +78,9 @@ export type UpdateKnowledgeItemInput = Partial<
     | "source_url"
     | "is_favorite"
     | "category_id"
+    | "summary"
+    | "summary_generated_at"
+    | "ai_updated_at"
   >
 >;
 
@@ -92,6 +95,9 @@ export type UpdateKnowledgeItemValues = Partial<
     | "source_url"
     | "is_favorite"
     | "category_id"
+    | "summary"
+    | "summary_generated_at"
+    | "ai_updated_at"
   >
 >;
 
@@ -172,6 +178,18 @@ export function normalizeUpdateKnowledgeItemInput(
 
   if (input.category_id !== undefined) {
     values.category_id = input.category_id;
+  }
+
+  if (input.summary !== undefined) {
+    values.summary = input.summary;
+  }
+
+  if (input.summary_generated_at !== undefined) {
+    values.summary_generated_at = input.summary_generated_at;
+  }
+
+  if (input.ai_updated_at !== undefined) {
+    values.ai_updated_at = input.ai_updated_at;
   }
 
   return values;

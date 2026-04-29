@@ -11,6 +11,10 @@ import {
 import * as schema from "./schema.ts";
 
 assert.ok(schema.profiles);
+assert.ok(schema.knowledgeItems.summary);
+assert.ok(schema.knowledgeItems.summary_generated_at);
+assert.ok(schema.knowledgeItems.ai_updated_at);
+assert.ok(schema.aiUsageLogs);
 
 const userIdForeignKey = getTableConfig(schema.knowledgeItems).foreignKeys.find(
   (foreignKey) => {
@@ -266,6 +270,9 @@ const updatePayload = normalizeUpdateKnowledgeItemInput({
   title: "  kept whitespace  ",
   source_url: "   ",
   is_favorite: true,
+  summary: "AI summary",
+  summary_generated_at: "2026-04-29T08:00:00.000Z",
+  ai_updated_at: "2026-04-29T08:00:01.000Z",
 });
 
 assert.deepEqual(updatePayload, {
@@ -273,4 +280,7 @@ assert.deepEqual(updatePayload, {
   title: "  kept whitespace  ",
   source_url: null,
   is_favorite: true,
+  summary: "AI summary",
+  summary_generated_at: "2026-04-29T08:00:00.000Z",
+  ai_updated_at: "2026-04-29T08:00:01.000Z",
 });

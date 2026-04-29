@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   foreignKey,
+  integer,
   pgTable,
   primaryKey,
   text,
@@ -71,6 +72,15 @@ export const knowledgeItems = pgTable(
     source_url: text("source_url"),
     is_favorite: boolean("is_favorite").notNull().default(false),
     category_id: uuid("category_id").$type<Category["id"] | null>(),
+    summary: text("summary"),
+    summary_generated_at: timestamp("summary_generated_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    ai_updated_at: timestamp("ai_updated_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
     created_at: timestamp("created_at", {
       mode: "string",
       withTimezone: true,
@@ -87,6 +97,48 @@ export const knowledgeItems = pgTable(
       name: "knowledge_items_category_user_fk",
     }).onDelete("set null"),
     unique("knowledge_items_id_user_id_unique").on(table.id, table.user_id),
+  ],
+);
+
+export const aiUsageLogs = pgTable(
+  "ai_usage_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    knowledge_item_id: uuid("knowledge_item_id"),
+    action_type: text("action_type").notNull(),
+    model: text("model").notNull(),
+    status: text("status").notNull(),
+    input_length: integer("input_length").notNull().default(0),
+    output_length: integer("output_length").notNull().default(0),
+    error_message: text("error_message"),
+    created_at: timestamp("created_at", {
+      mode: "string",
+      withTimezone: true,
+    }).notNull().defaultNow(),
+  },
+  (table) => [
+    check(
+      "ai_usage_logs_status_check",
+      sql`${table.status} in ('success', 'failed')`,
+    ),
+    check(
+      "ai_usage_logs_action_type_check",
+      sql`${table.action_type} in (
+        'generate_summary',
+        'suggest_tags',
+        'suggest_category',
+        'improve_title',
+        'organize_content'
+      )`,
+    ),
+    foreignKey({
+      columns: [table.knowledge_item_id, table.user_id],
+      foreignColumns: [knowledgeItems.id, knowledgeItems.user_id],
+      name: "ai_usage_logs_item_user_fk",
+    }).onDelete("set null"),
   ],
 );
 

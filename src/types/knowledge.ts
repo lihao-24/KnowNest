@@ -33,6 +33,9 @@ export type KnowledgeItem = {
   source_url: string | null;
   is_favorite: boolean;
   category_id: string | null;
+  summary: string | null;
+  summary_generated_at: string | null;
+  ai_updated_at: string | null;
   created_at: string;
   updated_at: string;
 };
