@@ -20,6 +20,10 @@ import {
   buildKnowledgeItemDraftPayload,
   buildKnowledgeItemDraftRevalidationPaths,
 } from "@/lib/knowledge/knowledge-item-draft";
+import {
+  buildKnowledgeItemSummaryPayload,
+  buildKnowledgeItemSummaryRevalidationPaths,
+} from "@/lib/knowledge/knowledge-item-summary";
 
 const DELETE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "删除失败，请稍后重试。";
 const DELETE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE =
@@ -59,21 +63,16 @@ export async function applyKnowledgeItemSummaryAction(
 ): Promise<{ errorMessage: string; successMessage: string }> {
   try {
     const user = await requireUser();
-    const trimmedSummary = summary.trim();
+    const payload = buildKnowledgeItemSummaryPayload(summary);
 
-    if (!trimmedSummary) {
+    if (!payload.ok) {
       return {
         errorMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_EMPTY_MESSAGE,
         successMessage: "",
       };
     }
 
-    const now = new Date().toISOString();
-    const updatedItem = await updateKnowledgeItem(user.id, itemId, {
-      summary: trimmedSummary,
-      summary_generated_at: now,
-      ai_updated_at: now,
-    });
+    const updatedItem = await updateKnowledgeItem(user.id, itemId, payload.value);
 
     if (!updatedItem) {
       return {
@@ -91,15 +90,7 @@ export async function applyKnowledgeItemSummaryAction(
     };
   }
 
-  const revalidationPaths = [
-    "/app",
-    `/app/items/${itemId}`,
-    "/app/inbox",
-    "/app/favorites",
-    "/app/archive",
-  ];
-
-  revalidationPaths.forEach((path) => {
+  buildKnowledgeItemSummaryRevalidationPaths(itemId).forEach((path) => {
     revalidatePath(path);
   });
 

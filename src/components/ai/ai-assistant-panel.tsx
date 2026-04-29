@@ -3,6 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import {
+  buildGenerateSummaryResult,
+  getGenerateSummaryStartedFeedback,
+  type GenerateSummaryResponse,
+} from "./ai-assistant-panel-model";
 import { AIResultPreview } from "./ai-result-preview";
 
 type ApplySummaryActionResult = {
@@ -14,20 +19,6 @@ type AIAssistantPanelProps = {
   knowledgeItemId: string;
   onApplySummary: (summary: string) => Promise<ApplySummaryActionResult>;
 };
-
-type GenerateSummaryResponse =
-  | {
-      ok: true;
-      result: {
-        summary: string;
-      };
-    }
-  | {
-      ok: false;
-      error?: {
-        message?: string;
-      };
-    };
 
 export function AIAssistantPanel({
   knowledgeItemId,
@@ -41,9 +32,12 @@ export function AIAssistantPanel({
   const [isApplying, startApplyTransition] = useTransition();
 
   async function handleGenerateSummary() {
+    const startedFeedback = getGenerateSummaryStartedFeedback();
+
     setIsGenerating(true);
-    setErrorMessage("");
-    setSuccessMessage("");
+    setSummaryPreview(startedFeedback.summaryPreview);
+    setErrorMessage(startedFeedback.errorMessage);
+    setSuccessMessage(startedFeedback.successMessage);
 
     try {
       const response = await fetch("/api/ai", {
@@ -60,12 +54,14 @@ export function AIAssistantPanel({
         | GenerateSummaryResponse
         | null;
 
-      if (!response.ok || !data?.ok) {
-        setErrorMessage(getGenerateSummaryErrorMessage(data));
+      const result = buildGenerateSummaryResult(response.ok, data);
+
+      if (!result.ok) {
+        setErrorMessage(result.errorMessage);
         return;
       }
 
-      setSummaryPreview(data.result.summary);
+      setSummaryPreview(result.summary);
     } catch {
       setErrorMessage("AI 摘要生成失败，请稍后重试。");
     } finally {
@@ -161,12 +157,4 @@ export function AIAssistantPanel({
       ) : null}
     </section>
   );
-}
-
-function getGenerateSummaryErrorMessage(data: GenerateSummaryResponse | null) {
-  if (!data || data.ok) {
-    return "AI 摘要生成失败，请稍后重试。";
-  }
-
-  return data.error?.message ?? "AI 摘要生成失败，请稍后重试。";
 }
