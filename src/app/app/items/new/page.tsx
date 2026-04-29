@@ -1,6 +1,12 @@
+import { requireUser } from "@/lib/auth/server";
+import { listCategories } from "@/lib/db/categories";
+
 import { KnowledgeForm } from "./knowledge-form";
 
-export default function NewKnowledgeItemPage() {
+export default async function NewKnowledgeItemPage() {
+  const user = await requireUser();
+  const categories = await listCategories(user.id);
+
   return (
     <section className="min-w-0 w-full max-w-3xl">
       <div className="mb-8 min-w-0">
@@ -14,7 +20,7 @@ export default function NewKnowledgeItemPage() {
       </div>
 
       <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-        <KnowledgeForm />
+        <KnowledgeForm categories={categories} />
       </div>
     </section>
   );

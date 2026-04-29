@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { AUTH_REQUIRED_MESSAGE, requireUser } from "@/lib/auth/server";
+import { resolveKnowledgeItemCategoryId } from "@/lib/db/categories";
 import { createKnowledgeItem } from "@/lib/db/knowledge-items";
 import { updateItemTags } from "@/lib/db/tags";
 import { buildKnowledgeItemDraftPayload } from "@/lib/knowledge/knowledge-item-draft";
@@ -27,10 +28,15 @@ export async function createKnowledgeItemAction(
 
   try {
     const user = await requireUser();
+    const categoryId = await resolveKnowledgeItemCategoryId(user.id, {
+      categoryId: validation.value.categoryId,
+      categoryName: validation.value.categoryName,
+    });
 
     const item = await createKnowledgeItem(user.id, {
       title: validation.value.title,
       content: validation.value.content,
+      category_id: categoryId,
       space: validation.value.space,
       type: validation.value.type,
       status: validation.value.status,

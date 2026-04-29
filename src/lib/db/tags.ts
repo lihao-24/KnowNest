@@ -153,10 +153,10 @@ export async function listTagsByItemId(
     .orderBy(asc(tags.name));
 }
 
-export async function attachTagsToKnowledgeItems(
+export async function attachTagsToKnowledgeItems<TItem extends KnowledgeItem>(
   userId: string,
-  items: KnowledgeItem[],
-): Promise<KnowledgeItemWithTags[]> {
+  items: TItem[],
+): Promise<Array<TItem & Pick<KnowledgeItemWithTags, "tags">>> {
   return Promise.all(
     items.map(async (item) => ({
       ...item,

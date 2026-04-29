@@ -1,4 +1,4 @@
-# KnowNest V0.1 技术架构文档
+# KnowNest 技术架构文档
 
 ## 1. 文档信息
 
@@ -6,11 +6,11 @@
 |---|---|
 | 产品名称 | KnowNest |
 | 中文名 | 知巢 |
-| 文档名称 | V0.1 技术架构文档 |
+| 文档名称 | 技术架构文档 |
 | 建议路径 | `docs/technical/architecture.md` |
-| 文档版本 | v0.1 |
-| 适用阶段 | V0.1 MVP |
-| 主要目标 | 指导 V0.1 的工程实现与代码组织 |
+| 文档版本 | v0.2 |
+| 适用阶段 | V0.1 MVP / V0.2 知识管理体验增强 |
+| 主要目标 | 指导 KnowNest 的工程实现与代码组织 |
 
 ---
 
@@ -362,6 +362,7 @@ knownest/
         require-user.ts
       db/
         knowledge-items.ts
+        categories.ts
         tags.ts
         profiles.ts
       utils/
@@ -468,15 +469,18 @@ requireUser()
 
 ```text
 knowledge-items.ts
+categories.ts
 tags.ts
 profiles.ts
 ```
 
-该目录是 V0.1 的数据访问层。
+该目录是 KnowNest 的数据访问层。
 
 页面和组件必须调用这里的函数，而不是直接写 Supabase 查询、SQL client 查询或 ORM 查询。
 
 `src/lib/db` 内部使用 Drizzle ORM + `pg` 通过 `DATABASE_URL` 访问 PostgreSQL。所有查询函数必须接收或解析当前用户身份，并在数据访问层强制按当前用户隔离数据，不能依赖页面层自行过滤用户数据。
+
+V0.2 新增 `categories.ts`，用于封装分类列表、默认分类补齐、自定义分类创建、分类归属校验和知识条目分类批量附加。知识条目列表查询继续由 `knowledge-items.ts` 统一处理关键词、标签、分类、空间、状态、类型、收藏和排序条件。
 
 后续从 Supabase PostgreSQL 迁移到自建 PostgreSQL 时，优先调整 `src/lib/db` 内部连接、查询实现和迁移文件；页面和业务组件调用的数据函数边界应保持稳定。
 
@@ -514,7 +518,7 @@ tags.ts        标签领域类型
 
 ## 8. 路由设计
 
-V0.1 路由如下：
+当前路由如下：
 
 ```text
 /login
@@ -524,6 +528,7 @@ V0.1 路由如下：
 /app/archive
 /app/items/new
 /app/items/[id]
+/app/items/[id]/edit
 /app/settings
 ```
 
@@ -537,7 +542,8 @@ V0.1 路由如下：
 | `/app/favorites` | 收藏 | 是 |
 | `/app/archive` | 归档 | 是 |
 | `/app/items/new` | 新建知识 | 是 |
-| `/app/items/[id]` | 知识详情 / 编辑 | 是 |
+| `/app/items/[id]` | 知识详情阅读页 | 是 |
+| `/app/items/[id]/edit` | 知识编辑页 | 是 |
 | `/app/settings` | 设置 | 是 |
 
 ---
@@ -727,11 +733,13 @@ export async function toggleFavorite(id: string, isFavorite: boolean) {}
 ```ts
 export type ListKnowledgeItemsParams = {
   keyword?: string
+  categoryId?: string
   space?: KnowledgeSpace
   status?: KnowledgeStatus
   type?: KnowledgeType
   tagId?: string
   isFavorite?: boolean
+  orderBy?: 'updated_at_desc' | 'created_at_desc' | 'created_at_asc'
   includeArchived?: boolean
 }
 ```
@@ -769,7 +777,30 @@ V0.1 推荐简单策略：
 
 ---
 
-## 10.4 错误处理约定
+## 10.4 `categories.ts`
+
+V0.2 新增分类数据访问边界：
+
+```ts
+export async function listCategories(userId: string) {}
+
+export async function createCategory(userId: string, name: string) {}
+
+export async function getCategoryById(userId: string, categoryId: string) {}
+
+export async function resolveKnowledgeItemCategoryId(userId: string, input: {
+  categoryId?: string | null
+  categoryName?: string | null
+}) {}
+
+export async function attachCategoriesToKnowledgeItems(userId: string, items: KnowledgeItem[]) {}
+```
+
+页面只传入当前用户 ID 和表单输入；分类是否属于当前用户、重复分类复用、默认分类补齐都在 `src/lib/db/categories.ts` 内处理。
+
+---
+
+## 10.5 错误处理约定
 
 数据访问层应统一处理底层数据库或 SDK 返回的错误。
 
@@ -814,6 +845,15 @@ export type KnowledgeItem = {
   status: KnowledgeStatus
   source_url: string | null
   is_favorite: boolean
+  category_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type Category = {
+  id: string
+  user_id: string
+  name: string
   created_at: string
   updated_at: string
 }
@@ -828,6 +868,10 @@ export type Tag = {
 
 export type KnowledgeItemWithTags = KnowledgeItem & {
   tags: Tag[]
+}
+
+export type KnowledgeItemWithCategory = KnowledgeItem & {
+  category: Category | null
 }
 ```
 
@@ -844,6 +888,7 @@ export type CreateKnowledgeItemInput = {
   status?: KnowledgeStatus
   source_url?: string | null
   is_favorite?: boolean
+  category_id?: string | null
   tags?: string[]
 }
 ```
@@ -861,6 +906,7 @@ export type UpdateKnowledgeItemInput = Partial<{
   status: KnowledgeStatus
   source_url: string | null
   is_favorite: boolean
+  category_id: string | null
   tags: string[]
 }>
 ```
@@ -991,8 +1037,18 @@ export const KNOWLEDGE_TYPES = [
 职责：
 
 - 加载单条知识。
+- 展示标题、Markdown 正文、分类、标签、创建时间和更新时间。
+- 提供返回列表和进入编辑页入口。
+
+---
+
+## 13.8.1 知识编辑 `/app/items/[id]/edit/page.tsx`
+
+职责：
+
+- 加载单条知识。
 - 展示编辑表单。
-- 支持保存、收藏、归档、删除。
+- 支持保存、收藏、分类、标签和删除。
 
 ---
 
@@ -1162,13 +1218,14 @@ V0.1 可以先根据开发效率选择是否引入。
 
 ## 16. 搜索与筛选架构
 
-## 16.1 V0.1 搜索能力
+## 16.1 搜索能力
 
-V0.1 支持基础搜索：
+V0.2 支持基础搜索：
 
 ```text
 标题搜索
 正文搜索
+标签名称搜索
 ```
 
 数据库层可以使用：
@@ -1188,6 +1245,7 @@ space
 type
 status
 tag
+category
 is_favorite
 ```
 
@@ -1202,6 +1260,14 @@ listKnowledgeItems(params)
 ```
 
 页面根据 URL Query 组装 params，不直接拼 Supabase 查询。
+
+V0.2 列表页排序也通过 URL Query 保存，只接受：
+
+```text
+updated_at_desc
+created_at_desc
+created_at_asc
+```
 
 ---
 

@@ -10,7 +10,9 @@ type TagFilterProps = {
   selectedSpace?: string | undefined;
   selectedStatus?: string | undefined;
   selectedType?: string | undefined;
+  selectedCategoryId?: string | undefined;
   isFavoriteOnly?: boolean | undefined;
+  sortOrder?: string | undefined;
 };
 
 export function TagFilter({
@@ -20,7 +22,9 @@ export function TagFilter({
   selectedSpace,
   selectedStatus,
   selectedType,
+  selectedCategoryId,
   isFavoriteOnly,
+  sortOrder,
 }: TagFilterProps) {
   if (tags.length === 0) {
     return null;
@@ -51,7 +55,9 @@ export function TagFilter({
                     space: selectedSpace,
                     status: selectedStatus,
                     type: selectedType,
+                    category: selectedCategoryId,
                     favorite: isFavoriteOnly ? "true" : undefined,
+                    order: sortOrder,
                   },
                   currentTagId: selectedTagId,
                   nextTagId: tag.id,
@@ -71,7 +77,9 @@ export function TagFilter({
                   space: selectedSpace,
                   status: selectedStatus,
                   type: selectedType,
+                  category: selectedCategoryId,
                   favorite: isFavoriteOnly ? "true" : undefined,
+                  order: sortOrder,
                 },
                 currentTagId: selectedTagId,
                 nextTagId: undefined,

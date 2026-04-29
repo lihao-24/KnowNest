@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type {
+  Category,
   KnowledgeSpace,
   KnowledgeStatus,
   KnowledgeType,
@@ -31,6 +32,30 @@ export const profiles = pgTable("profiles", {
   }).notNull().defaultNow(),
 });
 
+export const categories = pgTable(
+  "categories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    created_at: timestamp("created_at", {
+      mode: "string",
+      withTimezone: true,
+    }).notNull().defaultNow(),
+    updated_at: timestamp("updated_at", {
+      mode: "string",
+      withTimezone: true,
+    }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("categories_name_not_empty", sql`length(trim(${table.name})) > 0`),
+    unique("categories_user_id_name_unique").on(table.user_id, table.name),
+    unique("categories_id_user_id_unique").on(table.id, table.user_id),
+  ],
+);
+
 export const knowledgeItems = pgTable(
   "knowledge_items",
   {
@@ -45,6 +70,7 @@ export const knowledgeItems = pgTable(
     status: text("status").notNull().$type<KnowledgeStatus>().default("inbox"),
     source_url: text("source_url"),
     is_favorite: boolean("is_favorite").notNull().default(false),
+    category_id: uuid("category_id").$type<Category["id"] | null>(),
     created_at: timestamp("created_at", {
       mode: "string",
       withTimezone: true,
@@ -55,6 +81,11 @@ export const knowledgeItems = pgTable(
     }).notNull().defaultNow(),
   },
   (table) => [
+    foreignKey({
+      columns: [table.category_id, table.user_id],
+      foreignColumns: [categories.id, categories.user_id],
+      name: "knowledge_items_category_user_fk",
+    }).onDelete("set null"),
     unique("knowledge_items_id_user_id_unique").on(table.id, table.user_id),
   ],
 );

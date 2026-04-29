@@ -19,10 +19,12 @@ assert.equal(
       space: "life",
       status: "archived",
       type: "link",
+      category: "category-1",
       favorite: "true",
+      order: "created_at_asc",
     },
   }),
-  "/app?tag=tag-1&space=life&status=archived&type=link&favorite=true",
+  "/app?tag=tag-1&space=life&status=archived&type=link&category=category-1&favorite=true&order=created_at_asc",
 );
 
 assert.equal(

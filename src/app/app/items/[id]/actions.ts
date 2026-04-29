@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { AUTH_REQUIRED_MESSAGE, requireUser } from "@/lib/auth/server";
+import { resolveKnowledgeItemCategoryId } from "@/lib/db/categories";
 import {
   deleteKnowledgeItem,
   toggleFavorite,
@@ -62,9 +63,14 @@ export async function updateKnowledgeItemAction(
 
   try {
     const user = await requireUser();
+    const categoryId = await resolveKnowledgeItemCategoryId(user.id, {
+      categoryId: validation.value.categoryId,
+      categoryName: validation.value.categoryName,
+    });
     const updatedItem = await updateKnowledgeItem(user.id, itemId, {
       title: validation.value.title,
       content: validation.value.content,
+      category_id: categoryId,
       space: validation.value.space,
       type: validation.value.type,
       status: validation.value.status,

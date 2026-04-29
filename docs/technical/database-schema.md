@@ -1,4 +1,4 @@
-# KnowNest V0.1 数据库设计文档
+# KnowNest 数据库设计文档
 
 ## 1. 文档信息
 
@@ -6,10 +6,10 @@
 |---|---|
 | 产品名称 | KnowNest |
 | 中文名 | 知巢 |
-| 文档名称 | V0.1 数据库设计文档 |
-| 文档版本 | v0.1 |
+| 文档名称 | 数据库设计文档 |
+| 文档版本 | v0.2 |
 | 数据库方案 | PostgreSQL（开发期使用 Supabase PostgreSQL） |
-| 适用阶段 | V0.1 MVP |
+| 适用阶段 | V0.1 MVP / V0.2 知识管理体验增强 |
 
 ---
 
@@ -31,6 +31,16 @@ V0.1 数据库设计的目标是支撑 KnowNest 的基础知识库能力。
 基础搜索
 多设备同步
 后续 AI 能力扩展
+```
+
+V0.2 在 V0.1 基础上补充分类和更完整的检索体验：
+
+```text
+用户自定义分类
+知识条目最多绑定一个分类
+按分类筛选
+按标签名称搜索
+按更新时间 / 创建时间排序
 ```
 
 V0.1 数据库不追求复杂，但必须保证：
@@ -120,11 +130,12 @@ V0.1 的数据库迁移文件位于：
 
 ```text
 db/migrations/0001_initial_schema.sql
+db/migrations/0002_categories_search_sort.sql
 ```
 
 迁移内容按边界分为三类：
 
-1. 通用 PostgreSQL 业务表结构：四张业务表、字段、默认值、check constraint、外键、唯一约束、`updated_at` trigger 和基础索引。
+1. 通用 PostgreSQL 业务表结构：业务表、字段、默认值、check constraint、外键、唯一约束、`updated_at` trigger 和基础索引。
 2. Supabase Auth / RLS 专属实现：`auth.users`、`auth.uid()`、`authenticated` role、RLS policies、新用户 profile trigger。
 3. 未来自建 PostgreSQL 权限实现方向：保留通用业务表结构，替换 Supabase 专属认证和权限 SQL，由服务端认证 + repository 查询条件强制用户隔离。
 
@@ -134,11 +145,12 @@ db/migrations/0001_initial_schema.sql
 
 ## 4. 表结构总览
 
-V0.1 需要 4 张业务表：
+V0.2 当前业务表：
 
 ```text
 profiles
 knowledge_items
+categories
 tags
 knowledge_item_tags
 ```
@@ -147,7 +159,9 @@ knowledge_item_tags
 
 ```text
 profiles
+  ├── categories
   └── knowledge_items
+        ├── categories
         └── knowledge_item_tags
               └── tags
 ```
@@ -160,6 +174,7 @@ profiles
 |---|---|
 | profiles | 业务用户资料表，开发期对应 Supabase Auth 用户 |
 | knowledge_items | 知识条目主表 |
+| categories | 用户自定义分类表 |
 | tags | 用户自定义标签表 |
 | knowledge_item_tags | 知识条目与标签的多对多关系表 |
 
@@ -280,6 +295,7 @@ alter table public.profiles
 | status | text | 是 | 'inbox' | 整理状态 |
 | source_url | text | 否 | null | 来源链接 |
 | is_favorite | boolean | 是 | false | 是否收藏 |
+| category_id | uuid | 否 | null | 所属分类，引用当前用户自己的 categories |
 | created_at | timestamptz | 是 | now() | 创建时间 |
 | updated_at | timestamptz | 是 | now() | 更新时间 |
 
@@ -326,6 +342,7 @@ create table if not exists public.knowledge_items (
   status text not null default 'inbox',
   source_url text,
   is_favorite boolean not null default false,
+  category_id uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 
@@ -353,9 +370,83 @@ alter table public.knowledge_items
 
 ---
 
-## 8. tags 表
+## 7.6 V0.2 分类外键
+
+V0.2 允许知识条目最多属于一个分类，分类可以为空。
+
+`knowledge_items.category_id` 和 `knowledge_items.user_id` 使用复合外键指向 `categories(id, user_id)`，防止把当前用户的知识绑定到其他用户的分类。
+
+```sql
+alter table public.knowledge_items
+  add column if not exists category_id uuid;
+
+alter table public.knowledge_items
+  add constraint knowledge_items_category_user_fk
+  foreign key (category_id, user_id)
+  references public.categories(id, user_id)
+  on delete set null (category_id);
+```
+
+---
+
+## 8. categories 表
 
 ## 8.1 用途
+
+`categories` 表保存用户自己的知识分类。
+
+V0.2 采用“默认分类 + 用户自定义分类”的轻量方案。应用在加载分类时会为当前用户补齐默认分类：
+
+```text
+工作
+学习
+生活
+项目
+灵感
+其他
+```
+
+## 8.2 字段设计
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| id | uuid | 是 | gen_random_uuid() | 主键 |
+| user_id | uuid | 是 | 无 | 所属用户，由服务端数据访问层显式写入 |
+| name | text | 是 | 无 | 分类名 |
+| created_at | timestamptz | 是 | now() | 创建时间 |
+| updated_at | timestamptz | 是 | now() | 更新时间 |
+
+## 8.3 约束说明
+
+同一用户下分类名称不能重复。
+
+```text
+unique(user_id, name)
+```
+
+分类名需要 trim 后非空。V0.2 前端限制名称不超过 20 个字符，数据库层先保留非空和唯一约束。
+
+## 8.4 SQL
+
+```sql
+create table if not exists public.categories (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  constraint categories_name_not_empty check (length(trim(name)) > 0),
+  constraint categories_user_id_name_unique unique (user_id, name),
+  constraint categories_id_user_id_unique unique (id, user_id)
+);
+```
+
+---
+
+## 9. tags 表
+
+## 9.1 用途
 
 `tags` 表保存用户创建的标签。
 
@@ -363,7 +454,7 @@ alter table public.knowledge_items
 
 ---
 
-## 8.2 字段设计
+## 9.2 字段设计
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -375,7 +466,7 @@ alter table public.knowledge_items
 
 ---
 
-## 8.3 约束说明
+## 9.3 约束说明
 
 同一用户下标签名称不能重复。
 
@@ -396,7 +487,7 @@ V0.1 可以由前端在创建标签时处理：
 
 ---
 
-## 8.4 SQL
+## 9.4 SQL
 
 ```sql
 create table if not exists public.tags (
@@ -414,9 +505,9 @@ create table if not exists public.tags (
 
 ---
 
-## 9. knowledge_item_tags 表
+## 10. knowledge_item_tags 表
 
-## 9.1 用途
+## 10.1 用途
 
 `knowledge_item_tags` 表用于保存知识条目与标签的多对多关系。
 
@@ -424,7 +515,7 @@ create table if not exists public.tags (
 
 ---
 
-## 9.2 字段设计
+## 10.2 字段设计
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -435,7 +526,7 @@ create table if not exists public.tags (
 
 ---
 
-## 9.3 为什么关系表也保留 user_id
+## 10.3 为什么关系表也保留 user_id
 
 理论上通过 `item_id` 和 `tag_id` 可以反查用户，但 V0.1 建议在关系表中保留 `user_id`。
 
@@ -448,7 +539,7 @@ create table if not exists public.tags (
 
 ---
 
-## 9.4 SQL
+## 10.4 SQL
 
 ```sql
 create table if not exists public.knowledge_item_tags (
@@ -484,6 +575,7 @@ create table if not exists public.knowledge_item_tags (
 ```text
 profiles
 knowledge_items
+categories
 tags
 ```
 
@@ -522,6 +614,11 @@ execute function public.set_updated_at();
 
 create trigger set_tags_updated_at
 before update on public.tags
+for each row
+execute function public.set_updated_at();
+
+create trigger set_categories_updated_at
+before update on public.categories
 for each row
 execute function public.set_updated_at();
 ```
@@ -577,7 +674,8 @@ V0.1 主要查询场景：
 按类型筛选
 按收藏筛选
 按标签筛选
-按标题 / 正文搜索
+按分类筛选
+按标题 / 正文 / 标签名搜索
 ```
 
 ---
@@ -608,6 +706,12 @@ on public.knowledge_items (user_id, is_favorite, updated_at desc);
 ```sql
 create index if not exists tags_user_name_idx
 on public.tags (user_id, name);
+
+create index if not exists categories_user_name_idx
+on public.categories (user_id, name);
+
+create index if not exists knowledge_items_user_category_updated_idx
+on public.knowledge_items (user_id, category_id, updated_at desc);
 ```
 
 ---
@@ -667,6 +771,7 @@ V0.1 只要求基础可用，不追求高级全文检索。
 ```text
 profiles
 knowledge_items
+categories
 tags
 knowledge_item_tags
 ```
@@ -678,6 +783,7 @@ knowledge_item_tags
 ```sql
 alter table public.profiles enable row level security;
 alter table public.knowledge_items enable row level security;
+alter table public.categories enable row level security;
 alter table public.tags enable row level security;
 alter table public.knowledge_item_tags enable row level security;
 ```
@@ -813,6 +919,51 @@ using (auth.uid() = user_id);
 
 ---
 
+## 13.5.1 categories RLS
+
+### 查询自己的分类
+
+```sql
+create policy "categories_select_own"
+on public.categories
+for select
+to authenticated
+using (auth.uid() = user_id);
+```
+
+### 创建自己的分类
+
+```sql
+create policy "categories_insert_own"
+on public.categories
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+```
+
+### 更新自己的分类
+
+```sql
+create policy "categories_update_own"
+on public.categories
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+```
+
+### 删除自己的分类
+
+```sql
+create policy "categories_delete_own"
+on public.categories
+for delete
+to authenticated
+using (auth.uid() = user_id);
+```
+
+---
+
 ## 13.6 knowledge_item_tags RLS
 
 ### 查询自己的标签绑定关系
@@ -864,6 +1015,7 @@ using (auth.uid() = user_id);
 
 ```text
 db/migrations/0001_initial_schema.sql
+db/migrations/0002_categories_search_sort.sql
 ```
 
 该文件已经把 SQL 分成清晰边界：
@@ -877,6 +1029,7 @@ db/migrations/0001_initial_schema.sql
 - 字段默认值、check constraints、unique constraints、foreign keys。
 - `set_updated_at()` trigger function 和 `profiles` / `knowledge_items` / `tags` 的 `updated_at` triggers。
 - V0.1 基础查询索引。
+- V0.2 的 `categories` 表、`knowledge_items.category_id`、分类索引和分类 `updated_at` trigger。
 
 通用业务表使用 `public.profiles(id)` 作为用户归属根表，`knowledge_items.user_id`、`tags.user_id`、`knowledge_item_tags.user_id` 都引用 `public.profiles(id)`。
 
@@ -891,6 +1044,7 @@ db/migrations/0001_initial_schema.sql
 - `on_auth_user_created` trigger。
 - 所有 `alter table ... enable row level security`。
 - 所有依赖 `auth.uid()` 和 `authenticated` role 的 RLS policies。
+- V0.2 中新增的 `categories_*_own` RLS policies。
 
 这些 SQL 依赖 Supabase Auth，不应视为长期唯一权限模型。
 
@@ -976,18 +1130,28 @@ order by updated_at desc;
 
 ## 15.5 关键词搜索
 
-V0.1 简单搜索：
+V0.2 简单搜索匹配标题、正文和标签名称：
 
 ```sql
-select *
-from public.knowledge_items
-where user_id = :current_user_id
-  and status <> 'archived'
+select ki.*
+from public.knowledge_items ki
+where ki.user_id = :current_user_id
+  and ki.status <> 'archived'
   and (
-    title ilike '%' || :keyword || '%'
-    or content ilike '%' || :keyword || '%'
+    ki.title ilike '%' || :keyword || '%'
+    or ki.content ilike '%' || :keyword || '%'
+    or exists (
+      select 1
+      from public.knowledge_item_tags kit
+      join public.tags t
+        on t.id = kit.tag_id
+        and t.user_id = kit.user_id
+      where kit.item_id = ki.id
+        and kit.user_id = :current_user_id
+        and t.name ilike '%' || :keyword || '%'
+    )
   )
-order by updated_at desc;
+order by ki.updated_at desc;
 ```
 
 ---
@@ -1007,6 +1171,31 @@ where ki.user_id = :current_user_id
   and t.name = :tag_name
 order by ki.updated_at desc;
 ```
+
+---
+
+## 15.6.1 按分类筛选知识条目
+
+```sql
+select *
+from public.knowledge_items
+where user_id = :current_user_id
+  and category_id = :category_id
+  and status <> 'archived'
+order by updated_at desc;
+```
+
+---
+
+## 15.6.2 排序
+
+V0.2 支持三个排序枚举，页面 query 只接受这些值：
+
+| 值 | 说明 |
+|---|---|
+| updated_at_desc | 最近更新优先，默认 |
+| created_at_desc | 最近创建优先 |
+| created_at_asc | 最早创建优先 |
 
 ---
 
@@ -1067,6 +1256,15 @@ export type KnowledgeItem = {
   status: KnowledgeStatus
   source_url: string | null
   is_favorite: boolean
+  category_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type Category = {
+  id: string
+  user_id: string
+  name: string
   created_at: string
   updated_at: string
 }
@@ -1081,6 +1279,10 @@ export type Tag = {
 
 export type KnowledgeItemWithTags = KnowledgeItem & {
   tags: Tag[]
+}
+
+export type KnowledgeItemWithCategory = KnowledgeItem & {
+  category: Category | null
 }
 ```
 
@@ -1296,17 +1498,20 @@ collection_items
 - 可以按状态筛选。
 - 可以按类型筛选。
 - 可以按标签筛选。
-- 可以按关键词搜索标题和正文。
+- 可以按分类筛选。
+- 可以按关键词搜索标题、正文和标签名称。
+- 可以按最近更新、最近创建、最早创建排序。
 
 ---
 
 ## 22. 当前结论
 
-V0.1 数据库设计采用简单清晰的四表结构：
+当前数据库设计采用简单清晰的五表结构：
 
 ```text
 profiles
 knowledge_items
+categories
 tags
 knowledge_item_tags
 ```
@@ -1316,6 +1521,7 @@ knowledge_item_tags
 ```text
 登录后的个人数据隔离
 知识条目 CRUD
+分类整理
 标签管理
 搜索筛选
 收藏归档

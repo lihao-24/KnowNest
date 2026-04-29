@@ -10,14 +10,22 @@ type KnowledgeMetadataFilterSearchParams = {
   space?: string | string[] | undefined;
   status?: string | string[] | undefined;
   type?: string | string[] | undefined;
+  category?: string | string[] | undefined;
   favorite?: string | string[] | undefined;
+  order?: string | string[] | undefined;
 };
 
 export type KnowledgeMetadataFilters = {
   space?: KnowledgeSpace | undefined;
   status?: KnowledgeStatus | undefined;
   type?: KnowledgeType | undefined;
+  categoryId?: string | undefined;
 };
+
+export type KnowledgeSortOrder =
+  | "updated_at_desc"
+  | "created_at_desc"
+  | "created_at_asc";
 
 const VALID_SPACES = new Set(["life", "work"]);
 const VALID_STATUSES = new Set(["inbox", "organized", "archived"]);
@@ -38,12 +46,24 @@ export function getKnowledgeMetadataFilters(
   const space = getFirstTrimmedParam(searchParams?.space);
   const status = getFirstTrimmedParam(searchParams?.status);
   const type = getFirstTrimmedParam(searchParams?.type);
+  const categoryId = getFirstTrimmedParam(searchParams?.category);
 
   return {
     space: isKnowledgeSpace(space) ? space : undefined,
     status: isKnowledgeStatus(status) ? status : undefined,
     type: isKnowledgeType(type) ? type : undefined,
+    categoryId,
   };
+}
+
+export function getKnowledgeSortOrder(
+  searchParams: KnowledgeMetadataFilterSearchParams | undefined,
+): KnowledgeSortOrder {
+  const order = getFirstTrimmedParam(searchParams?.order);
+
+  return order === "created_at_desc" || order === "created_at_asc"
+    ? order
+    : "updated_at_desc";
 }
 
 export function buildKnowledgeMetadataFilterHref({
@@ -57,6 +77,7 @@ export function buildKnowledgeMetadataFilterHref({
   const keyword = getFirstTrimmedParam(currentSearchParams?.q);
   const selectedTagId = getFirstTrimmedParam(currentSearchParams?.tag);
   const favorite = getFirstTrimmedParam(currentSearchParams?.favorite);
+  const order = getKnowledgeSortOrder(currentSearchParams);
   const currentFilters = getKnowledgeMetadataFilters(currentSearchParams);
   const filters = {
     ...currentFilters,
@@ -75,6 +96,10 @@ export function buildKnowledgeMetadataFilterHref({
     searchParams.set("favorite", "true");
   }
 
+  if (order !== "updated_at_desc") {
+    searchParams.set("order", order);
+  }
+
   if (filters.space) {
     searchParams.set("space", filters.space);
   }
@@ -85,6 +110,60 @@ export function buildKnowledgeMetadataFilterHref({
 
   if (filters.type) {
     searchParams.set("type", filters.type);
+  }
+
+  if (filters.categoryId) {
+    searchParams.set("category", filters.categoryId);
+  }
+
+  const queryString = searchParams.toString();
+
+  return queryString ? `/app?${queryString}` : "/app";
+}
+
+export function buildKnowledgeSortOrderHref({
+  currentSearchParams,
+  nextOrder,
+}: {
+  currentSearchParams: KnowledgeMetadataFilterSearchParams | undefined;
+  nextOrder: KnowledgeSortOrder;
+}) {
+  const searchParams = new URLSearchParams();
+  const keyword = getFirstTrimmedParam(currentSearchParams?.q);
+  const selectedTagId = getFirstTrimmedParam(currentSearchParams?.tag);
+  const favorite = getFirstTrimmedParam(currentSearchParams?.favorite);
+  const filters = getKnowledgeMetadataFilters(currentSearchParams);
+
+  if (keyword) {
+    searchParams.set("q", keyword);
+  }
+
+  if (selectedTagId) {
+    searchParams.set("tag", selectedTagId);
+  }
+
+  if (favorite === "true") {
+    searchParams.set("favorite", "true");
+  }
+
+  if (nextOrder !== "updated_at_desc") {
+    searchParams.set("order", nextOrder);
+  }
+
+  if (filters.space) {
+    searchParams.set("space", filters.space);
+  }
+
+  if (filters.status) {
+    searchParams.set("status", filters.status);
+  }
+
+  if (filters.type) {
+    searchParams.set("type", filters.type);
+  }
+
+  if (filters.categoryId) {
+    searchParams.set("category", filters.categoryId);
   }
 
   const queryString = searchParams.toString();

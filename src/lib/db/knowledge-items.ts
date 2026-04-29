@@ -1,5 +1,6 @@
 import {
   and,
+  asc,
   desc,
   eq,
   ilike,
@@ -17,7 +18,9 @@ import type {
 } from "../../types/knowledge";
 
 export type ListKnowledgeItemsParams = {
+  categoryId?: string;
   keyword?: string;
+  orderBy?: string;
   space?: KnowledgeSpace;
   status?: KnowledgeStatus;
   type?: KnowledgeType;
@@ -28,6 +31,7 @@ export type ListKnowledgeItemsParams = {
 
 export type NormalizedKnowledgeItemFilters = {
   userId: string;
+  categoryId?: string;
   keyword?: string;
   space?: KnowledgeSpace;
   status?: KnowledgeStatus;
@@ -36,12 +40,18 @@ export type NormalizedKnowledgeItemFilters = {
   tagId?: string;
   includeArchived: boolean;
   statusesExcluded: KnowledgeStatus[];
-  orderBy: "updated_at_desc";
+  orderBy: KnowledgeItemsOrderBy;
 };
+
+export type KnowledgeItemsOrderBy =
+  | "updated_at_desc"
+  | "created_at_desc"
+  | "created_at_asc";
 
 export type CreateKnowledgeItemInput = {
   title?: string;
   content?: string;
+  category_id?: string | null;
   space?: KnowledgeSpace;
   type?: KnowledgeType;
   status?: KnowledgeStatus;
@@ -55,7 +65,7 @@ export type CreateKnowledgeItemValues = Required<
     "user_id" | "title" | "content" | "space" | "type" | "status" | "is_favorite"
   >
 > &
-  Pick<KnowledgeItem, "source_url">;
+  Pick<KnowledgeItem, "source_url" | "category_id">;
 
 export type UpdateKnowledgeItemInput = Partial<
   Pick<
@@ -67,6 +77,7 @@ export type UpdateKnowledgeItemInput = Partial<
     | "status"
     | "source_url"
     | "is_favorite"
+    | "category_id"
   >
 >;
 
@@ -80,6 +91,7 @@ export type UpdateKnowledgeItemValues = Partial<
     | "status"
     | "source_url"
     | "is_favorite"
+    | "category_id"
   >
 >;
 
@@ -88,12 +100,14 @@ export function buildKnowledgeItemFilters(
   params: ListKnowledgeItemsParams = {},
 ): NormalizedKnowledgeItemFilters {
   const keyword = params.keyword?.trim();
+  const categoryId = params.categoryId?.trim();
   const tagId = params.tagId?.trim();
   const includeArchived = params.includeArchived === true;
   const shouldExcludeArchived = !includeArchived && params.status === undefined;
 
   return {
     userId,
+    categoryId: categoryId ? categoryId : undefined,
     keyword: keyword ? keyword : undefined,
     space: params.space,
     status: params.status,
@@ -102,7 +116,7 @@ export function buildKnowledgeItemFilters(
     tagId: tagId ? tagId : undefined,
     includeArchived,
     statusesExcluded: shouldExcludeArchived ? ["archived"] : [],
-    orderBy: "updated_at_desc",
+    orderBy: normalizeKnowledgeItemsOrderBy(params.orderBy),
   };
 }
 
@@ -119,6 +133,7 @@ export function normalizeCreateKnowledgeItemInput(
     status: input.status || "inbox",
     source_url: normalizeNullableText(input.source_url),
     is_favorite: input.is_favorite ?? false,
+    category_id: input.category_id ?? null,
   };
 }
 
@@ -155,6 +170,10 @@ export function normalizeUpdateKnowledgeItemInput(
     values.is_favorite = input.is_favorite;
   }
 
+  if (input.category_id !== undefined) {
+    values.category_id = input.category_id;
+  }
+
   return values;
 }
 
@@ -170,7 +189,7 @@ export async function listKnowledgeItems(
     .select()
     .from(knowledgeItems)
     .where(buildKnowledgeItemWhereClause(knowledgeItems, knowledgeItemTags, filters))
-    .orderBy(desc(knowledgeItems.updated_at));
+    .orderBy(buildKnowledgeItemsOrderByClause(knowledgeItems, filters.orderBy));
 }
 
 export async function getKnowledgeItemById(
@@ -255,6 +274,14 @@ function normalizeNullableText(value: string | null | undefined) {
   return trimmed ? trimmed : null;
 }
 
+function normalizeKnowledgeItemsOrderBy(
+  orderBy: string | undefined,
+): KnowledgeItemsOrderBy {
+  return orderBy === "created_at_desc" || orderBy === "created_at_asc"
+    ? orderBy
+    : "updated_at_desc";
+}
+
 export function buildKnowledgeItemWhereClause(
   knowledgeItems: typeof import("./schema").knowledgeItems,
   knowledgeItemTags: typeof import("./schema").knowledgeItemTags,
@@ -272,8 +299,22 @@ export function buildKnowledgeItemWhereClause(
       or(
         ilike(knowledgeItems.title, searchPattern),
         ilike(knowledgeItems.content, searchPattern),
+        sql`exists (
+          select 1
+          from "tags"
+          inner join ${knowledgeItemTags}
+            on ${knowledgeItemTags.tag_id} = "tags"."id"
+           and ${knowledgeItemTags.user_id} = "tags"."user_id"
+          where ${knowledgeItemTags.item_id} = ${knowledgeItems.id}
+            and ${knowledgeItemTags.user_id} = ${filters.userId}
+            and "tags"."name" ilike ${searchPattern}
+        )`,
       )!,
     );
+  }
+
+  if (filters.categoryId) {
+    conditions.push(eq(knowledgeItems.category_id, filters.categoryId));
   }
 
   if (filters.space) {
@@ -305,4 +346,19 @@ export function buildKnowledgeItemWhereClause(
   }
 
   return and(...conditions)!;
+}
+
+function buildKnowledgeItemsOrderByClause(
+  knowledgeItems: typeof import("./schema").knowledgeItems,
+  orderBy: KnowledgeItemsOrderBy,
+) {
+  if (orderBy === "created_at_desc") {
+    return desc(knowledgeItems.created_at);
+  }
+
+  if (orderBy === "created_at_asc") {
+    return asc(knowledgeItems.created_at);
+  }
+
+  return desc(knowledgeItems.updated_at);
 }

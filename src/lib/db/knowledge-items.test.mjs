@@ -31,6 +31,7 @@ const defaultFilters = buildKnowledgeItemFilters("user-1");
 assert.equal(defaultFilters.userId, "user-1");
 assert.deepEqual(defaultFilters.statusesExcluded, ["archived"]);
 assert.equal(defaultFilters.orderBy, "updated_at_desc");
+assert.equal(defaultFilters.categoryId, undefined);
 
 const archivedOnlyFilters = buildKnowledgeItemFilters("user-1", {
   status: "archived",
@@ -40,6 +41,7 @@ assert.equal(archivedOnlyFilters.status, "archived");
 assert.deepEqual(archivedOnlyFilters.statusesExcluded, []);
 
 const metadataFilters = buildKnowledgeItemFilters("user-1", {
+  categoryId: "category-1",
   keyword: "drizzle",
   space: "life",
   status: "organized",
@@ -48,13 +50,16 @@ const metadataFilters = buildKnowledgeItemFilters("user-1", {
 });
 
 assert.equal(metadataFilters.space, "life");
+assert.equal(metadataFilters.categoryId, "category-1");
 assert.equal(metadataFilters.status, "organized");
 assert.equal(metadataFilters.type, "link");
 assert.deepEqual(metadataFilters.statusesExcluded, []);
 
 const archivedFilters = buildKnowledgeItemFilters("user-1", {
+  categoryId: "  category-1  ",
   includeArchived: true,
   keyword: "  drizzle  ",
+  orderBy: "created_at_asc",
   space: "work",
   status: "archived",
   tagId: "  tag-1  ",
@@ -63,6 +68,7 @@ const archivedFilters = buildKnowledgeItemFilters("user-1", {
 });
 
 assert.equal(archivedFilters.keyword, "drizzle");
+assert.equal(archivedFilters.categoryId, "category-1");
 assert.equal(archivedFilters.space, "work");
 assert.equal(archivedFilters.status, "archived");
 assert.equal(archivedFilters.tagId, "tag-1");
@@ -70,6 +76,13 @@ assert.equal(archivedFilters.type, "note");
 assert.equal(archivedFilters.isFavorite, true);
 assert.equal(archivedFilters.includeArchived, true);
 assert.deepEqual(archivedFilters.statusesExcluded, []);
+assert.equal(archivedFilters.orderBy, "created_at_asc");
+
+const invalidSortFilters = buildKnowledgeItemFilters("user-1", {
+  orderBy: "updated_at_asc",
+});
+
+assert.equal(invalidSortFilters.orderBy, "updated_at_desc");
 
 const emptyTagFilters = buildKnowledgeItemFilters("user-1", {
   tagId: "   ",
@@ -82,6 +95,7 @@ const keywordAndTagSql = new PgDialect().sqlToQuery(
     schema.knowledgeItems,
     schema.knowledgeItemTags,
     buildKnowledgeItemFilters("user-1", {
+      categoryId: "category-1",
       keyword: "  drizzle  ",
       tagId: "tag-1",
     }),
@@ -98,12 +112,20 @@ assert.match(
   keywordAndTagSql.sql,
   /"knowledge_items"\."content" ilike \$\d+/,
 );
+assert.match(keywordAndTagSql.sql, /"tags"\."name" ilike \$\d+/);
+assert.match(
+  keywordAndTagSql.sql,
+  /"knowledge_items"\."category_id" = \$\d+/,
+);
 assert.match(keywordAndTagSql.sql, /exists\s*\(/);
 assert.deepEqual(keywordAndTagSql.params, [
   "user-1",
   "archived",
   "%drizzle%",
   "%drizzle%",
+  "user-1",
+  "%drizzle%",
+  "category-1",
   "user-1",
   "tag-1",
 ]);
@@ -125,6 +147,11 @@ assert.doesNotMatch(
   /"knowledge_items"\."status" <> \$\d+/,
 );
 assert.match(metadataFilterSql.sql, /"knowledge_items"\."title" ilike \$\d+/);
+assert.match(metadataFilterSql.sql, /"tags"\."name" ilike \$\d+/);
+assert.match(
+  metadataFilterSql.sql,
+  /"knowledge_items"\."category_id" = \$\d+/,
+);
 assert.match(metadataFilterSql.sql, /"knowledge_items"\."space" = \$\d+/);
 assert.match(metadataFilterSql.sql, /"knowledge_items"\."status" = \$\d+/);
 assert.match(metadataFilterSql.sql, /"knowledge_items"\."type" = \$\d+/);
@@ -133,6 +160,9 @@ assert.deepEqual(metadataFilterSql.params, [
   "user-1",
   "%drizzle%",
   "%drizzle%",
+  "user-1",
+  "%drizzle%",
+  "category-1",
   "life",
   "organized",
   "link",
@@ -167,6 +197,8 @@ assert.match(favoriteCombinedFilterSql.sql, /exists\s*\(/);
 assert.deepEqual(favoriteCombinedFilterSql.params, [
   "user-1",
   "%drizzle%",
+  "%drizzle%",
+  "user-1",
   "%drizzle%",
   "life",
   "organized",
@@ -227,14 +259,17 @@ assert.equal(createPayload.type, "note");
 assert.equal(createPayload.status, "inbox");
 assert.equal(createPayload.source_url, null);
 assert.equal(createPayload.is_favorite, false);
+assert.equal(createPayload.category_id, null);
 
 const updatePayload = normalizeUpdateKnowledgeItemInput({
+  category_id: "category-1",
   title: "  kept whitespace  ",
   source_url: "   ",
   is_favorite: true,
 });
 
 assert.deepEqual(updatePayload, {
+  category_id: "category-1",
   title: "  kept whitespace  ",
   source_url: null,
   is_favorite: true,

@@ -53,6 +53,8 @@ const item = {
   status: "inbox",
   source_url: null,
   is_favorite: true,
+  category_id: null,
+  category: null,
   created_at: "2026-04-26T00:00:00.000Z",
   updated_at: "2026-04-27T02:30:00.000Z",
 };
@@ -67,6 +69,7 @@ assert.equal(
   labelByValue(KNOWLEDGE_STATUSES, item.status),
 );
 assert.equal(viewModel.favoriteLabel, "已收藏");
+assert.equal(viewModel.categoryLabel, "未分类");
 assert.deepEqual(viewModel.tagNames, []);
 assert.equal(viewModel.updatedAtLabel, "2026-04-27");
 assert.ok(viewModel.summary.startsWith("第一行内容 第二行内容"));
@@ -85,6 +88,13 @@ assert.equal(emptyContentViewModel.favoriteLabel, "未收藏");
 
 const taggedViewModel = buildKnowledgeListItemViewModel({
   ...item,
+  category: {
+    id: "category-1",
+    user_id: "user-1",
+    name: "项目",
+    created_at: "2026-04-26T00:00:00.000Z",
+    updated_at: "2026-04-26T00:00:00.000Z",
+  },
   tags: [
     {
       id: "tag-1",
@@ -104,3 +114,4 @@ const taggedViewModel = buildKnowledgeListItemViewModel({
 });
 
 assert.deepEqual(taggedViewModel.tagNames, ["work", "life"]);
+assert.equal(taggedViewModel.categoryLabel, "项目");

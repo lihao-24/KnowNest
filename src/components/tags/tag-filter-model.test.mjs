@@ -43,12 +43,14 @@ assert.equal(
       space: "life",
       status: "archived",
       type: "link",
+      category: "category-1",
       favorite: "true",
+      order: "created_at_desc",
     },
     currentTagId: undefined,
     nextTagId: "tag-1",
   }),
-  "/app?q=drizzle&space=life&status=archived&type=link&favorite=true&tag=tag-1",
+  "/app?q=drizzle&space=life&status=archived&type=link&category=category-1&favorite=true&order=created_at_desc&tag=tag-1",
 );
 
 assert.equal(
@@ -58,10 +60,12 @@ assert.equal(
       space: "life",
       status: "archived",
       type: "link",
+      category: "category-1",
       favorite: "true",
+      order: "created_at_desc",
     },
     currentTagId: "tag-1",
     nextTagId: undefined,
   }),
-  "/app?q=drizzle&space=life&status=archived&type=link&favorite=true",
+  "/app?q=drizzle&space=life&status=archived&type=link&category=category-1&favorite=true&order=created_at_desc",
 );

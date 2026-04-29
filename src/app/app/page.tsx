@@ -3,13 +3,20 @@ import Link from "next/link";
 import { KnowledgeList } from "@/components/knowledge/knowledge-list";
 import { getKnowledgeFavoriteFilter } from "@/components/knowledge/knowledge-filters-model";
 import { KnowledgeMetadataFilter } from "@/components/knowledge/knowledge-metadata-filter";
-import { getKnowledgeMetadataFilters } from "@/components/knowledge/knowledge-metadata-filter-model";
+import {
+  getKnowledgeMetadataFilters,
+  getKnowledgeSortOrder,
+} from "@/components/knowledge/knowledge-metadata-filter-model";
 import { KnowledgeOperationNotice } from "@/components/knowledge/knowledge-operation-notice";
 import { KnowledgeSearch } from "@/components/knowledge/knowledge-search";
 import { getSearchKeyword } from "@/components/knowledge/knowledge-search-model";
 import { TagFilter } from "@/components/tags/tag-filter";
 import { getSelectedTagId } from "@/components/tags/tag-filter-model";
 import { requireUser } from "@/lib/auth/server";
+import {
+  attachCategoriesToKnowledgeItems,
+  listCategories,
+} from "@/lib/db/categories";
 import { listKnowledgeItems } from "@/lib/db/knowledge-items";
 import { attachTagsToKnowledgeItems, listTags } from "@/lib/db/tags";
 import {
@@ -24,7 +31,9 @@ type AppPageProps = {
     space?: string | string[] | undefined;
     status?: string | string[] | undefined;
     type?: string | string[] | undefined;
+    category?: string | string[] | undefined;
     favorite?: string | string[] | undefined;
+    order?: string | string[] | undefined;
     notice?: string | string[] | undefined;
   }>;
 };
@@ -35,24 +44,47 @@ export default async function AppPage({ searchParams }: AppPageProps) {
   const requestedTagId = getSelectedTagId(resolvedSearchParams);
   const keyword = getSearchKeyword(resolvedSearchParams);
   const metadataFilters = getKnowledgeMetadataFilters(resolvedSearchParams);
+  const sortOrder = getKnowledgeSortOrder(resolvedSearchParams);
   const isFavoriteOnly = getKnowledgeFavoriteFilter(resolvedSearchParams);
-  const tags = await listTags(user.id);
+  const [categories, tags] = await Promise.all([
+    listCategories(user.id),
+    listTags(user.id),
+  ]);
+  const selectedCategoryId = categories.some(
+    (category) => category.id === metadataFilters.categoryId,
+  )
+    ? metadataFilters.categoryId
+    : undefined;
+  const effectiveMetadataFilters = {
+    ...metadataFilters,
+    categoryId: selectedCategoryId,
+  };
   const selectedTagId = tags.some((tag) => tag.id === requestedTagId)
     ? requestedTagId
     : undefined;
   const items = await listKnowledgeItems(user.id, {
+    ...effectiveMetadataFilters,
+    categoryId: selectedCategoryId,
     keyword,
+    orderBy: sortOrder,
     tagId: selectedTagId,
     isFavorite: isFavoriteOnly,
-    ...metadataFilters,
   });
-  const itemsWithTags = await attachTagsToKnowledgeItems(user.id, items);
+  const itemsWithCategories = await attachCategoriesToKnowledgeItems(
+    user.id,
+    items,
+  );
+  const itemsWithTags = await attachTagsToKnowledgeItems(
+    user.id,
+    itemsWithCategories,
+  );
   const hasFilters = Boolean(
     keyword ||
       selectedTagId ||
-      metadataFilters.space ||
-      metadataFilters.status ||
-      metadataFilters.type ||
+      selectedCategoryId ||
+      effectiveMetadataFilters.space ||
+      effectiveMetadataFilters.status ||
+      effectiveMetadataFilters.type ||
       isFavoriteOnly,
   );
   const emptyState = getAppKnowledgeListEmptyState(hasFilters);
@@ -82,25 +114,31 @@ export default async function AppPage({ searchParams }: AppPageProps) {
       <KnowledgeOperationNotice notice={operationNotice} />
       <KnowledgeSearch
         keyword={keyword}
-        selectedSpace={metadataFilters.space}
-        selectedStatus={metadataFilters.status}
+        selectedSpace={effectiveMetadataFilters.space}
+        selectedStatus={effectiveMetadataFilters.status}
+        selectedCategoryId={selectedCategoryId}
         selectedTagId={selectedTagId}
-        selectedType={metadataFilters.type}
+        selectedType={effectiveMetadataFilters.type}
         isFavoriteOnly={isFavoriteOnly}
+        sortOrder={sortOrder}
       />
       <KnowledgeMetadataFilter
-        filters={metadataFilters}
+        categories={categories}
+        filters={effectiveMetadataFilters}
         isFavoriteOnly={isFavoriteOnly}
         searchKeyword={keyword}
         selectedTagId={selectedTagId}
+        sortOrder={sortOrder}
       />
       <TagFilter
         searchKeyword={keyword}
-        selectedSpace={metadataFilters.space}
-        selectedStatus={metadataFilters.status}
+        selectedSpace={effectiveMetadataFilters.space}
+        selectedStatus={effectiveMetadataFilters.status}
+        selectedCategoryId={selectedCategoryId}
         selectedTagId={selectedTagId}
-        selectedType={metadataFilters.type}
+        selectedType={effectiveMetadataFilters.type}
         isFavoriteOnly={isFavoriteOnly}
+        sortOrder={sortOrder}
         tags={tags}
       />
       <KnowledgeList emptyState={emptyState} items={itemsWithTags} />

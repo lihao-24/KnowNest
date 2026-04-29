@@ -89,6 +89,8 @@ assert.deepEqual(titleOnlyDraft, {
   value: {
     title: "只写标题",
     content: "",
+    categoryId: null,
+    categoryName: "",
     space: "work",
     type: "note",
     status: "inbox",
@@ -106,6 +108,8 @@ assert.deepEqual(contentOnlyDraft, {
   value: {
     title: "",
     content: "只写正文",
+    categoryId: null,
+    categoryName: "",
     space: "work",
     type: "note",
     status: "inbox",
@@ -120,6 +124,8 @@ formData.set("userId", "forged-user-id");
 formData.set("space", "life");
 formData.set("type", "snippet");
 formData.set("status", "organized");
+formData.set("categoryId", "  category-1  ");
+formData.set("categoryName", "   ");
 formData.append("tagNames", " work ");
 formData.append("tagNames", "");
 formData.append("tagNames", "life");
@@ -132,6 +138,8 @@ assert.deepEqual(updatePayload, {
   value: {
     title: "编辑后的标题",
     content: "编辑后的正文",
+    categoryId: "category-1",
+    categoryName: "",
     space: "life",
     type: "snippet",
     status: "organized",

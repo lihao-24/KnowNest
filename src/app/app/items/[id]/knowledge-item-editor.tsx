@@ -20,6 +20,7 @@ import {
   getKnowledgeItemFavoriteStatusLabel,
 } from "@/lib/knowledge/knowledge-item-favorite";
 import type { KnowledgeItem } from "@/types/knowledge";
+import type { Category } from "@/types/knowledge";
 
 import {
   deleteKnowledgeItemAction,
@@ -41,10 +42,12 @@ const selectClassName =
 
 type KnowledgeItemEditorProps = {
   item: KnowledgeItem;
+  categories: Category[];
   initialTagNames?: string[];
 };
 
 export function KnowledgeItemEditor({
+  categories,
   item,
   initialTagNames = [],
 }: KnowledgeItemEditorProps) {
@@ -233,6 +236,49 @@ export function KnowledgeItemEditor({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label
+              className="mb-1.5 block text-sm font-medium text-slate-700"
+              htmlFor="categoryId"
+            >
+              分类
+            </label>
+            <select
+              className={selectClassName}
+              defaultValue={item.category_id ?? ""}
+              disabled={isEditingDisabled}
+              id="categoryId"
+              name="categoryId"
+            >
+              <option value="">未分类</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              className="mb-1.5 block text-sm font-medium text-slate-700"
+              htmlFor="categoryName"
+            >
+              新分类
+            </label>
+            <input
+              className="h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
+              disabled={isEditingDisabled}
+              id="categoryName"
+              maxLength={20}
+              name="categoryName"
+              placeholder="可选，填写后优先使用"
+              type="text"
+            />
           </div>
         </div>
 

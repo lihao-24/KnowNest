@@ -4,7 +4,9 @@ type KnowledgeFiltersSearchParams = {
   space?: string | string[] | undefined;
   status?: string | string[] | undefined;
   type?: string | string[] | undefined;
+  category?: string | string[] | undefined;
   favorite?: string | string[] | undefined;
+  order?: string | string[] | undefined;
 };
 
 const VALID_SPACES = new Set(["life", "work"]);
@@ -19,6 +21,7 @@ const VALID_TYPES = new Set([
   "plan",
   "snippet",
 ]);
+const VALID_ORDERS = new Set(["updated_at_desc", "created_at_desc", "created_at_asc"]);
 
 export function getKnowledgeFavoriteFilter(
   searchParams: KnowledgeFiltersSearchParams | undefined,
@@ -61,6 +64,8 @@ export function buildBaseKnowledgeFilterSearchParams(
   const space = getFirstTrimmedParam(currentSearchParams?.space);
   const status = getFirstTrimmedParam(currentSearchParams?.status);
   const type = getFirstTrimmedParam(currentSearchParams?.type);
+  const category = getFirstTrimmedParam(currentSearchParams?.category);
+  const order = getFirstTrimmedParam(currentSearchParams?.order);
   const isFavorite = getKnowledgeFavoriteFilter(currentSearchParams);
 
   if (keyword) {
@@ -83,8 +88,16 @@ export function buildBaseKnowledgeFilterSearchParams(
     searchParams.set("type", type);
   }
 
+  if (category) {
+    searchParams.set("category", category);
+  }
+
   if (isFavorite) {
     searchParams.set("favorite", "true");
+  }
+
+  if (order && VALID_ORDERS.has(order) && order !== "updated_at_desc") {
+    searchParams.set("order", order);
   }
 
   return searchParams;

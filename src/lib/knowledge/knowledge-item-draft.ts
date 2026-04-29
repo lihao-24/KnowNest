@@ -24,6 +24,8 @@ const knowledgeStatusValues = buildKnowledgeValueSet(KNOWLEDGE_STATUSES);
 export type KnowledgeItemDraftInput = {
   title: string;
   content: string;
+  categoryId?: string | null;
+  categoryName?: string | null;
   space?: string;
   type?: string;
   status?: string;
@@ -33,6 +35,8 @@ export type KnowledgeItemDraftInput = {
 export type KnowledgeItemDraft = {
   title: string;
   content: string;
+  categoryId: string | null;
+  categoryName: string;
   space: KnowledgeSpace;
   type: KnowledgeType;
   status: KnowledgeStatus;
@@ -55,6 +59,8 @@ export function buildKnowledgeItemDraftPayload(
   return validateKnowledgeItemDraft({
     title: getFormDataString(formData, "title") ?? "",
     content: getFormDataString(formData, "content") ?? "",
+    categoryId: getFormDataString(formData, "categoryId"),
+    categoryName: getFormDataString(formData, "categoryName"),
     space: getFormDataString(formData, "space"),
     type: getFormDataString(formData, "type"),
     status: getFormDataString(formData, "status"),
@@ -99,10 +105,22 @@ export function validateKnowledgeItemDraft(
     value: {
       title,
       content,
+      categoryId: normalizeNullableDraftText(draft.categoryId),
+      categoryName: normalizeNullableDraftText(draft.categoryName) ?? "",
       ...metadata,
       tagNames: normalizeTagNames(draft.tagNames ?? []),
     },
   };
+}
+
+function normalizeNullableDraftText(value: string | null | undefined) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  return trimmed ? trimmed : null;
 }
 
 function normalizeKnowledgeItemMetadata(draft: KnowledgeItemDraftInput) {

@@ -3,7 +3,11 @@ import {
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "../../constants/knowledge";
-import type { KnowledgeItem, KnowledgeItemWithTags } from "../../types/knowledge";
+import type {
+  KnowledgeItem,
+  KnowledgeItemWithMetadata,
+  KnowledgeItemWithTags,
+} from "../../types/knowledge";
 
 export const DEFAULT_KNOWLEDGE_ITEM_TITLE = "未命名内容";
 export const EMPTY_KNOWLEDGE_ITEM_SUMMARY = "暂无正文内容";
@@ -20,13 +24,14 @@ export type KnowledgeListItemViewModel = {
   spaceLabel: string;
   typeLabel: string;
   statusLabel: string;
+  categoryLabel: string;
   updatedAtLabel: string;
   favoriteLabel: string;
   tagNames: string[];
 };
 
 export function buildKnowledgeListItemViewModel(
-  item: KnowledgeItem | KnowledgeItemWithTags,
+  item: KnowledgeItem | KnowledgeItemWithTags | KnowledgeItemWithMetadata,
 ): KnowledgeListItemViewModel {
   return {
     title: formatKnowledgeItemTitle(item.title),
@@ -34,6 +39,7 @@ export function buildKnowledgeListItemViewModel(
     spaceLabel: knowledgeSpaceLabels[item.space],
     typeLabel: knowledgeTypeLabels[item.type],
     statusLabel: knowledgeStatusLabels[item.status],
+    categoryLabel: "category" in item && item.category ? item.category.name : "未分类",
     updatedAtLabel: formatKnowledgeItemDate(item.updated_at),
     favoriteLabel: item.is_favorite ? "已收藏" : "未收藏",
     tagNames: "tags" in item ? item.tags.map((tag) => tag.name) : [],

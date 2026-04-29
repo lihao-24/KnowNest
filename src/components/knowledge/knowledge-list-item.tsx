@@ -40,6 +40,9 @@ export function KnowledgeListItem({
           <span className="max-w-full rounded-md bg-slate-100 px-2 py-1">
             {viewModel.statusLabel}
           </span>
+          <span className="max-w-full break-all rounded-md bg-slate-100 px-2 py-1">
+            {viewModel.categoryLabel}
+          </span>
           {viewModel.tagNames.map((tagName) => (
             <span
               className="max-w-full break-all rounded-md bg-teal-50 px-2 py-1 text-teal-700"

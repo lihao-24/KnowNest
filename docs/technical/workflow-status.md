@@ -18,7 +18,7 @@
 - Phase 09：Task 09-01 至 Task 09-03 已完成并通过审核，大节点审核已通过。
 - Phase 10：Task 10-01 至 Task 10-04 已完成并通过审核，大节点审核已通过。
 - Phase 11：Task 11-01 V0.1 功能自测已完成；自动化验证通过，真实账号端到端手测由用户确认通过。
-- 当前结论：V0.1 已完成。
+- 当前结论：V0.2 知识管理体验增强已完成代码实现、文档补充和本地验证；上线前需要在目标数据库执行 `db/migrations/0002_categories_search_sort.sql`。
 
 ## 已完成阶段和任务
 
@@ -33,6 +33,7 @@
 - Phase 09 Markdown 编辑体验：Task 09-01 至 Task 09-03 已完成并审核通过，大节点审核已通过。
 - Phase 10 移动端与体验完善：Task 10-01 状态反馈 / 补齐空状态、加载状态、错误状态已完成并审核通过；Task 10-02 优化移动端布局已完成并审核通过；Task 10-03 完善保存与删除反馈已完成并审核通过；Task 10-04 设置页完善已完成并审核通过；Phase 10 大节点审核已通过。
 - Phase 11 V0.1 功能自测：自动化验证通过；真实账号登录 / 退出、已登录 CRUD、收藏、归档、标签、筛选、移动端已登录布局、多设备刷新同步和 Supabase RLS 运行时用户隔离由用户在真实环境测试并确认通过。
+- V0.2 知识管理体验增强：已完成分类系统、标签名搜索、分类筛选、排序、详情阅读页、编辑页拆分、README 和技术文档更新。验证通过 `npm.cmd run test:categories`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:tags`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-metadata-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-filter-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-search-model.test.mjs`、`npm.cmd run lint`、`npm.cmd run build`、`git diff --check`。
 
 ## 最新关键技术决策
 
@@ -43,6 +44,9 @@
 - Supabase RLS 是开发期安全兜底，服务端 repository 仍必须按当前用户过滤数据。
 - `profiles.id` 是业务层用户主键；业务代码不要直接依赖 `auth.users`。
 - 标签采用 `tags` + `knowledge_item_tags` 关系表，不使用字符串数组落库。
+- V0.2 分类采用 `categories` 表 + `knowledge_items.category_id`，通过 `(category_id, user_id)` 复合外键防止跨用户绑定分类。
+- V0.2 搜索仍使用基础 `ilike`，匹配标题、正文和标签名称；复杂全文搜索、权重排序、语义检索继续放到后续版本。
+- V0.2 详情页 `/app/items/[id]` 为阅读视图，编辑入口拆到 `/app/items/[id]/edit`。
 
 ## 当前约束
 
@@ -59,7 +63,9 @@
 
 ## 下一个建议任务
 
-- V0.1 已完成。下一步可进入 V0.2 范围确认，或先做 V0.1 发布 / 部署收口。
+- 执行 `db/migrations/0002_categories_search_sort.sql` 到 Supabase / PostgreSQL 目标库。
+- 在真实登录账号下手测 V0.2 主链路：新建分类、选择分类、编辑分类、按分类筛选、按标签名搜索、排序切换、详情页 Markdown 阅读、编辑页保存。
+- 通过 Vercel 预览部署后再做一次核心流程回归。
 
 ## 大节点审核记录
 
@@ -101,6 +107,7 @@
 | Phase 10 Task 10-04 | 已审核通过 | 设置页完善完成，implementation commit `9f63cf2`；设置页通过 `src/lib/auth/server` 的 `requireUser()` 获取当前用户；新增 `settings-model` 输出当前账号邮箱、缺失邮箱 fallback、版本号 `V0.1`、退出按钮文案 / 触控高度策略；新增客户端 `SettingsPanel` 使用 `signOutCurrentUser()` 登出，成功后 `router.replace("/login")`；未直接调用 Supabase SDK，未扩展设置功能范围；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/app/app/settings/settings-model.test.mjs`、`npm.cmd run test:auth`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/layout/mobile-nav-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/layout/app-sidebar-nav.test.mjs`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 10 | 已审核通过 | 大节点审核结论 `PHASE10_APPROVED`；Task 10-01 至 Task 10-04 已完成；验证通过 `npm.cmd run lint`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:tag-input`、`npm.cmd run test:markdown-preview`、多个 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ...` model/helper tests、`npm.cmd run build`；必须修改：无；允许进入 Phase 11 Task 11-01。 |
 | Phase 11 Task 11-01 | 已审核通过 | V0.1 功能自测完成。自动化验证通过：`npm.cmd run lint`、`npm.cmd run build`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:markdown-preview`、`npm.cmd run test:tag-input`。用户于 2026-04-29 确认真实环境手测均通过：真实登录成功、退出登录、已登录态 CRUD / 收藏 / 归档 / 标签 / 筛选、移动端已登录布局、多设备刷新同步、Supabase RLS 运行时用户隔离。V0.1 收口完成。 |
+| V0.2 知识管理体验增强 | 已完成本地开发验证 | 完成分类表和 RLS migration、分类创建 / 选择 / 编辑、列表分类展示、分类筛选、标签名搜索、排序、详情阅读页和编辑页拆分；验证通过 `npm.cmd run test:categories`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:tags`、相关 URL model tests、`npm.cmd run lint`、`npm.cmd run build`、`git diff --check`。剩余上线动作：执行 `0002_categories_search_sort.sql` 并做真实 Supabase / Vercel 回归。 |
 
 ## 未决问题 / 风险
 
@@ -115,6 +122,8 @@
 - MobileNav 后续可补 `aria-controls`、Esc 关闭和 focus trap，进一步完善抽屉可访问性。
 - 后续筛选复杂后可加强 query builder 测试。
 - 当前没有独立 `typecheck` script，build 已覆盖 Next/TypeScript 集成检查。
+- V0.2 migration 尚未在真实 Supabase 目标库执行；上线前必须执行 `db/migrations/0002_categories_search_sort.sql`。
+- V0.2 RLS 已在 SQL migration 中补充 `categories` policies，当前会话未连接 Supabase Dashboard 做真实多用户 RLS 手测。
 - Drizzle schema 后续补齐 check constraints 和 `(id, user_id)` unique 元数据。
 - 后续抽 UUID guard，避免非法 item id 触发 DB UUID 解析错误。
 - 后续可将编辑表单的 FormData 字段读取限制为 string，避免 File 被 `String()` 转成 `[object File]`。

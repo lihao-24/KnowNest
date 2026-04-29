@@ -2,7 +2,7 @@
 
 KnowNest（知巢）是一个面向个人长期使用的知识库 Web App，用于沉淀生活和工作中的笔记、资料、Prompt、项目经验、链接、复盘和计划。
 
-V0.1 的目标是先完成一个稳定、可同步、可真实使用的基础版：用户可以登录账号，在浏览器设备上创建、编辑、整理、搜索并同步自己的知识条目。AI、PWA、移动端原生 App、文件上传等能力不在 V0.1 范围内。
+V0.1 的目标是先完成一个稳定、可同步、可真实使用的基础版：用户可以登录账号，在浏览器设备上创建、编辑、整理、搜索并同步自己的知识条目。V0.2 在此基础上增强知识管理体验，补齐分类、标签搜索、筛选排序和详情阅读能力。AI、PWA、移动端原生 App、文件上传等能力不在当前范围内。
 
 ## 技术栈
 
@@ -51,6 +51,7 @@ http://localhost:3000
 npm run lint
 npm run build
 npm run test:auth
+npm run test:categories
 npm run test:knowledge-items
 npm run test:tags
 ```
@@ -90,6 +91,27 @@ docs/technical/v0.1-self-test.md     V0.1 自测记录
 ```
 
 开始新任务前，优先阅读 `docs/technical/agent-context.md` 和当前任务对应的技术 / 需求文档。
+
+## V0.2 功能范围
+
+V0.2 包含：
+
+- 分类系统：默认分类 + 用户自定义分类，知识条目可选择或编辑分类
+- 搜索增强：列表页支持按标题、正文和标签名称搜索
+- 筛选增强：列表页支持标签、分类、空间、状态、类型、收藏组合筛选
+- 排序增强：支持最近更新、最近创建、最早创建，默认最近更新
+- 列表展示：知识卡片展示分类、标签、摘要、收藏状态和更新时间
+- 详情页：`/app/items/[id]` 提供 Markdown 阅读视图、标签/分类、创建和更新时间、返回与编辑入口
+- 编辑页：`/app/items/[id]/edit` 继续提供标题、正文、标签、分类和元信息编辑
+- 数据权限：新增 `categories` 表 RLS，业务查询继续在 `src/lib/db` 强制带 `user_id`
+
+新增数据库迁移：
+
+```text
+db/migrations/0002_categories_search_sort.sql
+```
+
+部署或本地验证 V0.2 前，需要在目标 PostgreSQL/Supabase 数据库执行该 migration。
 
 ## V0.1 功能范围
 

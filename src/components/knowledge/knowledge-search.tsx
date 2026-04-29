@@ -8,7 +8,9 @@ type KnowledgeSearchProps = {
   selectedSpace?: string | undefined;
   selectedStatus?: string | undefined;
   selectedType?: string | undefined;
+  selectedCategoryId?: string | undefined;
   isFavoriteOnly?: boolean | undefined;
+  sortOrder?: string | undefined;
 };
 
 export function KnowledgeSearch({
@@ -17,7 +19,9 @@ export function KnowledgeSearch({
   selectedSpace,
   selectedStatus,
   selectedType,
+  selectedCategoryId,
   isFavoriteOnly,
+  sortOrder,
 }: KnowledgeSearchProps) {
   return (
     <form
@@ -37,8 +41,14 @@ export function KnowledgeSearch({
       {selectedType ? (
         <input name="type" type="hidden" value={selectedType} />
       ) : null}
+      {selectedCategoryId ? (
+        <input name="category" type="hidden" value={selectedCategoryId} />
+      ) : null}
       {isFavoriteOnly ? (
         <input name="favorite" type="hidden" value="true" />
+      ) : null}
+      {sortOrder && sortOrder !== "updated_at_desc" ? (
+        <input name="order" type="hidden" value={sortOrder} />
       ) : null}
 
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
@@ -50,7 +60,7 @@ export function KnowledgeSearch({
           defaultValue={keyword ?? ""}
           id="q"
           name="q"
-          placeholder="搜索标题或正文"
+          placeholder="搜索标题、正文或标签"
           type="search"
         />
         <div className="grid grid-cols-2 gap-2 sm:flex">
@@ -70,7 +80,9 @@ export function KnowledgeSearch({
                   space: selectedSpace,
                   status: selectedStatus,
                   type: selectedType,
+                  category: selectedCategoryId,
                   favorite: isFavoriteOnly ? "true" : undefined,
+                  order: sortOrder,
                 },
               })}
             >
