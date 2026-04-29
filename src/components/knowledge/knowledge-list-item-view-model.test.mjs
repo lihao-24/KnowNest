@@ -86,6 +86,13 @@ assert.equal(emptyContentViewModel.title, "有标题");
 assert.equal(emptyContentViewModel.summary, "暂无正文内容");
 assert.equal(emptyContentViewModel.favoriteLabel, "未收藏");
 
+const summaryViewModel = buildKnowledgeListItemViewModel({
+  ...item,
+  summary: "AI 摘要内容",
+});
+
+assert.equal(summaryViewModel.summary, "AI 摘要内容");
+
 const taggedViewModel = buildKnowledgeListItemViewModel({
   ...item,
   category: {

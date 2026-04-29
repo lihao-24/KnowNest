@@ -28,6 +28,12 @@ const UPDATE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "保存失败，请稍后重试。"
 const UPDATE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE =
   "没有找到这条知识，或你没有访问权限。";
 const UPDATE_KNOWLEDGE_ITEM_SUCCESS_MESSAGE = "已保存。";
+const APPLY_KNOWLEDGE_ITEM_SUMMARY_FAILED_MESSAGE =
+  "应用摘要失败，请稍后重试。";
+const APPLY_KNOWLEDGE_ITEM_SUMMARY_EMPTY_MESSAGE = "摘要不能为空。";
+const APPLY_KNOWLEDGE_ITEM_SUMMARY_NOT_FOUND_MESSAGE =
+  "没有找到这条知识，或你没有访问权限。";
+const APPLY_KNOWLEDGE_ITEM_SUMMARY_SUCCESS_MESSAGE = "已应用 AI 摘要。";
 const FAVORITE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "收藏操作失败，请稍后重试。";
 const FAVORITE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE =
   "没有找到这条知识，或你没有访问权限。";
@@ -46,6 +52,62 @@ export type ToggleKnowledgeItemFavoriteActionState = {
   successMessage: string;
   isFavorite?: boolean;
 };
+
+export async function applyKnowledgeItemSummaryAction(
+  itemId: string,
+  summary: string,
+): Promise<{ errorMessage: string; successMessage: string }> {
+  const trimmedSummary = summary.trim();
+
+  if (!trimmedSummary) {
+    return {
+      errorMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_EMPTY_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  try {
+    const user = await requireUser();
+    const now = new Date().toISOString();
+    const updatedItem = await updateKnowledgeItem(user.id, itemId, {
+      summary: trimmedSummary,
+      summary_generated_at: now,
+      ai_updated_at: now,
+    });
+
+    if (!updatedItem) {
+      return {
+        errorMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_NOT_FOUND_MESSAGE,
+        successMessage: "",
+      };
+    }
+  } catch (error) {
+    return {
+      errorMessage:
+        error instanceof Error && error.message === AUTH_REQUIRED_MESSAGE
+          ? AUTH_REQUIRED_MESSAGE
+          : APPLY_KNOWLEDGE_ITEM_SUMMARY_FAILED_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  const revalidationPaths = [
+    "/app",
+    `/app/items/${itemId}`,
+    "/app/inbox",
+    "/app/favorites",
+    "/app/archive",
+  ];
+
+  revalidationPaths.forEach((path) => {
+    revalidatePath(path);
+  });
+
+  return {
+    errorMessage: "",
+    successMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_SUCCESS_MESSAGE,
+  };
+}
 
 export async function updateKnowledgeItemAction(
   itemId: string,

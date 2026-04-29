@@ -1,10 +1,13 @@
 import Link from "next/link";
 
+import { AIAssistantPanel } from "@/components/ai/ai-assistant-panel";
 import { MarkdownPreview } from "@/components/markdown/markdown-preview";
 import { requireUser } from "@/lib/auth/server";
 import { getCategoryById } from "@/lib/db/categories";
 import { getKnowledgeItemById } from "@/lib/db/knowledge-items";
 import { listTagsByItemId } from "@/lib/db/tags";
+
+import { applyKnowledgeItemSummaryAction } from "./actions";
 
 type KnowledgeItemPageProps = {
   params: Promise<{
@@ -27,6 +30,8 @@ export default async function KnowledgeItemPage({
   const category = item.category_id
     ? await getCategoryById(user.id, item.category_id)
     : null;
+  const summary = item.summary?.trim();
+  const applySummary = applyKnowledgeItemSummaryAction.bind(null, item.id);
 
   return (
     <section className="min-w-0 w-full max-w-4xl">
@@ -81,6 +86,30 @@ export default async function KnowledgeItemPage({
         )}
       </div>
 
+      <AIAssistantPanel
+        knowledgeItemId={item.id}
+        onApplySummary={applySummary}
+      />
+
+      <section className="mb-5 rounded-md border border-slate-200 bg-white p-4">
+        <h2 className="text-base font-semibold text-slate-950">AI 摘要</h2>
+        {summary ? (
+          <>
+            <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
+              {summary}
+            </p>
+            <p className="mt-3 text-sm leading-6 text-slate-500">
+              生成时间：
+              {formatNullableKnowledgeItemDateTime(item.summary_generated_at)}
+            </p>
+          </>
+        ) : (
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            暂无 AI 摘要
+          </p>
+        )}
+      </section>
+
       <MarkdownPreview content={item.content} emptyText="暂无正文内容" />
     </section>
   );
@@ -118,4 +147,8 @@ function formatKnowledgeItemDateTime(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+function formatNullableKnowledgeItemDateTime(value: string | null) {
+  return value ? formatKnowledgeItemDateTime(value) : "未知";
 }
