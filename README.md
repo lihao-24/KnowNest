@@ -139,4 +139,4 @@ db/migrations           数据库迁移 SQL
 
 ## 当前状态
 
-项目仍处于 V0.1 收尾阶段。Phase 11 的完整人工自测和生产部署准备需要结合真实测试账号、目标数据库环境和部署环境继续验证；详情见 `docs/technical/workflow-status.md`。
+V0.1 已完成。Phase 11 真实账号端到端手测已由用户确认通过，自动化验证已通过；详情见 `docs/technical/workflow-status.md` 和 `docs/technical/v0.1-self-test.md`。

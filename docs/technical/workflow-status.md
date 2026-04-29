@@ -17,7 +17,8 @@
 - Phase 08：Task 08-01 至 Task 08-03 已完成并通过审核，大节点审核已通过。
 - Phase 09：Task 09-01 至 Task 09-03 已完成并通过审核，大节点审核已通过。
 - Phase 10：Task 10-01 至 Task 10-04 已完成并通过审核，大节点审核已通过。
-- 下一步：Phase 11 Task 11-01 V0.1 功能自测仍为当前任务；当前阻断于真实测试账号 / 已登录会话、开发或测试环境确认、可创建并清理测试数据确认，以及 Supabase RLS 运行时验证输入缺失，不能标记通过。
+- Phase 11：Task 11-01 V0.1 功能自测已完成；自动化验证通过，真实账号端到端手测由用户确认通过。
+- 当前结论：V0.1 已完成。
 
 ## 已完成阶段和任务
 
@@ -31,6 +32,7 @@
 - Phase 08 搜索与筛选：Task 08-01 至 Task 08-03 已完成并审核通过，大节点审核已通过。
 - Phase 09 Markdown 编辑体验：Task 09-01 至 Task 09-03 已完成并审核通过，大节点审核已通过。
 - Phase 10 移动端与体验完善：Task 10-01 状态反馈 / 补齐空状态、加载状态、错误状态已完成并审核通过；Task 10-02 优化移动端布局已完成并审核通过；Task 10-03 完善保存与删除反馈已完成并审核通过；Task 10-04 设置页完善已完成并审核通过；Phase 10 大节点审核已通过。
+- Phase 11 V0.1 功能自测：自动化验证通过；真实账号登录 / 退出、已登录 CRUD、收藏、归档、标签、筛选、移动端已登录布局、多设备刷新同步和 Supabase RLS 运行时用户隔离由用户在真实环境测试并确认通过。
 
 ## 最新关键技术决策
 
@@ -57,7 +59,7 @@
 
 ## 下一个建议任务
 
-- 补齐 Phase 11 Task 11-01 真实账号端到端自测输入并复测，包括两个临时测试账号、开发 / 测试环境确认、测试数据创建与清理确认，以及 RLS 运行时验证方式。
+- V0.1 已完成。下一步可进入 V0.2 范围确认，或先做 V0.1 发布 / 部署收口。
 
 ## 大节点审核记录
 
@@ -98,7 +100,7 @@
 | Phase 10 Task 10-03 | 已审核通过 | 完善保存与删除反馈完成，implementation commit `86dc77b`，fix commit `140235f`；新建保存成功 redirect 到 `/app?notice=created`，`/app` 展示“已保存。”并用本页级 `KnowledgeOperationNotice` 清理 notice query；新建 / 编辑保存失败使用 `role="alert"`；保留 pending 禁用与“保存中...”/“删除中...”；删除确认按钮通过全局 `isMutationDisabled` 禁用，避免保存 / 收藏 / 删除并发；Spec review `SPEC_APPROVED`，Quality review 首轮 `QUALITY_CHANGES_REQUESTED`，修复后复审 `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-feedback-state.test.mjs`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-filters-model.test.mjs`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 10 Task 10-04 | 已审核通过 | 设置页完善完成，implementation commit `9f63cf2`；设置页通过 `src/lib/auth/server` 的 `requireUser()` 获取当前用户；新增 `settings-model` 输出当前账号邮箱、缺失邮箱 fallback、版本号 `V0.1`、退出按钮文案 / 触控高度策略；新增客户端 `SettingsPanel` 使用 `signOutCurrentUser()` 登出，成功后 `router.replace("/login")`；未直接调用 Supabase SDK，未扩展设置功能范围；Spec review `SPEC_APPROVED`，Quality review `QUALITY_APPROVED`，无阻断问题；验证通过 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/app/app/settings/settings-model.test.mjs`、`npm.cmd run test:auth`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/layout/mobile-nav-model.test.mjs`、`node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/layout/app-sidebar-nav.test.mjs`、`npm.cmd run lint`、`npm.cmd run build`。 |
 | Phase 10 | 已审核通过 | 大节点审核结论 `PHASE10_APPROVED`；Task 10-01 至 Task 10-04 已完成；验证通过 `npm.cmd run lint`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:tag-input`、`npm.cmd run test:markdown-preview`、多个 `node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ...` model/helper tests、`npm.cmd run build`；必须修改：无；允许进入 Phase 11 Task 11-01。 |
-| Phase 11 Task 11-01 | 阻断 | 初始自测记录 commit `adca12f`；Spec review 结论 `SPEC_CHANGES_REQUESTED`；补测 worker commit `1cf5f24`，状态 `BLOCKED`。已完成非破坏验证：`.env.local` 变量名存在但未读取 secret、本地 dev server 可启动、`/login` HTTP 200、未登录 `/app` HTTP 307、`npm.cmd run lint` 通过、`npm.cmd run build` 通过。未验证核心项：真实登录成功、退出登录、已登录态 CRUD / 收藏 / 归档 / 标签 / 筛选、移动端已登录布局、多设备刷新同步、Supabase RLS 运行时用户隔离。阻断原因：缺少两个测试账号或已登录会话，未确认当前 Supabase / `DATABASE_URL` 是否开发或测试环境，未确认可创建并清理测试数据，缺少 RLS 运行时验证方式。 |
+| Phase 11 Task 11-01 | 已审核通过 | V0.1 功能自测完成。自动化验证通过：`npm.cmd run lint`、`npm.cmd run build`、`npm.cmd run test:auth`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-item-delete`、`npm.cmd run test:knowledge-item-favorite`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:markdown-preview`、`npm.cmd run test:tag-input`。用户于 2026-04-29 确认真实环境手测均通过：真实登录成功、退出登录、已登录态 CRUD / 收藏 / 归档 / 标签 / 筛选、移动端已登录布局、多设备刷新同步、Supabase RLS 运行时用户隔离。V0.1 收口完成。 |
 
 ## 未决问题 / 风险
 
@@ -108,8 +110,8 @@
 - `src/lib/knowledge/inbox-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - `src/lib/knowledge/favorites-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
 - `src/lib/knowledge/archive-page.test.mjs` 暂未接入 `package.json` scripts，后续可补统一测试入口。
-- 移动端已登录页面和真实 iPhone 视口手测可在 Phase 11 Task 11-01 有测试账号 / 登录会话时补齐；当前浏览器级验证仅覆盖 `/login` 和未登录 `/app` 重定向后的移动端横向溢出检查。
-- Phase 11 Task 11-01 当前阻断所需最小输入：两个临时测试账号或等价已登录会话、确认当前 Supabase / `DATABASE_URL` 对应开发或测试环境、确认可创建并清理测试知识条目 / 标签 / 关联数据、提供 Supabase RLS 运行时验证方式。
+- 移动端已登录页面和真实 iPhone 视口手测已由用户在 Phase 11 真实环境手测中确认通过。
+- Phase 11 Task 11-01 阻断项已解除；真实账号端到端流程、多设备刷新同步和 Supabase RLS 运行时用户隔离已由用户确认通过。
 - MobileNav 后续可补 `aria-controls`、Esc 关闭和 focus trap，进一步完善抽屉可访问性。
 - 后续筛选复杂后可加强 query builder 测试。
 - 当前没有独立 `typecheck` script，build 已覆盖 Next/TypeScript 集成检查。
