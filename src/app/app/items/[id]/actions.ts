@@ -21,8 +21,7 @@ import {
   buildKnowledgeItemDraftRevalidationPaths,
 } from "@/lib/knowledge/knowledge-item-draft";
 import {
-  buildKnowledgeItemSummaryPayload,
-  buildKnowledgeItemSummaryRevalidationPaths,
+  runApplyKnowledgeItemSummary,
 } from "@/lib/knowledge/knowledge-item-summary";
 
 const DELETE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "删除失败，请稍后重试。";
@@ -32,12 +31,6 @@ const UPDATE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "保存失败，请稍后重试。"
 const UPDATE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE =
   "没有找到这条知识，或你没有访问权限。";
 const UPDATE_KNOWLEDGE_ITEM_SUCCESS_MESSAGE = "已保存。";
-const APPLY_KNOWLEDGE_ITEM_SUMMARY_FAILED_MESSAGE =
-  "应用摘要失败，请稍后重试。";
-const APPLY_KNOWLEDGE_ITEM_SUMMARY_EMPTY_MESSAGE = "摘要不能为空。";
-const APPLY_KNOWLEDGE_ITEM_SUMMARY_NOT_FOUND_MESSAGE =
-  "没有找到这条知识，或你没有访问权限。";
-const APPLY_KNOWLEDGE_ITEM_SUMMARY_SUCCESS_MESSAGE = "已应用 AI 摘要。";
 const FAVORITE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "收藏操作失败，请稍后重试。";
 const FAVORITE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE =
   "没有找到这条知识，或你没有访问权限。";
@@ -61,43 +54,12 @@ export async function applyKnowledgeItemSummaryAction(
   itemId: string,
   summary: string,
 ): Promise<{ errorMessage: string; successMessage: string }> {
-  try {
-    const user = await requireUser();
-    const payload = buildKnowledgeItemSummaryPayload(summary);
-
-    if (!payload.ok) {
-      return {
-        errorMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_EMPTY_MESSAGE,
-        successMessage: "",
-      };
-    }
-
-    const updatedItem = await updateKnowledgeItem(user.id, itemId, payload.value);
-
-    if (!updatedItem) {
-      return {
-        errorMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_NOT_FOUND_MESSAGE,
-        successMessage: "",
-      };
-    }
-  } catch (error) {
-    return {
-      errorMessage:
-        error instanceof Error && error.message === AUTH_REQUIRED_MESSAGE
-          ? AUTH_REQUIRED_MESSAGE
-          : APPLY_KNOWLEDGE_ITEM_SUMMARY_FAILED_MESSAGE,
-      successMessage: "",
-    };
-  }
-
-  buildKnowledgeItemSummaryRevalidationPaths(itemId).forEach((path) => {
-    revalidatePath(path);
+  return runApplyKnowledgeItemSummary(itemId, summary, {
+    authRequiredMessage: AUTH_REQUIRED_MESSAGE,
+    requireUser,
+    updateKnowledgeItem,
+    revalidatePath,
   });
-
-  return {
-    errorMessage: "",
-    successMessage: APPLY_KNOWLEDGE_ITEM_SUMMARY_SUCCESS_MESSAGE,
-  };
 }
 
 export async function updateKnowledgeItemAction(
