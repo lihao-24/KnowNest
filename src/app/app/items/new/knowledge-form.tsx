@@ -7,6 +7,7 @@ import {
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "@/constants/knowledge";
+import { AIAssistantPanel } from "@/components/ai/ai-assistant-panel";
 import { MarkdownEditPreview } from "@/components/markdown/markdown-edit-preview";
 import { TagInput } from "@/components/tags/tag-input";
 import type { Category } from "@/types/knowledge";
@@ -25,7 +26,9 @@ export function KnowledgeForm({ categories }: { categories: Category[] }) {
     createKnowledgeItemAction,
     initialCreateKnowledgeItemActionState,
   );
+  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [tagNames, setTagNames] = useState<string[]>([]);
 
   return (
@@ -46,8 +49,10 @@ export function KnowledgeForm({ categories }: { categories: Category[] }) {
           disabled={isPending}
           id="title"
           name="title"
+          onChange={(event) => setTitle(event.target.value)}
           placeholder="输入标题"
           type="text"
+          value={title}
         />
       </div>
 
@@ -146,10 +151,11 @@ export function KnowledgeForm({ categories }: { categories: Category[] }) {
           </label>
           <select
             className={selectClassName}
-            defaultValue=""
             disabled={isPending}
             id="categoryId"
             name="categoryId"
+            onChange={(event) => setCategoryId(event.target.value)}
+            value={categoryId}
           >
             <option value="">未分类</option>
             {categories.map((category) => (
@@ -183,6 +189,24 @@ export function KnowledgeForm({ categories }: { categories: Category[] }) {
         disabled={isPending}
         onChange={setTagNames}
         value={tagNames}
+      />
+
+      <AIAssistantPanel
+        categories={categories}
+        content={content}
+        currentTagNames={tagNames}
+        onAppendContent={(nextContent) =>
+          setContent((currentContent) =>
+            [currentContent.trim(), nextContent.trim()]
+              .filter(Boolean)
+              .join("\n\n"),
+          )
+        }
+        onApplyCategory={(nextCategoryId) => setCategoryId(nextCategoryId ?? "")}
+        onApplyTags={setTagNames}
+        onApplyTitle={setTitle}
+        onReplaceContent={setContent}
+        title={title}
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

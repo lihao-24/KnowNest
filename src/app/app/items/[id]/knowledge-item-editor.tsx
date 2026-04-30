@@ -7,6 +7,7 @@ import {
   KNOWLEDGE_STATUSES,
   KNOWLEDGE_TYPES,
 } from "@/constants/knowledge";
+import { AIAssistantPanel } from "@/components/ai/ai-assistant-panel";
 import { MarkdownEditPreview } from "@/components/markdown/markdown-edit-preview";
 import { TagInput } from "@/components/tags/tag-input";
 import {
@@ -80,7 +81,9 @@ export function KnowledgeItemEditor({
   const [confirmationState, setConfirmationState] = useState(
     initialDeleteKnowledgeItemConfirmationState,
   );
+  const [title, setTitle] = useState(item.title);
   const [content, setContent] = useState(item.content);
+  const [categoryId, setCategoryId] = useState(item.category_id ?? "");
   const [tagNames, setTagNames] = useState(initialTagNames);
   const isEditingDisabled = isUpdating || isDeleting;
   const isMutationDisabled = isUpdating || isDeleting || isTogglingFavorite;
@@ -145,12 +148,13 @@ export function KnowledgeItemEditor({
           </label>
           <input
             className="h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-sm"
-            defaultValue={item.title}
             disabled={isEditingDisabled}
             id="title"
             name="title"
+            onChange={(event) => setTitle(event.target.value)}
             placeholder="输入标题"
             type="text"
+            value={title}
           />
         </div>
 
@@ -249,10 +253,11 @@ export function KnowledgeItemEditor({
             </label>
             <select
               className={selectClassName}
-              defaultValue={item.category_id ?? ""}
               disabled={isEditingDisabled}
               id="categoryId"
               name="categoryId"
+              onChange={(event) => setCategoryId(event.target.value)}
+              value={categoryId}
             >
               <option value="">未分类</option>
               {categories.map((category) => (
@@ -286,6 +291,27 @@ export function KnowledgeItemEditor({
           disabled={isEditingDisabled}
           onChange={setTagNames}
           value={tagNames}
+        />
+
+        <AIAssistantPanel
+          categories={categories}
+          content={content}
+          currentTagNames={tagNames}
+          knowledgeItemId={item.id}
+          onAppendContent={(nextContent) =>
+            setContent((currentContent) =>
+              [currentContent.trim(), nextContent.trim()]
+                .filter(Boolean)
+                .join("\n\n"),
+            )
+          }
+          onApplyCategory={(nextCategoryId) =>
+            setCategoryId(nextCategoryId ?? "")
+          }
+          onApplyTags={setTagNames}
+          onApplyTitle={setTitle}
+          onReplaceContent={setContent}
+          title={title}
         />
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
