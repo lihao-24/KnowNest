@@ -28,12 +28,12 @@ type AIAssistantPanelProps = {
   content?: string;
   currentTagNames?: string[];
   knowledgeItemId?: string;
-  onAppendContent?: (content: string) => void;
+  onAppendContent?: (content: string) => void | Promise<ApplyAIActionResult>;
   onApplyCategory?: (categoryId: string) => void | Promise<ApplyAIActionResult>;
   onApplySummary?: (summary: string) => Promise<ApplySummaryActionResult>;
   onApplyTags?: (tags: string[]) => void | Promise<ApplyAIActionResult>;
-  onApplyTitle?: (title: string) => void;
-  onReplaceContent?: (content: string) => void;
+  onApplyTitle?: (title: string) => void | Promise<ApplyAIActionResult>;
+  onReplaceContent?: (content: string) => void | Promise<ApplyAIActionResult>;
   title?: string;
 };
 
@@ -105,6 +105,8 @@ export function AIAssistantPanel({
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [activeAction, setActiveAction] = useState<AIAction | null>(null);
+  const [contentReplacementToConfirm, setContentReplacementToConfirm] =
+    useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isApplying, startApplyTransition] = useTransition();
   const isBusy = isGenerating || isApplying;
@@ -128,6 +130,7 @@ export function AIAssistantPanel({
     setIsGenerating(true);
     setActiveAction(action);
     setPreview(null);
+    setContentReplacementToConfirm("");
     setErrorMessage(startedFeedback.errorMessage);
     setSuccessMessage(startedFeedback.successMessage);
 
@@ -261,28 +264,90 @@ export function AIAssistantPanel({
   }
 
   function handleApplyTitle(nextTitle: string) {
-    onApplyTitle?.(nextTitle);
-    setPreview(null);
     setErrorMessage("");
-    setSuccessMessage("已应用标题建议。");
+    setSuccessMessage("");
+    startApplyTransition(async () => {
+      const result = await runApplyCallback(
+        () => onApplyTitle?.(nextTitle),
+        "已应用标题建议。",
+        "应用标题失败，请稍后重试。",
+      );
+
+      if (result.errorMessage) {
+        setErrorMessage(result.errorMessage);
+        return;
+      }
+
+      setPreview(null);
+      setContentReplacementToConfirm("");
+      setSuccessMessage(result.successMessage);
+
+      if (result.shouldRefresh) {
+        router.refresh();
+      }
+    });
   }
 
   function handleAppendContent(nextContent: string) {
-    onAppendContent?.(nextContent);
-    setPreview(null);
     setErrorMessage("");
-    setSuccessMessage("已追加整理后的正文。");
+    setSuccessMessage("");
+    startApplyTransition(async () => {
+      const result = await runApplyCallback(
+        () => onAppendContent?.(nextContent),
+        "已追加整理后的正文。",
+        "追加正文失败，请稍后重试。",
+      );
+
+      if (result.errorMessage) {
+        setErrorMessage(result.errorMessage);
+        return;
+      }
+
+      setPreview(null);
+      setContentReplacementToConfirm("");
+      setSuccessMessage(result.successMessage);
+
+      if (result.shouldRefresh) {
+        router.refresh();
+      }
+    });
   }
 
   function handleReplaceContent(nextContent: string) {
-    onReplaceContent?.(nextContent);
-    setPreview(null);
+    if (contentReplacementToConfirm !== nextContent) {
+      setContentReplacementToConfirm(nextContent);
+      setErrorMessage("");
+      setSuccessMessage("再次点击确认替换正文。");
+      return;
+    }
+
     setErrorMessage("");
-    setSuccessMessage("已替换为整理后的正文。");
+    setSuccessMessage("");
+    startApplyTransition(async () => {
+      const result = await runApplyCallback(
+        () => onReplaceContent?.(nextContent),
+        "已替换为整理后的正文。",
+        "替换正文失败，请稍后重试。",
+      );
+
+      if (result.errorMessage) {
+        setErrorMessage(result.errorMessage);
+        return;
+      }
+
+      setPreview(null);
+      setContentReplacementToConfirm("");
+      setSuccessMessage(result.successMessage);
+
+      if (result.shouldRefresh) {
+        router.refresh();
+      }
+    });
   }
 
   function handleCancelPreview() {
     setPreview(null);
+    setContentReplacementToConfirm("");
     setErrorMessage("");
   }
 
@@ -297,6 +362,7 @@ export function AIAssistantPanel({
         onApplyTags: onApplyTags ? handleApplyTags : undefined,
         onApplyTitle: onApplyTitle ? handleApplyTitle : undefined,
         onReplaceContent: handleReplaceContent,
+        replaceConfirmationContent: contentReplacementToConfirm,
       })
     : [];
 
@@ -527,6 +593,7 @@ function buildPreviewActions(
     onApplyTags?: (tags: string[]) => void;
     onApplyTitle?: (title: string) => void;
     onReplaceContent: (content: string) => void;
+    replaceConfirmationContent: string;
   },
 ): PreviewAction[] {
   switch (preview.action) {
@@ -565,7 +632,10 @@ function buildPreviewActions(
           onClick: () => handlers.onAppendContent(preview.content),
         },
         {
-          label: "替换正文",
+          label:
+            handlers.replaceConfirmationContent === preview.content
+              ? "确认替换正文"
+              : "替换正文",
           onClick: () => handlers.onReplaceContent(preview.content),
         },
       ];

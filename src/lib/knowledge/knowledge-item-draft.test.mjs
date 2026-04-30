@@ -63,6 +63,12 @@ assert.ok(createActionSource.includes('redirect("/app?notice=created")'));
 assert.ok(createFormSource.includes('role={state.errorMessage ? "alert" : "status"}'));
 assert.ok(updateActionSource.includes("updateItemTags"));
 assert.ok(updateActionSource.includes("validation.value.tagNames"));
+assert.ok(updateActionSource.includes("applyKnowledgeItemTitleAction"));
+assert.ok(updateActionSource.includes("appendKnowledgeItemOrganizedContentAction"));
+assert.ok(updateActionSource.includes("replaceKnowledgeItemContentAction"));
+assert.ok(updateActionSource.includes("title.trim()"));
+assert.ok(updateActionSource.includes("content.trim()"));
+assert.ok(updateActionSource.includes("## AI 整理结果"));
 assert.ok(
   updateEditorSource.includes(
     'role={updateState.errorMessage ? "alert" : "status"}',

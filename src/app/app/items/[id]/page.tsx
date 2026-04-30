@@ -8,9 +8,12 @@ import { getKnowledgeItemById } from "@/lib/db/knowledge-items";
 import { listTagsByItemId } from "@/lib/db/tags";
 
 import {
+  appendKnowledgeItemOrganizedContentAction,
   applyKnowledgeItemCategoryAction,
   applyKnowledgeItemSummaryAction,
   applyKnowledgeItemTagsAction,
+  applyKnowledgeItemTitleAction,
+  replaceKnowledgeItemContentAction,
 } from "./actions";
 
 type KnowledgeItemPageProps = {
@@ -39,6 +42,10 @@ export default async function KnowledgeItemPage({
   const applySummary = applyKnowledgeItemSummaryAction.bind(null, item.id);
   const applyTags = applyKnowledgeItemTagsAction.bind(null, item.id);
   const applyCategory = applyKnowledgeItemCategoryAction.bind(null, item.id);
+  const applyTitle = applyKnowledgeItemTitleAction.bind(null, item.id);
+  const appendOrganizedContent =
+    appendKnowledgeItemOrganizedContentAction.bind(null, item.id);
+  const replaceContent = replaceKnowledgeItemContentAction.bind(null, item.id);
 
   return (
     <section className="min-w-0 w-full max-w-4xl">
@@ -98,9 +105,12 @@ export default async function KnowledgeItemPage({
         content={item.content}
         currentTagNames={tags.map((tag) => tag.name)}
         knowledgeItemId={item.id}
+        onAppendContent={appendOrganizedContent}
         onApplyCategory={applyCategory}
         onApplySummary={applySummary}
         onApplyTags={applyTags}
+        onApplyTitle={applyTitle}
+        onReplaceContent={replaceContent}
         title={item.title}
       />
 

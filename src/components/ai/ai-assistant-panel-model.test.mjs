@@ -74,6 +74,7 @@ assert.match(
   /import \{ AITagSuggestions \} from "\.\/ai-tag-suggestions";/,
 );
 assert.match(assistantPanelSource, /<AITagSuggestions/);
+assert.match(assistantPanelSource, /确认替换正文/);
 assert.doesNotMatch(assistantPanelSource, /\bbaseUrl\s*:/);
 assert.doesNotMatch(assistantPanelSource, /\bapiKey\s*:/);
 assert.doesNotMatch(assistantPanelSource, /\bapiKeyEnv\s*:/);
@@ -111,14 +112,36 @@ assert.match(detailPageSource, /categories=\{categories\}/);
 assert.match(detailPageSource, /currentTagNames=\{tags\.map\(\(tag\) => tag\.name\)\}/);
 assert.match(detailPageSource, /onApplyTags=\{applyTags\}/);
 assert.match(detailPageSource, /onApplyCategory=\{applyCategory\}/);
+assert.match(detailPageSource, /applyKnowledgeItemTitleAction\.bind\(null, item\.id\)/);
+assert.match(
+  detailPageSource,
+  /appendKnowledgeItemOrganizedContentAction\.bind\(null, item\.id\)/,
+);
+assert.match(
+  detailPageSource,
+  /replaceKnowledgeItemContentAction\.bind\(null, item\.id\)/,
+);
+assert.match(detailPageSource, /onApplyTitle=\{applyTitle\}/);
+assert.match(detailPageSource, /onAppendContent=\{appendOrganizedContent\}/);
+assert.match(detailPageSource, /onReplaceContent=\{replaceContent\}/);
 
 assert.match(detailActionsSource, /export async function applyKnowledgeItemTagsAction/);
 assert.match(
   detailActionsSource,
   /export async function applyKnowledgeItemCategoryAction/,
 );
+assert.match(detailActionsSource, /export async function applyKnowledgeItemTitleAction/);
+assert.match(
+  detailActionsSource,
+  /export async function appendKnowledgeItemOrganizedContentAction/,
+);
+assert.match(
+  detailActionsSource,
+  /export async function replaceKnowledgeItemContentAction/,
+);
 assert.match(detailActionsSource, /listTagsByItemId/);
 assert.match(detailActionsSource, /getCategoryById/);
+assert.match(detailActionsSource, /## AI 整理结果/);
 
 assert.deepEqual(getGenerateSummaryStartedFeedback(), {
   summaryPreview: "",

@@ -47,6 +47,19 @@ const APPLY_KNOWLEDGE_ITEM_CATEGORY_FAILED_MESSAGE =
 const APPLY_KNOWLEDGE_ITEM_CATEGORY_NOT_FOUND_MESSAGE =
   "没有找到该分类，或你没有访问权限。";
 const APPLY_KNOWLEDGE_ITEM_CATEGORY_SUCCESS_MESSAGE = "已应用分类建议。";
+const APPLY_KNOWLEDGE_ITEM_TITLE_EMPTY_MESSAGE = "标题不能为空。";
+const APPLY_KNOWLEDGE_ITEM_TITLE_FAILED_MESSAGE =
+  "应用标题失败，请稍后重试。";
+const APPLY_KNOWLEDGE_ITEM_TITLE_SUCCESS_MESSAGE = "已应用标题建议。";
+const APPLY_KNOWLEDGE_ITEM_CONTENT_EMPTY_MESSAGE = "正文不能为空。";
+const APPEND_KNOWLEDGE_ITEM_CONTENT_FAILED_MESSAGE =
+  "追加正文失败，请稍后重试。";
+const APPEND_KNOWLEDGE_ITEM_CONTENT_SUCCESS_MESSAGE =
+  "已追加整理后的正文。";
+const REPLACE_KNOWLEDGE_ITEM_CONTENT_FAILED_MESSAGE =
+  "替换正文失败，请稍后重试。";
+const REPLACE_KNOWLEDGE_ITEM_CONTENT_SUCCESS_MESSAGE =
+  "已替换为整理后的正文。";
 
 export type DeleteKnowledgeItemActionState = {
   errorMessage: string;
@@ -169,6 +182,154 @@ export async function applyKnowledgeItemCategoryAction(
   return {
     errorMessage: "",
     successMessage: APPLY_KNOWLEDGE_ITEM_CATEGORY_SUCCESS_MESSAGE,
+  };
+}
+
+export async function applyKnowledgeItemTitleAction(
+  itemId: string,
+  title: string,
+): Promise<{ errorMessage: string; successMessage: string }> {
+  const trimmedTitle = title.trim();
+
+  if (!trimmedTitle) {
+    return {
+      errorMessage: APPLY_KNOWLEDGE_ITEM_TITLE_EMPTY_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  try {
+    const user = await requireUser();
+    const updatedItem = await updateKnowledgeItem(user.id, itemId, {
+      title: trimmedTitle,
+      ai_updated_at: new Date().toISOString(),
+    });
+
+    if (!updatedItem) {
+      return {
+        errorMessage: UPDATE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE,
+        successMessage: "",
+      };
+    }
+  } catch (error) {
+    return {
+      errorMessage:
+        error instanceof Error && error.message === AUTH_REQUIRED_MESSAGE
+          ? AUTH_REQUIRED_MESSAGE
+          : APPLY_KNOWLEDGE_ITEM_TITLE_FAILED_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  buildKnowledgeItemDraftRevalidationPaths(itemId).forEach((path) => {
+    revalidatePath(path);
+  });
+
+  return {
+    errorMessage: "",
+    successMessage: APPLY_KNOWLEDGE_ITEM_TITLE_SUCCESS_MESSAGE,
+  };
+}
+
+export async function appendKnowledgeItemOrganizedContentAction(
+  itemId: string,
+  content: string,
+): Promise<{ errorMessage: string; successMessage: string }> {
+  const trimmedContent = content.trim();
+
+  if (!trimmedContent) {
+    return {
+      errorMessage: APPLY_KNOWLEDGE_ITEM_CONTENT_EMPTY_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  try {
+    const user = await requireUser();
+    const item = await getKnowledgeItemById(user.id, itemId);
+
+    if (!item) {
+      return {
+        errorMessage: UPDATE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE,
+        successMessage: "",
+      };
+    }
+
+    const appendBlock = `\n\n---\n\n## AI 整理结果\n\n${trimmedContent}`;
+    const updatedItem = await updateKnowledgeItem(user.id, itemId, {
+      content: `${item.content.trimEnd()}${appendBlock}`,
+      ai_updated_at: new Date().toISOString(),
+    });
+
+    if (!updatedItem) {
+      return {
+        errorMessage: UPDATE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE,
+        successMessage: "",
+      };
+    }
+  } catch (error) {
+    return {
+      errorMessage:
+        error instanceof Error && error.message === AUTH_REQUIRED_MESSAGE
+          ? AUTH_REQUIRED_MESSAGE
+          : APPEND_KNOWLEDGE_ITEM_CONTENT_FAILED_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  buildKnowledgeItemDraftRevalidationPaths(itemId).forEach((path) => {
+    revalidatePath(path);
+  });
+
+  return {
+    errorMessage: "",
+    successMessage: APPEND_KNOWLEDGE_ITEM_CONTENT_SUCCESS_MESSAGE,
+  };
+}
+
+export async function replaceKnowledgeItemContentAction(
+  itemId: string,
+  content: string,
+): Promise<{ errorMessage: string; successMessage: string }> {
+  const trimmedContent = content.trim();
+
+  if (!trimmedContent) {
+    return {
+      errorMessage: APPLY_KNOWLEDGE_ITEM_CONTENT_EMPTY_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  try {
+    const user = await requireUser();
+    const updatedItem = await updateKnowledgeItem(user.id, itemId, {
+      content: trimmedContent,
+      ai_updated_at: new Date().toISOString(),
+    });
+
+    if (!updatedItem) {
+      return {
+        errorMessage: UPDATE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE,
+        successMessage: "",
+      };
+    }
+  } catch (error) {
+    return {
+      errorMessage:
+        error instanceof Error && error.message === AUTH_REQUIRED_MESSAGE
+          ? AUTH_REQUIRED_MESSAGE
+          : REPLACE_KNOWLEDGE_ITEM_CONTENT_FAILED_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  buildKnowledgeItemDraftRevalidationPaths(itemId).forEach((path) => {
+    revalidatePath(path);
+  });
+
+  return {
+    errorMessage: "",
+    successMessage: REPLACE_KNOWLEDGE_ITEM_CONTENT_SUCCESS_MESSAGE,
   };
 }
 
