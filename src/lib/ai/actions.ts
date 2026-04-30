@@ -40,6 +40,7 @@ export function parseAIGenerateRequest(value: unknown): AIGenerateRequest {
   const knowledgeItemId = readOptionalString(value.knowledgeItemId);
   const title = readOptionalString(value.title);
   const content = readOptionalString(value.content);
+  const modelId = readOptionalString(value.modelId);
 
   if (!knowledgeItemId && !content) {
     throw createAIRequestError(
@@ -54,6 +55,7 @@ export function parseAIGenerateRequest(value: unknown): AIGenerateRequest {
     ...(knowledgeItemId ? { knowledgeItemId } : {}),
     ...(title ? { title } : {}),
     ...(content ? { content } : {}),
+    ...(modelId ? { modelId } : {}),
   };
 }
 

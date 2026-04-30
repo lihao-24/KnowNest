@@ -11,11 +11,37 @@ assert.deepEqual(
     knowledgeItemId: " item-1 ",
     title: " Title ",
     content: " Content ",
+    modelId: " xiaomi-mimo-token-plan-pro ",
   }),
   {
     action: "generate_summary",
     knowledgeItemId: "item-1",
     title: "Title",
+    content: "Content",
+    modelId: "xiaomi-mimo-token-plan-pro",
+  },
+);
+
+assert.deepEqual(
+  parseAIGenerateRequest({
+    action: "generate_summary",
+    content: "Content",
+    modelId: 123,
+  }),
+  {
+    action: "generate_summary",
+    content: "Content",
+  },
+);
+
+assert.deepEqual(
+  parseAIGenerateRequest({
+    action: "generate_summary",
+    content: "Content",
+    modelId: "   ",
+  }),
+  {
+    action: "generate_summary",
     content: "Content",
   },
 );

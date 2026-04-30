@@ -1,8 +1,12 @@
 import { AUTH_REQUIRED_MESSAGE, requireUser } from "@/lib/auth/server";
 import { buildAIGenerateContext, parseAIGenerateRequest } from "@/lib/ai/actions";
-import { getModelForAction, readAIConfig } from "@/lib/ai/config";
-import { createDeepSeekProvider } from "@/lib/ai/deepseek";
+import {
+  readAIConfig,
+  readAIModelRegistry,
+  resolveAIModelConfig,
+} from "@/lib/ai/config";
 import { toAIErrorResponse } from "@/lib/ai/errors";
+import { createAIProvider } from "@/lib/ai/provider-factory";
 import { validateAIResult } from "@/lib/ai/schemas";
 import {
   assertAIUsageAllowed,
@@ -41,9 +45,14 @@ export async function POST(request: Request) {
     );
     assertAIUsageAllowed(await countTodayAIUsage(user.id), config.dailyLimit);
 
-    model = getModelForAction(context.action, config);
-    const provider = createDeepSeekProvider(config);
-    const result = await provider.generate({ ...context, model });
+    const registry = readAIModelRegistry();
+    const resolvedModel = resolveAIModelConfig(aiRequest.modelId, registry);
+    model = `${resolvedModel.id}:${resolvedModel.model}`;
+    const provider = createAIProvider(resolvedModel);
+    const result = await provider.generate({
+      ...context,
+      model: resolvedModel.model,
+    });
     const validated = validateAIResult(context.action, result);
 
     await createAIUsageLog({
