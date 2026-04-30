@@ -3,11 +3,15 @@ import Link from "next/link";
 import { AIAssistantPanel } from "@/components/ai/ai-assistant-panel";
 import { MarkdownPreview } from "@/components/markdown/markdown-preview";
 import { requireUser } from "@/lib/auth/server";
-import { getCategoryById } from "@/lib/db/categories";
+import { getCategoryById, listCategories } from "@/lib/db/categories";
 import { getKnowledgeItemById } from "@/lib/db/knowledge-items";
 import { listTagsByItemId } from "@/lib/db/tags";
 
-import { applyKnowledgeItemSummaryAction } from "./actions";
+import {
+  applyKnowledgeItemCategoryAction,
+  applyKnowledgeItemSummaryAction,
+  applyKnowledgeItemTagsAction,
+} from "./actions";
 
 type KnowledgeItemPageProps = {
   params: Promise<{
@@ -30,8 +34,11 @@ export default async function KnowledgeItemPage({
   const category = item.category_id
     ? await getCategoryById(user.id, item.category_id)
     : null;
+  const categories = await listCategories(user.id);
   const summary = item.summary?.trim();
   const applySummary = applyKnowledgeItemSummaryAction.bind(null, item.id);
+  const applyTags = applyKnowledgeItemTagsAction.bind(null, item.id);
+  const applyCategory = applyKnowledgeItemCategoryAction.bind(null, item.id);
 
   return (
     <section className="min-w-0 w-full max-w-4xl">
@@ -87,8 +94,14 @@ export default async function KnowledgeItemPage({
       </div>
 
       <AIAssistantPanel
+        categories={categories}
+        content={item.content}
+        currentTagNames={tags.map((tag) => tag.name)}
         knowledgeItemId={item.id}
+        onApplyCategory={applyCategory}
         onApplySummary={applySummary}
+        onApplyTags={applyTags}
+        title={item.title}
       />
 
       <section className="mb-5 rounded-md border border-slate-200 bg-white p-4">

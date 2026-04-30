@@ -30,12 +30,24 @@ const assistantPanelSource = readFileSync(
   new URL("./ai-assistant-panel.tsx", import.meta.url),
   "utf8",
 );
+const tagSuggestionsSource = readFileSync(
+  new URL("./ai-tag-suggestions.tsx", import.meta.url),
+  "utf8",
+);
 const editorSource = readFileSync(
   new URL("../../app/app/items/[id]/knowledge-item-editor.tsx", import.meta.url),
   "utf8",
 );
 const newFormSource = readFileSync(
   new URL("../../app/app/items/new/knowledge-form.tsx", import.meta.url),
+  "utf8",
+);
+const detailPageSource = readFileSync(
+  new URL("../../app/app/items/[id]/page.tsx", import.meta.url),
+  "utf8",
+);
+const detailActionsSource = readFileSync(
+  new URL("../../app/app/items/[id]/actions.ts", import.meta.url),
   "utf8",
 );
 
@@ -57,10 +69,20 @@ assert.match(assistantPanelSource, /action: "suggest_tags"/);
 assert.match(assistantPanelSource, /action: "suggest_category"/);
 assert.match(assistantPanelSource, /action: "improve_title"/);
 assert.match(assistantPanelSource, /action: "organize_content"/);
+assert.match(
+  assistantPanelSource,
+  /import \{ AITagSuggestions \} from "\.\/ai-tag-suggestions";/,
+);
+assert.match(assistantPanelSource, /<AITagSuggestions/);
 assert.doesNotMatch(assistantPanelSource, /\bbaseUrl\s*:/);
 assert.doesNotMatch(assistantPanelSource, /\bapiKey\s*:/);
 assert.doesNotMatch(assistantPanelSource, /\bapiKeyEnv\s*:/);
 assert.doesNotMatch(assistantPanelSource, /\bmodel\s*:/);
+
+assert.match(tagSuggestionsSource, /useState\(\(\) => tags\)/);
+assert.match(tagSuggestionsSource, /useEffect\(\(\) => \{\s*setSelectedTags\(tags\);/);
+assert.match(tagSuggestionsSource, /type="checkbox"/);
+assert.match(tagSuggestionsSource, /添加到知识/);
 
 assert.match(editorSource, /<AIAssistantPanel/);
 assert.match(editorSource, /value=\{title\}/);
@@ -78,6 +100,25 @@ assert.match(newFormSource, /value=\{title\}/);
 assert.match(newFormSource, /value=\{categoryId\}/);
 assert.doesNotMatch(newFormSource, /knowledgeItemId=/);
 assert.doesNotMatch(newFormSource, /onApplySummary=/);
+
+assert.match(detailPageSource, /listCategories\(user\.id\)/);
+assert.match(detailPageSource, /applyKnowledgeItemTagsAction\.bind\(null, item\.id\)/);
+assert.match(
+  detailPageSource,
+  /applyKnowledgeItemCategoryAction\.bind\(null, item\.id\)/,
+);
+assert.match(detailPageSource, /categories=\{categories\}/);
+assert.match(detailPageSource, /currentTagNames=\{tags\.map\(\(tag\) => tag\.name\)\}/);
+assert.match(detailPageSource, /onApplyTags=\{applyTags\}/);
+assert.match(detailPageSource, /onApplyCategory=\{applyCategory\}/);
+
+assert.match(detailActionsSource, /export async function applyKnowledgeItemTagsAction/);
+assert.match(
+  detailActionsSource,
+  /export async function applyKnowledgeItemCategoryAction/,
+);
+assert.match(detailActionsSource, /listTagsByItemId/);
+assert.match(detailActionsSource, /getCategoryById/);
 
 assert.deepEqual(getGenerateSummaryStartedFeedback(), {
   summaryPreview: "",

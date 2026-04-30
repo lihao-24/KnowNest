@@ -11,8 +11,14 @@ import {
   getGenerateSummaryStartedFeedback,
 } from "./ai-assistant-panel-model";
 import { AIResultPreview } from "./ai-result-preview";
+import { AITagSuggestions } from "./ai-tag-suggestions";
 
 type ApplySummaryActionResult = {
+  errorMessage: string;
+  successMessage: string;
+};
+
+type ApplyAIActionResult = {
   errorMessage: string;
   successMessage: string;
 };
@@ -23,9 +29,9 @@ type AIAssistantPanelProps = {
   currentTagNames?: string[];
   knowledgeItemId?: string;
   onAppendContent?: (content: string) => void;
-  onApplyCategory?: (categoryId: string | null) => void;
+  onApplyCategory?: (categoryId: string) => void | Promise<ApplyAIActionResult>;
   onApplySummary?: (summary: string) => Promise<ApplySummaryActionResult>;
-  onApplyTags?: (tags: string[]) => void;
+  onApplyTags?: (tags: string[]) => void | Promise<ApplyAIActionResult>;
   onApplyTitle?: (title: string) => void;
   onReplaceContent?: (content: string) => void;
   title?: string;
@@ -84,6 +90,7 @@ type AIActionResult =
 export function AIAssistantPanel({
   categories = [],
   content = "",
+  currentTagNames = [],
   knowledgeItemId,
   onAppendContent,
   onApplyCategory,
@@ -199,10 +206,27 @@ export function AIAssistantPanel({
   }
 
   function handleApplyTags(tags: string[]) {
-    onApplyTags?.(tags);
-    setPreview(null);
     setErrorMessage("");
-    setSuccessMessage("已应用标签建议。");
+    setSuccessMessage("");
+    startApplyTransition(async () => {
+      const result = await runApplyCallback(
+        () => onApplyTags?.(tags),
+        "已应用标签建议。",
+        "应用标签失败，请稍后重试。",
+      );
+
+      if (result.errorMessage) {
+        setErrorMessage(result.errorMessage);
+        return;
+      }
+
+      setPreview(null);
+      setSuccessMessage(result.successMessage);
+
+      if (result.shouldRefresh) {
+        router.refresh();
+      }
+    });
   }
 
   function handleApplyCategory(categoryName: string) {
@@ -213,10 +237,27 @@ export function AIAssistantPanel({
       return;
     }
 
-    onApplyCategory?.(matchedCategory.id);
-    setPreview(null);
     setErrorMessage("");
-    setSuccessMessage("已应用分类建议。");
+    setSuccessMessage("");
+    startApplyTransition(async () => {
+      const result = await runApplyCallback(
+        () => onApplyCategory?.(matchedCategory.id),
+        "已应用分类建议。",
+        "应用分类失败，请稍后重试。",
+      );
+
+      if (result.errorMessage) {
+        setErrorMessage(result.errorMessage);
+        return;
+      }
+
+      setPreview(null);
+      setSuccessMessage(result.successMessage);
+
+      if (result.shouldRefresh) {
+        router.refresh();
+      }
+    });
   }
 
   function handleApplyTitle(nextTitle: string) {
@@ -248,6 +289,7 @@ export function AIAssistantPanel({
   const previewActions = preview?.ok
     ? buildPreviewActions(preview, {
         categories,
+        currentTagNames,
         isApplying,
         onAppendContent: handleAppendContent,
         onApplyCategory: handleApplyCategory,
@@ -313,7 +355,13 @@ export function AIAssistantPanel({
             onCancel={handleCancelPreview}
             title={getPreviewTitle(preview)}
           >
-            {renderPreviewContent(preview, categories, Boolean(onApplySummary))}
+            {renderPreviewContent(preview, {
+              categories,
+              currentTagNames,
+              hasSummaryApply: Boolean(onApplySummary),
+              isApplying,
+              onApplyTags: handleApplyTags,
+            })}
           </AIResultPreview>
         </div>
       ) : null}
@@ -347,6 +395,36 @@ function buildActionButtons({
       ? [{ action: "organize_content" as const, label: "整理正文" }]
       : []),
   ];
+}
+
+async function runApplyCallback(
+  callback: () => void | ApplyAIActionResult | Promise<void | ApplyAIActionResult>,
+  successMessage: string,
+  fallbackErrorMessage: string,
+) {
+  try {
+    const result = await callback();
+
+    if (result && result.errorMessage) {
+      return {
+        errorMessage: result.errorMessage,
+        successMessage: "",
+        shouldRefresh: false,
+      };
+    }
+
+    return {
+      errorMessage: "",
+      successMessage: result?.successMessage || successMessage,
+      shouldRefresh: Boolean(result),
+    };
+  } catch {
+    return {
+      errorMessage: fallbackErrorMessage,
+      successMessage: "",
+      shouldRefresh: false,
+    };
+  }
 }
 
 function buildAIActionResult(
@@ -441,6 +519,7 @@ function buildPreviewActions(
   preview: Exclude<AIActionResult, { ok: false }>,
   handlers: {
     categories: Category[];
+    currentTagNames: string[];
     isApplying: boolean;
     onAppendContent: (content: string) => void;
     onApplyCategory: (category: string) => void;
@@ -461,14 +540,7 @@ function buildPreviewActions(
           ]
         : [];
     case "suggest_tags":
-      return handlers.onApplyTags
-        ? [
-            {
-              label: "应用标签",
-              onClick: () => handlers.onApplyTags?.(preview.tags),
-            },
-          ]
-        : [];
+      return [];
     case "suggest_category":
       return [
         {
@@ -517,15 +589,20 @@ function getPreviewTitle(preview: Exclude<AIActionResult, { ok: false }>) {
 
 function renderPreviewContent(
   preview: Exclude<AIActionResult, { ok: false }>,
-  categories: Category[],
-  hasSummaryApply: boolean,
+  options: {
+    categories: Category[];
+    currentTagNames: string[];
+    hasSummaryApply: boolean;
+    isApplying: boolean;
+    onApplyTags: (tags: string[]) => void;
+  },
 ) {
   switch (preview.action) {
     case "generate_summary":
       return (
         <>
           <p>{preview.summary}</p>
-          {!hasSummaryApply ? (
+          {!options.hasSummaryApply ? (
             <p className="mt-2 text-slate-500">
               当前页面仅预览摘要，不会写入表单。
             </p>
@@ -533,14 +610,23 @@ function renderPreviewContent(
         </>
       );
     case "suggest_tags":
-      return <p>{preview.tags.map((tagName) => `#${tagName}`).join("  ")}</p>;
+      return (
+        <AITagSuggestions
+          disabled={options.isApplying}
+          onApply={options.onApplyTags}
+          tags={preview.tags}
+        />
+      );
     case "suggest_category": {
-      const matchedCategory = findCategoryByName(categories, preview.category);
+      const matchedCategory = findCategoryByName(
+        options.categories,
+        preview.category,
+      );
 
       return (
         <>
-          <p>{preview.category}</p>
-          <p className="mt-2 text-slate-500">{preview.reason}</p>
+          <p>推荐分类：{preview.category}</p>
+          <p className="mt-2 text-slate-500">推荐原因：{preview.reason}</p>
           {!matchedCategory ? (
             <p className="mt-2 text-red-600">未找到同名分类，暂不能应用。</p>
           ) : null}

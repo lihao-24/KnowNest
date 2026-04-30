@@ -4,13 +4,17 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { AUTH_REQUIRED_MESSAGE, requireUser } from "@/lib/auth/server";
-import { resolveKnowledgeItemCategoryId } from "@/lib/db/categories";
+import {
+  getCategoryById,
+  resolveKnowledgeItemCategoryId,
+} from "@/lib/db/categories";
 import {
   deleteKnowledgeItem,
+  getKnowledgeItemById,
   toggleFavorite,
   updateKnowledgeItem,
 } from "@/lib/db/knowledge-items";
-import { updateItemTags } from "@/lib/db/tags";
+import { listTagsByItemId, updateItemTags } from "@/lib/db/tags";
 import { buildDeleteKnowledgeItemPayload } from "@/lib/knowledge/knowledge-item-delete";
 import {
   buildKnowledgeItemFavoritePayload,
@@ -34,6 +38,15 @@ const UPDATE_KNOWLEDGE_ITEM_SUCCESS_MESSAGE = "已保存。";
 const FAVORITE_KNOWLEDGE_ITEM_FAILED_MESSAGE = "收藏操作失败，请稍后重试。";
 const FAVORITE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE =
   "没有找到这条知识，或你没有访问权限。";
+const APPLY_KNOWLEDGE_ITEM_TAGS_FAILED_MESSAGE =
+  "应用标签失败，请稍后重试。";
+const APPLY_KNOWLEDGE_ITEM_TAGS_EMPTY_MESSAGE = "请选择至少一个标签。";
+const APPLY_KNOWLEDGE_ITEM_TAGS_SUCCESS_MESSAGE = "已添加标签建议。";
+const APPLY_KNOWLEDGE_ITEM_CATEGORY_FAILED_MESSAGE =
+  "应用分类失败，请稍后重试。";
+const APPLY_KNOWLEDGE_ITEM_CATEGORY_NOT_FOUND_MESSAGE =
+  "没有找到该分类，或你没有访问权限。";
+const APPLY_KNOWLEDGE_ITEM_CATEGORY_SUCCESS_MESSAGE = "已应用分类建议。";
 
 export type DeleteKnowledgeItemActionState = {
   errorMessage: string;
@@ -60,6 +73,103 @@ export async function applyKnowledgeItemSummaryAction(
     updateKnowledgeItem,
     revalidatePath,
   });
+}
+
+export async function applyKnowledgeItemTagsAction(
+  itemId: string,
+  selectedTagNames: string[],
+): Promise<{ errorMessage: string; successMessage: string }> {
+  const normalizedSelectedTagNames = selectedTagNames
+    .map((tagName) => tagName.trim())
+    .filter(Boolean);
+
+  if (normalizedSelectedTagNames.length === 0) {
+    return {
+      errorMessage: APPLY_KNOWLEDGE_ITEM_TAGS_EMPTY_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  try {
+    const user = await requireUser();
+    const item = await getKnowledgeItemById(user.id, itemId);
+
+    if (!item) {
+      return {
+        errorMessage: UPDATE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE,
+        successMessage: "",
+      };
+    }
+
+    const currentTags = await listTagsByItemId(user.id, itemId);
+    await updateItemTags(user.id, itemId, [
+      ...currentTags.map((tag) => tag.name),
+      ...normalizedSelectedTagNames,
+    ]);
+  } catch (error) {
+    return {
+      errorMessage:
+        error instanceof Error && error.message === AUTH_REQUIRED_MESSAGE
+          ? AUTH_REQUIRED_MESSAGE
+          : APPLY_KNOWLEDGE_ITEM_TAGS_FAILED_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  buildKnowledgeItemDraftRevalidationPaths(itemId).forEach((path) => {
+    revalidatePath(path);
+  });
+
+  return {
+    errorMessage: "",
+    successMessage: APPLY_KNOWLEDGE_ITEM_TAGS_SUCCESS_MESSAGE,
+  };
+}
+
+export async function applyKnowledgeItemCategoryAction(
+  itemId: string,
+  categoryId: string,
+): Promise<{ errorMessage: string; successMessage: string }> {
+  try {
+    const user = await requireUser();
+    const category = await getCategoryById(user.id, categoryId);
+
+    if (!category) {
+      return {
+        errorMessage: APPLY_KNOWLEDGE_ITEM_CATEGORY_NOT_FOUND_MESSAGE,
+        successMessage: "",
+      };
+    }
+
+    const updatedItem = await updateKnowledgeItem(user.id, itemId, {
+      category_id: category.id,
+      ai_updated_at: new Date().toISOString(),
+    });
+
+    if (!updatedItem) {
+      return {
+        errorMessage: UPDATE_KNOWLEDGE_ITEM_NOT_FOUND_MESSAGE,
+        successMessage: "",
+      };
+    }
+  } catch (error) {
+    return {
+      errorMessage:
+        error instanceof Error && error.message === AUTH_REQUIRED_MESSAGE
+          ? AUTH_REQUIRED_MESSAGE
+          : APPLY_KNOWLEDGE_ITEM_CATEGORY_FAILED_MESSAGE,
+      successMessage: "",
+    };
+  }
+
+  buildKnowledgeItemDraftRevalidationPaths(itemId).forEach((path) => {
+    revalidatePath(path);
+  });
+
+  return {
+    errorMessage: "",
+    successMessage: APPLY_KNOWLEDGE_ITEM_CATEGORY_SUCCESS_MESSAGE,
+  };
 }
 
 export async function updateKnowledgeItemAction(
