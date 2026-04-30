@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { registerHooks } from "node:module";
 
 registerHooks({
@@ -20,6 +21,11 @@ registerHooks({
 });
 
 const { createAIProvider } = await import("./provider-factory.ts");
+
+assert.equal(
+  existsSync(new URL("./deepseek.ts", import.meta.url)),
+  false,
+);
 
 const provider = createAIProvider({
   id: "test-model",
