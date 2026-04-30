@@ -29,11 +29,13 @@ registerHooks({
   },
 });
 
-const { createAIRoutePostHandler } = await import("./route.ts");
+const { createAIRoutePostHandler } = await import("./route-handler.ts");
 
 const previousEnv = {
   AI_MODEL_OPTIONS: process.env.AI_MODEL_OPTIONS,
   AI_DEFAULT_MODEL_ID: process.env.AI_DEFAULT_MODEL_ID,
+  AI_MODEL_FAST: process.env.AI_MODEL_FAST,
+  AI_MODEL_DEFAULT: process.env.AI_MODEL_DEFAULT,
   AI_MIN_INPUT_CHARS: process.env.AI_MIN_INPUT_CHARS,
   DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY,
   XIAOMI_MIMO_TOKEN_PLAN_API_KEY:
@@ -115,6 +117,73 @@ try {
     "xiaomi-mimo-token-plan-pro:mimo-v2-pro",
   );
   assert.equal(usageLogs[0].status, "success");
+
+  delete process.env.AI_MODEL_OPTIONS;
+  delete process.env.AI_DEFAULT_MODEL_ID;
+  process.env.DEEPSEEK_API_KEY = "deepseek-key";
+  process.env.AI_MODEL_FAST = "deepseek-v4-flash";
+  process.env.AI_MODEL_DEFAULT = "deepseek-v4-pro";
+
+  const fallbackProviderCalls = [];
+  const fallbackPost = createAIRoutePostHandler({
+    requireUser: async () => ({ id: "user-1", email: "user@example.com" }),
+    buildAIGenerateContext: async (_userId, request) => ({
+      action: request.action,
+      knowledgeItemId: "item-1",
+      title: "标题",
+      content: "正文",
+      existingTags: [],
+      existingCategories: [],
+    }),
+    countTodayAIUsage: async () => 0,
+    createAIUsageLog: async () => undefined,
+    createAIProvider: (config) => ({
+      async generate(params) {
+        fallbackProviderCalls.push({ config, params });
+
+        if (params.action === "organize_content") {
+          return {
+            title: "整理后的标题",
+            content: "整理后的正文",
+            tags: [],
+            category: null,
+          };
+        }
+
+        return { summary: "测试摘要" };
+      },
+    }),
+  });
+
+  const summaryResponse = await fallbackPost(
+    new Request("http://localhost/api/ai", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "generate_summary",
+        knowledgeItemId: "item-1",
+      }),
+    }),
+  );
+  await summaryResponse.json();
+
+  const organizeResponse = await fallbackPost(
+    new Request("http://localhost/api/ai", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "organize_content",
+        knowledgeItemId: "item-1",
+      }),
+    }),
+  );
+  await organizeResponse.json();
+
+  assert.equal(summaryResponse.status, 200);
+  assert.equal(organizeResponse.status, 200);
+  assert.equal(fallbackProviderCalls.length, 2);
+  assert.equal(fallbackProviderCalls[0].params.model, "deepseek-v4-flash");
+  assert.equal(fallbackProviderCalls[0].config.model, "deepseek-v4-flash");
+  assert.equal(fallbackProviderCalls[1].params.model, "deepseek-v4-pro");
+  assert.equal(fallbackProviderCalls[1].config.model, "deepseek-v4-pro");
 } finally {
   for (const [key, value] of Object.entries(previousEnv)) {
     if (value === undefined) {

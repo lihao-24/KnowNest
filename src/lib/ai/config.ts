@@ -139,6 +139,10 @@ export function readAIModelRegistry(env: AIEnv = process.env): AIModelRegistry {
   };
 }
 
+export function hasConfiguredAIModelOptions(env: AIEnv = process.env): boolean {
+  return readString(env.AI_MODEL_OPTIONS, "") !== "";
+}
+
 export function getPublicAIModelOptions(
   registry: AIModelRegistry,
 ): PublicAIModelOption[] {
