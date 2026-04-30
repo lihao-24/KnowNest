@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { getStoredAIModelId } from "@/lib/ai/client-model-selection";
+
 import {
   buildGenerateSummaryResult,
   getGenerateSummaryStartedFeedback,
@@ -40,6 +42,7 @@ export function AIAssistantPanel({
     setSuccessMessage(startedFeedback.successMessage);
 
     try {
+      const modelId = getStoredAIModelId();
       const response = await fetch("/api/ai", {
         method: "POST",
         headers: {
@@ -48,6 +51,7 @@ export function AIAssistantPanel({
         body: JSON.stringify({
           action: "generate_summary",
           knowledgeItemId,
+          ...(modelId ? { modelId } : {}),
         }),
       });
       const data = (await response.json().catch(() => null)) as

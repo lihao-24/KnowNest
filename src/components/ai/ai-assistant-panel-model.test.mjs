@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { registerHooks } from "node:module";
 
 registerHooks({
@@ -24,6 +25,25 @@ const {
   buildGenerateSummaryResult,
   getGenerateSummaryStartedFeedback,
 } = await import("./ai-assistant-panel-model.ts");
+
+const assistantPanelSource = readFileSync(
+  new URL("./ai-assistant-panel.tsx", import.meta.url),
+  "utf8",
+);
+
+assert.match(
+  assistantPanelSource,
+  /import \{ getStoredAIModelId \} from "@\/lib\/ai\/client-model-selection";/,
+);
+assert.match(assistantPanelSource, /const modelId = getStoredAIModelId\(\);/);
+assert.match(
+  assistantPanelSource,
+  /\.\.\.\(modelId \? \{ modelId \} : \{\}\),/,
+);
+assert.doesNotMatch(assistantPanelSource, /\bbaseUrl\s*:/);
+assert.doesNotMatch(assistantPanelSource, /\bapiKey\s*:/);
+assert.doesNotMatch(assistantPanelSource, /\bapiKeyEnv\s*:/);
+assert.doesNotMatch(assistantPanelSource, /\bmodel\s*:/);
 
 assert.deepEqual(getGenerateSummaryStartedFeedback(), {
   summaryPreview: "",
