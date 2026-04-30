@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type AITagSuggestionsProps = {
   disabled?: boolean;
@@ -13,11 +13,22 @@ export function AITagSuggestions({
   onApply,
   tags,
 }: AITagSuggestionsProps) {
-  const [selectedTags, setSelectedTags] = useState(() => tags);
+  return (
+    <AITagSuggestionsSelection
+      disabled={disabled}
+      key={tags.join("\0")}
+      onApply={onApply}
+      tags={tags}
+    />
+  );
+}
 
-  useEffect(() => {
-    setSelectedTags(tags);
-  }, [tags]);
+function AITagSuggestionsSelection({
+  disabled,
+  onApply,
+  tags,
+}: Required<AITagSuggestionsProps>) {
+  const [selectedTags, setSelectedTags] = useState(() => tags);
 
   function toggleTag(tagName: string) {
     setSelectedTags((currentTags) =>

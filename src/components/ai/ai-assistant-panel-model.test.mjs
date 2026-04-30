@@ -81,7 +81,7 @@ assert.doesNotMatch(assistantPanelSource, /\bapiKeyEnv\s*:/);
 assert.doesNotMatch(assistantPanelSource, /\bmodel\s*:/);
 
 assert.match(tagSuggestionsSource, /useState\(\(\) => tags\)/);
-assert.match(tagSuggestionsSource, /useEffect\(\(\) => \{\s*setSelectedTags\(tags\);/);
+assert.match(tagSuggestionsSource, /key=\{tags\.join\("\\0"\)\}/);
 assert.match(tagSuggestionsSource, /type="checkbox"/);
 assert.match(tagSuggestionsSource, /添加到知识/);
 

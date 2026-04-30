@@ -27,6 +27,29 @@ Vercel Production 需要配置以下环境变量：
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 DATABASE_URL
+AI_PROVIDER
+DEEPSEEK_API_KEY
+DEEPSEEK_BASE_URL
+AI_MODEL_FAST
+AI_MODEL_DEFAULT
+AI_MODEL_QUALITY
+AI_DAILY_LIMIT
+AI_MAX_INPUT_CHARS
+AI_MIN_INPUT_CHARS
+```
+
+如需启用设置页的服务端模型 allowlist，可继续配置：
+
+```text
+AI_DEFAULT_MODEL_ID
+AI_MODEL_OPTIONS
+```
+
+如 `AI_MODEL_OPTIONS` 中启用 Xiaomi MiMo Token Plan，还需要配置：
+
+```text
+XIAOMI_MIMO_TOKEN_PLAN_API_KEY
+XIAOMI_MIMO_TOKEN_PLAN_BASE_URL
 ```
 
 注意：
@@ -34,6 +57,8 @@ DATABASE_URL
 - 不要把真实变量值写入仓库或文档。
 - `NEXT_PUBLIC_*` 变量会暴露给浏览器端，这是 Supabase URL 和 anon key 的预期用法。
 - `DATABASE_URL` 只应作为服务端环境变量配置，不要添加 `NEXT_PUBLIC_` 前缀。
+- AI Provider API Key 只应作为服务端环境变量配置，不要配置 `NEXT_PUBLIC_DEEPSEEK_API_KEY`，也不要用任何 `NEXT_PUBLIC_*` 变量承载模型密钥。
+- `AI_MODEL_OPTIONS` 必须保持为单行 JSON；其中可公开给前端的只有 `id`、`label`、`provider`、`model`，密钥只能通过 `apiKeyEnv` 指向服务端环境变量。
 
 如需从本地 `.env.local` 同步到 Vercel Production，应先确认 `.env.local` 指向目标生产 / 可上线环境，再执行上传。上传时不要在命令参数中直接写明密钥值，优先通过 stdin 传入。
 

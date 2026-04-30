@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
 import {
+  AI_MODEL_SELECTION_STORAGE_KEY,
   clearStoredAIModelId,
   getStoredAIModelId,
   resolveSelectedAIModelId,
@@ -17,31 +18,39 @@ type SettingsPanelProps = {
   settings: SettingsViewModel;
 };
 
+const AI_MODEL_SELECTION_CHANGED_EVENT = "knownest:ai-model-selection-changed";
+
 export function SettingsPanel({ settings }: SettingsPanelProps) {
   const router = useRouter();
   const aiModelOptions = settings.ai.modelOptions;
-  const [selectedAIModelId, setSelectedAIModelId] = useState(() =>
-    resolveSelectedAIModelId(
-      aiModelOptions,
-      settings.ai.defaultModelId,
-      null,
-    ),
+  const getAIModelSelectionSnapshot = useCallback(
+    () =>
+      resolveSelectedAIModelId(
+        aiModelOptions,
+        settings.ai.defaultModelId,
+        getStoredAIModelId(),
+      ),
+    [aiModelOptions, settings.ai.defaultModelId],
+  );
+  const getAIModelSelectionServerSnapshot = useCallback(
+    () =>
+      resolveSelectedAIModelId(
+        aiModelOptions,
+        settings.ai.defaultModelId,
+        null,
+      ),
+    [aiModelOptions, settings.ai.defaultModelId],
+  );
+  const selectedAIModelId = useSyncExternalStore(
+    subscribeAIModelSelection,
+    getAIModelSelectionSnapshot,
+    getAIModelSelectionServerSnapshot,
   );
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const selectedAIModel = aiModelOptions.find(
     (option) => option.id === selectedAIModelId,
   );
-
-  useEffect(() => {
-    setSelectedAIModelId(
-      resolveSelectedAIModelId(
-        aiModelOptions,
-        settings.ai.defaultModelId,
-        getStoredAIModelId(),
-      ),
-    );
-  }, [aiModelOptions, settings.ai.defaultModelId]);
 
   function handleAIModelChange(modelId: string) {
     const resolvedModelId = resolveSelectedAIModelId(
@@ -50,18 +59,15 @@ export function SettingsPanel({ settings }: SettingsPanelProps) {
       modelId,
     );
 
-    setSelectedAIModelId(resolvedModelId);
-
     if (resolvedModelId) {
       setStoredAIModelId(resolvedModelId);
+      notifyAIModelSelectionChanged();
     }
   }
 
   function handleResetAIModel() {
     clearStoredAIModelId();
-    setSelectedAIModelId(
-      resolveSelectedAIModelId(aiModelOptions, settings.ai.defaultModelId, null),
-    );
+    notifyAIModelSelectionChanged();
   }
 
   async function handleLogout() {
@@ -172,4 +178,32 @@ export function SettingsPanel({ settings }: SettingsPanelProps) {
       </p>
     </div>
   );
+}
+
+function subscribeAIModelSelection(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  function handleStorage(event: StorageEvent) {
+    if (event.key === AI_MODEL_SELECTION_STORAGE_KEY) {
+      onStoreChange();
+    }
+  }
+
+  window.addEventListener(AI_MODEL_SELECTION_CHANGED_EVENT, onStoreChange);
+  window.addEventListener("storage", handleStorage);
+
+  return () => {
+    window.removeEventListener(AI_MODEL_SELECTION_CHANGED_EVENT, onStoreChange);
+    window.removeEventListener("storage", handleStorage);
+  };
+}
+
+function notifyAIModelSelectionChanged(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new Event(AI_MODEL_SELECTION_CHANGED_EVENT));
 }
