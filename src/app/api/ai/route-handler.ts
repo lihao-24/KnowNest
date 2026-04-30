@@ -132,7 +132,7 @@ function resolveRouteModel(
 ): ResolvedAIModelConfig {
   const resolvedModel = resolveAIModelConfig(modelId, registry);
 
-  if (modelId?.trim() || hasConfiguredAIModelOptions()) {
+  if (hasConfiguredAIModelOptions()) {
     return resolvedModel;
   }
 

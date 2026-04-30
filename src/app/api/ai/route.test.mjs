@@ -35,6 +35,7 @@ const routeModule = await import("./route.ts");
 assert.deepEqual(Object.keys(routeModule).sort(), ["POST"]);
 
 const previousEnv = {
+  AI_PROVIDER: process.env.AI_PROVIDER,
   AI_MODEL_OPTIONS: process.env.AI_MODEL_OPTIONS,
   AI_DEFAULT_MODEL_ID: process.env.AI_DEFAULT_MODEL_ID,
   AI_MODEL_FAST: process.env.AI_MODEL_FAST,
@@ -123,9 +124,10 @@ try {
 
   delete process.env.AI_MODEL_OPTIONS;
   delete process.env.AI_DEFAULT_MODEL_ID;
+  process.env.AI_PROVIDER = "deepseek";
   process.env.DEEPSEEK_API_KEY = "deepseek-key";
-  process.env.AI_MODEL_FAST = "deepseek-v4-flash";
-  process.env.AI_MODEL_DEFAULT = "deepseek-v4-pro";
+  process.env.AI_MODEL_FAST = "fast-model";
+  process.env.AI_MODEL_DEFAULT = "default-model";
 
   const fallbackProviderCalls = [];
   const fallbackPost = createAIRoutePostHandler({
@@ -169,6 +171,30 @@ try {
   );
   await summaryResponse.json();
 
+  const selectedSummaryResponse = await fallbackPost(
+    new Request("http://localhost/api/ai", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "generate_summary",
+        knowledgeItemId: "item-1",
+        modelId: "deepseek-default",
+      }),
+    }),
+  );
+  await selectedSummaryResponse.json();
+
+  const staleSummaryResponse = await fallbackPost(
+    new Request("http://localhost/api/ai", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "generate_summary",
+        knowledgeItemId: "item-1",
+        modelId: "missing",
+      }),
+    }),
+  );
+  await staleSummaryResponse.json();
+
   const organizeResponse = await fallbackPost(
     new Request("http://localhost/api/ai", {
       method: "POST",
@@ -181,12 +207,18 @@ try {
   await organizeResponse.json();
 
   assert.equal(summaryResponse.status, 200);
+  assert.equal(selectedSummaryResponse.status, 200);
+  assert.equal(staleSummaryResponse.status, 200);
   assert.equal(organizeResponse.status, 200);
-  assert.equal(fallbackProviderCalls.length, 2);
-  assert.equal(fallbackProviderCalls[0].params.model, "deepseek-v4-flash");
-  assert.equal(fallbackProviderCalls[0].config.model, "deepseek-v4-flash");
-  assert.equal(fallbackProviderCalls[1].params.model, "deepseek-v4-pro");
-  assert.equal(fallbackProviderCalls[1].config.model, "deepseek-v4-pro");
+  assert.equal(fallbackProviderCalls.length, 4);
+  assert.equal(fallbackProviderCalls[0].params.model, "fast-model");
+  assert.equal(fallbackProviderCalls[0].config.model, "fast-model");
+  assert.equal(fallbackProviderCalls[1].params.model, "fast-model");
+  assert.equal(fallbackProviderCalls[1].config.model, "fast-model");
+  assert.equal(fallbackProviderCalls[2].params.model, "fast-model");
+  assert.equal(fallbackProviderCalls[2].config.model, "fast-model");
+  assert.equal(fallbackProviderCalls[3].params.model, "default-model");
+  assert.equal(fallbackProviderCalls[3].config.model, "default-model");
 } finally {
   for (const [key, value] of Object.entries(previousEnv)) {
     if (value === undefined) {
