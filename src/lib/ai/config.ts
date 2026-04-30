@@ -1,4 +1,5 @@
-import type { AIAction, AIErrorCode } from "../../types/ai";
+import type { AIAction } from "../../types/ai";
+import { createAIRequestError } from "./errors";
 
 export type AIConfig = {
   provider: "deepseek";
@@ -314,20 +315,4 @@ function readPositiveInteger(
   const parsed = Number.parseInt(value ?? "", 10);
 
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-function createAIRequestError(
-  code: AIErrorCode,
-  status: number,
-  message: string,
-): Error & { code: AIErrorCode; status: number } {
-  const error = new Error(message) as Error & {
-    code: AIErrorCode;
-    status: number;
-  };
-  error.name = "AIRequestError";
-  error.code = code;
-  error.status = status;
-
-  return error;
 }

@@ -1,6 +1,25 @@
 import assert from "node:assert/strict";
+import { registerHooks } from "node:module";
 
-import { parseAIJson, validateAIResult } from "./schemas.ts";
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    try {
+      return nextResolve(specifier, context);
+    } catch (error) {
+      if (
+        error?.code === "ERR_MODULE_NOT_FOUND" &&
+        (specifier.startsWith("./") || specifier.startsWith("../")) &&
+        !specifier.endsWith(".ts")
+      ) {
+        return nextResolve(`${specifier}.ts`, context);
+      }
+
+      throw error;
+    }
+  },
+});
+
+const { parseAIJson, validateAIResult } = await import("./schemas.ts");
 
 assert.deepEqual(parseAIJson('{"summary":"ok"}'), { summary: "ok" });
 

@@ -1,6 +1,7 @@
 import type { Category, KnowledgeItem } from "../../types/knowledge";
 import type { Tag } from "../../types/tags";
-import type { AIAction, AIGenerateRequest, AIErrorCode } from "../../types/ai";
+import type { AIAction, AIGenerateRequest } from "../../types/ai";
+import { createAIRequestError } from "./errors";
 
 export type AIGenerateContext = {
   action: AIAction;
@@ -125,20 +126,4 @@ function isAIAction(value: unknown): value is AIAction {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function createAIRequestError(
-  code: AIErrorCode,
-  status: number,
-  message: string,
-): Error & { code: AIErrorCode; status: number } {
-  const error = new Error(message) as Error & {
-    code: AIErrorCode;
-    status: number;
-  };
-  error.name = "AIRequestError";
-  error.code = code;
-  error.status = status;
-
-  return error;
 }

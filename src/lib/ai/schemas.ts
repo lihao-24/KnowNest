@@ -1,4 +1,5 @@
-import type { AIAction, AIGenerateResult, AIErrorCode } from "../../types/ai";
+import type { AIAction, AIGenerateResult } from "../../types/ai";
+import { createAIRequestError } from "./errors";
 
 export function parseAIJson(content: string): unknown {
   const trimmed = content.trim();
@@ -105,20 +106,4 @@ function throwInvalidProviderResponse(): never {
     502,
     "AI 返回内容格式异常。",
   );
-}
-
-function createAIRequestError(
-  code: AIErrorCode,
-  status: number,
-  message: string,
-): Error & { code: AIErrorCode; status: number } {
-  const error = new Error(message) as Error & {
-    code: AIErrorCode;
-    status: number;
-  };
-  error.name = "AIRequestError";
-  error.code = code;
-  error.status = status;
-
-  return error;
 }

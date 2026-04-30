@@ -31,6 +31,14 @@ export class AIRequestError extends Error {
   }
 }
 
+export function createAIRequestError(
+  code: AIErrorCode,
+  status: number,
+  message: string,
+): AIRequestError {
+  return new AIRequestError(code, status, message);
+}
+
 export function toAIErrorResponse(error: unknown): {
   status: number;
   body: { ok: false; error: { code: AIErrorCode; message: string } };

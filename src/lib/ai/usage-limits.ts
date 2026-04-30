@@ -1,4 +1,4 @@
-import type { AIErrorCode } from "../../types/ai";
+import { createAIRequestError } from "./errors";
 
 export function assertAIUsageAllowed(
   currentCount: number,
@@ -35,20 +35,4 @@ export function validateAIInputLength(
       "内容过长，请缩短后重试。",
     );
   }
-}
-
-function createAIRequestError(
-  code: AIErrorCode,
-  status: number,
-  message: string,
-): Error & { code: AIErrorCode; status: number } {
-  const error = new Error(message) as Error & {
-    code: AIErrorCode;
-    status: number;
-  };
-  error.name = "AIRequestError";
-  error.code = code;
-  error.status = status;
-
-  return error;
 }
