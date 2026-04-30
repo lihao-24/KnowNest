@@ -74,6 +74,48 @@ DATABASE_URL=
 
 V0.1 不配置 Supabase Storage、腾讯云 COS、AI provider key 或向量数据库环境变量。
 
+## 新增 AI 模型服务
+
+V0.3 的 AI 调用走服务端 allowlist。前端设置页只展示服务端公开的模型清单，用户选择后只把 `modelId` 保存到浏览器 `localStorage`，不会保存到数据库，也不会暴露 API Key、Base URL 或 `apiKeyEnv`。
+
+当前代码支持 `openai-compatible` 协议的模型服务。新增这类服务时，不需要改前端代码，只需要在 `.env.local` 或部署环境变量中增加服务商配置，并把模型加入 `AI_MODEL_OPTIONS`。
+
+示例：增加 OpenRouter 模型服务。
+
+```env
+OPENROUTER_API_KEY=
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+```
+
+然后把服务加入 `AI_MODEL_OPTIONS`。注意 `AI_MODEL_OPTIONS` 必须保持为单行 JSON，确保 dotenv / Next 可以正确解析。
+
+```env
+AI_MODEL_OPTIONS=[{"id":"deepseek-default","label":"DeepSeek 默认","provider":"openai-compatible","baseUrl":"https://api.deepseek.com","apiKeyEnv":"DEEPSEEK_API_KEY","model":"deepseek-v4-flash"},{"id":"xiaomi-mimo-token-plan-pro","label":"Xiaomi MiMo Token Plan Pro","provider":"openai-compatible","baseUrlEnv":"XIAOMI_MIMO_TOKEN_PLAN_BASE_URL","apiKeyEnv":"XIAOMI_MIMO_TOKEN_PLAN_API_KEY","model":"mimo-v2-pro"},{"id":"openrouter-qwen","label":"OpenRouter Qwen","provider":"openai-compatible","baseUrlEnv":"OPENROUTER_BASE_URL","apiKeyEnv":"OPENROUTER_API_KEY","model":"qwen/qwen3-coder"}]
+```
+
+模型选项字段说明：
+
+- `id`：模型选项 ID，必须唯一；前端只会保存和发送这个 ID。
+- `label`：设置页展示名称。
+- `provider`：当前只能是 `openai-compatible`。
+- `baseUrlEnv`：服务端 endpoint 环境变量名，推荐使用，避免把 endpoint 直接写进模型清单。
+- `baseUrl`：可选，直接写服务端 endpoint；DeepSeek 默认示例使用这个字段。
+- `apiKeyEnv`：服务端 API Key 环境变量名，不能写真实 key。
+- `model`：传给模型服务的真实模型名。
+
+增加 Xiaomi MiMo Token Plan 时，应使用：
+
+```env
+XIAOMI_MIMO_TOKEN_PLAN_API_KEY=
+XIAOMI_MIMO_TOKEN_PLAN_BASE_URL=https://token-plan-cn.xiaomimimo.com/v1
+```
+
+并在模型选项中使用 `baseUrlEnv: "XIAOMI_MIMO_TOKEN_PLAN_BASE_URL"`。这里应填写 Token Plan endpoint，不要填写普通 MiMo API endpoint。
+
+修改 `.env.local` 后需要重启 dev server。若设置页仍只显示 DeepSeek，通常是 `AI_MODEL_OPTIONS` 未配置或 JSON 格式错误；若设置页显示模型但调用失败，通常是对应的 `apiKeyEnv` 或 `baseUrlEnv` 没有配置正确。
+
+如果要接入不兼容 OpenAI Chat Completions API 的服务，例如原生 Claude / Gemini 协议，需要新增 provider 实现、扩展 provider factory 和配置校验，并补充对应测试，不能只改环境变量。
+
 ## 文档目录
 
 核心文档位于 `docs/`：
