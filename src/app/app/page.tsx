@@ -70,14 +70,23 @@ export default async function AppPage({ searchParams }: AppPageProps) {
     tagId: selectedTagId,
     isFavorite: isFavoriteOnly,
   });
-  const itemsWithCategories = await attachCategoriesToKnowledgeItems(
-    user.id,
-    items,
+  const [itemsWithCategories, itemsWithTags] = await Promise.all([
+    attachCategoriesToKnowledgeItems(
+      user.id,
+      items,
+    ),
+    attachTagsToKnowledgeItems(
+      user.id,
+      items,
+    ),
+  ]);
+  const tagsByItemId = new Map(
+    itemsWithTags.map((item) => [item.id, item.tags]),
   );
-  const itemsWithTags = await attachTagsToKnowledgeItems(
-    user.id,
-    itemsWithCategories,
-  );
+  const itemsWithMetadata = itemsWithCategories.map((item) => ({
+    ...item,
+    tags: tagsByItemId.get(item.id) ?? [],
+  }));
   const hasFilters = Boolean(
     keyword ||
       selectedTagId ||
@@ -141,7 +150,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
         sortOrder={sortOrder}
         tags={tags}
       />
-      <KnowledgeList emptyState={emptyState} items={itemsWithTags} />
+      <KnowledgeList emptyState={emptyState} items={itemsWithMetadata} />
     </section>
   );
 }

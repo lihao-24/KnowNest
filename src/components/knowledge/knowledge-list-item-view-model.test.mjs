@@ -35,10 +35,26 @@ const viewModelSource = readFileSync(
   new URL("./knowledge-list-item-view-model.ts", import.meta.url),
   "utf8",
 );
+const appPageSource = readFileSync(
+  new URL("../../app/app/page.tsx", import.meta.url),
+  "utf8",
+);
 
 assert.ok(!viewModelSource.includes("const spaceLabels"));
 assert.ok(!viewModelSource.includes("const typeLabels"));
 assert.ok(!viewModelSource.includes("const statusLabels"));
+assert.match(
+  appPageSource,
+  /const \[itemsWithCategories, itemsWithTags\] = await Promise\.all\(\[/,
+);
+assert.match(
+  appPageSource,
+  /attachCategoriesToKnowledgeItems\(\s*user\.id,\s*items,\s*\)/,
+);
+assert.match(
+  appPageSource,
+  /attachTagsToKnowledgeItems\(\s*user\.id,\s*items,\s*\)/,
+);
 
 const labelByValue = (options, value) =>
   options.find((option) => option.value === value)?.label;
