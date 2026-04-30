@@ -30,6 +30,9 @@ registerHooks({
 });
 
 const { createAIRoutePostHandler } = await import("./route-handler.ts");
+const routeModule = await import("./route.ts");
+
+assert.deepEqual(Object.keys(routeModule).sort(), ["POST"]);
 
 const previousEnv = {
   AI_MODEL_OPTIONS: process.env.AI_MODEL_OPTIONS,
