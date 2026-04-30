@@ -1,11 +1,16 @@
 import { requireUser } from "@/lib/auth/server";
+import { getPublicAIModelOptions, readAIModelRegistry } from "@/lib/ai/config";
 
 import { getSettingsViewModel } from "./settings-model";
 import { SettingsPanel } from "./settings-panel";
 
 export default async function SettingsPage() {
   const user = await requireUser();
-  const settings = getSettingsViewModel(user);
+  const registry = readAIModelRegistry();
+  const settings = getSettingsViewModel(user, {
+    defaultModelId: registry.defaultModelId,
+    modelOptions: getPublicAIModelOptions(registry),
+  });
 
   return (
     <section className="min-w-0 w-full max-w-3xl">
@@ -15,7 +20,7 @@ export default async function SettingsPage() {
           KnowNest
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          查看当前账号与版本信息，或退出当前会话。
+          查看当前账号、版本信息与本机 AI 模型偏好，或退出当前会话。
         </p>
       </div>
 

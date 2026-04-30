@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+  clearStoredAIModelId,
+  getStoredAIModelId,
+  resolveSelectedAIModelId,
+  setStoredAIModelId,
+} from "@/lib/ai/client-model-selection";
 import { LOGOUT_FAILED_MESSAGE, signOutCurrentUser } from "@/lib/auth";
 
 import type { SettingsViewModel } from "./settings-model";
@@ -13,8 +19,47 @@ type SettingsPanelProps = {
 
 export function SettingsPanel({ settings }: SettingsPanelProps) {
   const router = useRouter();
+  const aiModelOptions = settings.ai.modelOptions;
+  const [selectedAIModelId, setSelectedAIModelId] = useState(() =>
+    resolveSelectedAIModelId(
+      aiModelOptions,
+      settings.ai.defaultModelId,
+      null,
+    ),
+  );
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    setSelectedAIModelId(
+      resolveSelectedAIModelId(
+        aiModelOptions,
+        settings.ai.defaultModelId,
+        getStoredAIModelId(),
+      ),
+    );
+  }, [aiModelOptions, settings.ai.defaultModelId]);
+
+  function handleAIModelChange(modelId: string) {
+    const resolvedModelId = resolveSelectedAIModelId(
+      aiModelOptions,
+      settings.ai.defaultModelId,
+      modelId,
+    );
+
+    setSelectedAIModelId(resolvedModelId);
+
+    if (resolvedModelId) {
+      setStoredAIModelId(resolvedModelId);
+    }
+  }
+
+  function handleResetAIModel() {
+    clearStoredAIModelId();
+    setSelectedAIModelId(
+      resolveSelectedAIModelId(aiModelOptions, settings.ai.defaultModelId, null),
+    );
+  }
 
   async function handleLogout() {
     setErrorMessage("");
@@ -44,6 +89,50 @@ export function SettingsPanel({ settings }: SettingsPanelProps) {
           <p className="mt-2 text-base font-semibold text-slate-950">
             {settings.appVersion}
           </p>
+        </div>
+
+        <div className="min-w-0 border-b border-slate-200 pb-5">
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold">AI 模型</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                选择只保存在当前浏览器。服务端 API Key 不会暴露到浏览器。
+              </p>
+            </div>
+
+            {aiModelOptions.length > 0 ? (
+              <button
+                className="inline-flex h-10 w-full items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+                onClick={handleResetAIModel}
+                type="button"
+              >
+                恢复默认
+              </button>
+            ) : null}
+          </div>
+
+          {aiModelOptions.length > 0 ? (
+            <label className="mt-4 block min-w-0">
+              <span className="text-sm font-medium text-slate-700">
+                默认 AI 模型
+              </span>
+              <select
+                className="mt-2 h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                onChange={(event) => handleAIModelChange(event.target.value)}
+                value={selectedAIModelId}
+              >
+                {aiModelOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <p className="mt-4 rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm leading-6 text-slate-600">
+              暂无可用 AI 模型，请检查服务端配置。
+            </p>
+          )}
         </div>
 
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
