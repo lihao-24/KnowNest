@@ -2,6 +2,7 @@ import {
   and,
   asc,
   eq,
+  inArray,
 } from "drizzle-orm";
 
 import type { Tag } from "../../types/tags";
@@ -157,12 +158,66 @@ export async function attachTagsToKnowledgeItems<TItem extends KnowledgeItem>(
   userId: string,
   items: TItem[],
 ): Promise<Array<TItem & Pick<KnowledgeItemWithTags, "tags">>> {
-  return Promise.all(
-    items.map(async (item) => ({
-      ...item,
-      tags: await listTagsByItemId(userId, item.id),
-    })),
-  );
+  if (items.length === 0) {
+    return [];
+  }
+
+  const { db } = await import("./client");
+  const { knowledgeItemTags, tags } = await import("./schema");
+  const itemIds = items.map((item) => item.id);
+  const tagRows = await db
+    .select({
+      item_id: knowledgeItemTags.item_id,
+      tag: {
+        id: tags.id,
+        user_id: tags.user_id,
+        name: tags.name,
+        created_at: tags.created_at,
+        updated_at: tags.updated_at,
+      },
+    })
+    .from(knowledgeItemTags)
+    .innerJoin(
+      tags,
+      and(
+        eq(knowledgeItemTags.tag_id, tags.id),
+        eq(knowledgeItemTags.user_id, tags.user_id),
+      ),
+    )
+    .where(
+      and(
+        eq(knowledgeItemTags.user_id, userId),
+        inArray(knowledgeItemTags.item_id, itemIds),
+        eq(tags.user_id, userId),
+      ),
+    )
+    .orderBy(asc(tags.name));
+
+  return attachTagRowsToKnowledgeItems(items, tagRows);
+}
+
+export type ItemTagRow = {
+  item_id: string;
+  tag: Tag;
+};
+
+export function attachTagRowsToKnowledgeItems<TItem extends Pick<KnowledgeItem, "id">>(
+  items: TItem[],
+  tagRows: ItemTagRow[],
+): Array<TItem & Pick<KnowledgeItemWithTags, "tags">> {
+  const tagsByItemId = new Map<string, Tag[]>();
+
+  for (const row of tagRows) {
+    const itemTags = tagsByItemId.get(row.item_id) ?? [];
+
+    itemTags.push(row.tag);
+    tagsByItemId.set(row.item_id, itemTags);
+  }
+
+  return items.map((item) => ({
+    ...item,
+    tags: tagsByItemId.get(item.id) ?? [],
+  }));
 }
 
 export async function updateItemTags(

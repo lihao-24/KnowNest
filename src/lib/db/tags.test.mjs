@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { getTableConfig } from "drizzle-orm/pg-core";
 
 import {
+  attachTagRowsToKnowledgeItems,
   buildItemTagLinkValues,
   normalizeTagName,
   normalizeTagNames,
@@ -92,6 +93,88 @@ assert.throws(
       { id: "tag-2", user_id: "user-2", name: "life" },
     ]),
   /Cannot bind a tag that belongs to another user\./,
+);
+
+assert.deepEqual(
+  attachTagRowsToKnowledgeItems(
+    [
+      { id: "item-1", title: "Item 1" },
+      { id: "item-2", title: "Item 2" },
+      { id: "item-3", title: "Item 3" },
+    ],
+    [
+      {
+        item_id: "item-2",
+        tag: {
+          id: "tag-3",
+          user_id: "user-1",
+          name: "gamma",
+          created_at: "2026-04-30T00:00:00.000Z",
+          updated_at: "2026-04-30T00:00:00.000Z",
+        },
+      },
+      {
+        item_id: "item-1",
+        tag: {
+          id: "tag-1",
+          user_id: "user-1",
+          name: "alpha",
+          created_at: "2026-04-30T00:00:00.000Z",
+          updated_at: "2026-04-30T00:00:00.000Z",
+        },
+      },
+      {
+        item_id: "item-1",
+        tag: {
+          id: "tag-2",
+          user_id: "user-1",
+          name: "beta",
+          created_at: "2026-04-30T00:00:00.000Z",
+          updated_at: "2026-04-30T00:00:00.000Z",
+        },
+      },
+    ],
+  ),
+  [
+    {
+      id: "item-1",
+      title: "Item 1",
+      tags: [
+        {
+          id: "tag-1",
+          user_id: "user-1",
+          name: "alpha",
+          created_at: "2026-04-30T00:00:00.000Z",
+          updated_at: "2026-04-30T00:00:00.000Z",
+        },
+        {
+          id: "tag-2",
+          user_id: "user-1",
+          name: "beta",
+          created_at: "2026-04-30T00:00:00.000Z",
+          updated_at: "2026-04-30T00:00:00.000Z",
+        },
+      ],
+    },
+    {
+      id: "item-2",
+      title: "Item 2",
+      tags: [
+        {
+          id: "tag-3",
+          user_id: "user-1",
+          name: "gamma",
+          created_at: "2026-04-30T00:00:00.000Z",
+          updated_at: "2026-04-30T00:00:00.000Z",
+        },
+      ],
+    },
+    {
+      id: "item-3",
+      title: "Item 3",
+      tags: [],
+    },
+  ],
 );
 
 function hasColumnNames(columns, names) {
