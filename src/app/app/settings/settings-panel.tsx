@@ -29,6 +29,9 @@ export function SettingsPanel({ settings }: SettingsPanelProps) {
   );
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const selectedAIModel = aiModelOptions.find(
+    (option) => option.id === selectedAIModelId,
+  );
 
   useEffect(() => {
     setSelectedAIModelId(
@@ -110,6 +113,10 @@ export function SettingsPanel({ settings }: SettingsPanelProps) {
               </button>
             ) : null}
           </div>
+
+          <p className="mt-4 text-sm font-medium text-slate-700">
+            当前模型：{selectedAIModel?.label ?? "未配置"}
+          </p>
 
           {aiModelOptions.length > 0 ? (
             <label className="mt-4 block min-w-0">
