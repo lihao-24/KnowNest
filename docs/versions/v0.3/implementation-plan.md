@@ -8,6 +8,8 @@
 
 **Tech Stack:** Next.js App Router、React 19、TypeScript、Drizzle ORM、PostgreSQL、Supabase Auth/RLS、OpenAI-compatible DeepSeek API。
 
+**Status:** V0.3 Task 1 到 Task 11 已完成并部署到 Production。生产域名为 `https://knownest.vercel.app`，用户已确认线上真实使用正常。本文档保留为 V0.3 历史实施计划；下一阶段请先参考 `docs/operations/v0.3-workflow-status.md` 和 `docs/operations/workflow-status.md` 收敛 V0.4 范围。
+
 ---
 
 ## 0. 执行原则

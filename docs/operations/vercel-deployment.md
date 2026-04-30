@@ -91,6 +91,7 @@ npx.cmd vercel --prod --yes
 - Production 环境变量名检查通过：必需 AI 变量、模型 allowlist 变量和 Xiaomi MiMo Token Plan 变量均已配置；未发现 `NEXT_PUBLIC_DEEPSEEK_API_KEY` 或其他 `NEXT_PUBLIC_*` AI 密钥名。
 - 已新增 `.vercelignore`，用于避免本地 `.env*`、依赖目录和构建产物进入 Vercel CLI 上传包。
 - Vercel 构建日志仍提示检测到 `.env` 文件；当前真实值应只保留在 Vercel Environment Variables，不写入仓库或文档。
+- 用户已确认线上真实使用正常；本记录不包含真实账号、真实密钥或数据库内容。
 
 ## 部署后验证
 
@@ -109,7 +110,7 @@ npx.cmd vercel --prod --yes
 - `https://knownest.vercel.app/` 返回 307，`Location: /login`。
 - `https://knownest.vercel.app/login` 返回 200，页面包含登录内容。
 - 未登录访问 `https://knownest.vercel.app/app` 返回 307，`Location: /login`，路由保护生效。
-- 尚未在本轮 agent 中验证真实账号登录后的知识列表、新建、编辑、详情、AI 摘要/标签/分类/标题/正文整理和移动端布局；这些需要真实账号和人工浏览器操作继续验收。
+- Agent 未直接登录真实账号读取用户数据；用户已确认线上真实使用正常。后续如需自动化回归，应使用专门测试账号和测试数据。
 
 ## 常见问题
 

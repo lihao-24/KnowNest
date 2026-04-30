@@ -18,7 +18,9 @@
 - Phase 09：Task 09-01 至 Task 09-03 已完成并通过审核，大节点审核已通过。
 - Phase 10：Task 10-01 至 Task 10-04 已完成并通过审核，大节点审核已通过。
 - Phase 11：Task 11-01 V0.1 功能自测已完成；自动化验证通过，真实账号端到端手测由用户确认通过。
-- 当前结论：V0.2 知识管理体验增强已完成代码实现、文档补充和本地验证；上线前需要在目标数据库执行 `db/migrations/0002_categories_search_sort.sql`。
+- V0.2：知识管理体验增强已完成并上线。
+- V0.3：AI 知识整理助手 MVP 已完成并部署到 Production，生产域名 `https://knownest.vercel.app`；用户已确认线上真实使用正常。
+- 当前结论：项目已完成 V0.3 上线交付；下一阶段应先收敛 V0.4 范围，再进入实现。
 
 ## 已完成阶段和任务
 
@@ -47,6 +49,9 @@
 - V0.2 分类采用 `categories` 表 + `knowledge_items.category_id`，通过 `(category_id, user_id)` 复合外键防止跨用户绑定分类。
 - V0.2 搜索仍使用基础 `ilike`，匹配标题、正文和标签名称；复杂全文搜索、权重排序、语义检索继续放到后续版本。
 - V0.2 详情页 `/app/items/[id]` 为阅读视图，编辑入口拆到 `/app/items/[id]/edit`。
+- V0.3 AI 调用统一走服务端 `POST /api/ai`，前端只拿候选结果，用户确认后才通过 Server Action 应用到知识数据。
+- V0.3 通过服务端模型 allowlist 支持 OpenAI-compatible Provider；禁止用 `NEXT_PUBLIC_*` 变量承载 AI Provider 密钥。
+- V0.3 Production 已配置 DeepSeek 和 Xiaomi MiMo Token Plan 相关环境变量名；真实密钥不写入仓库或文档。
 
 ## 当前约束
 
@@ -63,9 +68,10 @@
 
 ## 下一个建议任务
 
-- 执行 `db/migrations/0002_categories_search_sort.sql` 到 Supabase / PostgreSQL 目标库。
-- 在真实登录账号下手测 V0.2 主链路：新建分类、选择分类、编辑分类、按分类筛选、按标签名搜索、排序切换、详情页 Markdown 阅读、编辑页保存。
-- 通过 Vercel 预览部署后再做一次核心流程回归。
+- 先做 V0.4 范围收敛：从 AI 质量、AI 使用可观测性、测试聚合、移动端体验、错误边界和知识管理效率中选择 1 到 2 条主线。
+- 推荐补一套轻量 Production smoke checklist：登录、列表、新建、编辑、详情、AI 摘要/标签/分类/标题/正文整理、移动端核心视图。
+- 如继续推进 AI，优先考虑 Provider 可用性监控、AI 失败日志后台查看、限流提示体验、模型选择说明和 Prompt 质量评估样例集。
+- 如推进工程质量，优先考虑统一测试聚合脚本、真实浏览器 smoke test、关键 Server Action 集成测试、错误边界和登录态失效处理。
 
 ## 大节点审核记录
 
@@ -122,8 +128,8 @@
 - MobileNav 后续可补 `aria-controls`、Esc 关闭和 focus trap，进一步完善抽屉可访问性。
 - 后续筛选复杂后可加强 query builder 测试。
 - 当前没有独立 `typecheck` script，build 已覆盖 Next/TypeScript 集成检查。
-- V0.2 migration 尚未在真实 Supabase 目标库执行；上线前必须执行 `db/migrations/0002_categories_search_sort.sql`。
-- V0.2 RLS 已在 SQL migration 中补充 `categories` policies，当前会话未连接 Supabase Dashboard 做真实多用户 RLS 手测。
+- V0.2 已上线；历史 migration 执行状态以对应版本部署记录和目标数据库为准，后续不要在未确认目标环境时重复执行 migration。
+- V0.3 已上线并由用户确认线上真实使用正常；失败日志、每日限流达到上限、Provider 异常返回和跨用户越权等边界场景仍建议在后续 smoke / regression 中专项覆盖。
 - Drizzle schema 后续补齐 check constraints 和 `(id, user_id)` unique 元数据。
 - 后续抽 UUID guard，避免非法 item id 触发 DB UUID 解析错误。
 - 后续可将编辑表单的 FormData 字段读取限制为 string，避免 File 被 `String()` 转成 `[object File]`。
