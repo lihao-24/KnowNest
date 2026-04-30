@@ -102,7 +102,7 @@ assert.match(newFormSource, /value=\{categoryId\}/);
 assert.doesNotMatch(newFormSource, /knowledgeItemId=/);
 assert.doesNotMatch(newFormSource, /onApplySummary=/);
 
-assert.match(detailPageSource, /listCategories\(user\.id\)/);
+assert.match(detailPageSource, /listCategoriesEnsuringDefaults\(user\.id\)/);
 assert.match(detailPageSource, /applyKnowledgeItemTagsAction\.bind\(null, item\.id\)/);
 assert.match(
   detailPageSource,

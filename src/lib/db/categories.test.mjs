@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import { getTableConfig } from "drizzle-orm/pg-core";
 
@@ -76,3 +77,23 @@ assert.deepEqual(buildDefaultCategoryValues("user-1"), [
   { user_id: "user-1", name: "灵感" },
   { user_id: "user-1", name: "其他" },
 ]);
+
+const categoriesSource = readFileSync(
+  new URL("./categories.ts", import.meta.url),
+  "utf8",
+);
+
+assert.match(
+  categoriesSource,
+  /export async function listCategoriesEnsuringDefaults/,
+);
+assert.match(
+  categoriesSource,
+  /listCategoriesEnsuringDefaults[\s\S]*await ensureDefaultCategories\(userId\);[\s\S]*return listCategories\(userId\);/,
+);
+assert.doesNotMatch(
+  categoriesSource.match(
+    /export async function listCategories\(userId: string\): Promise<Category\[]> \{[\s\S]*?\n\}/,
+  )?.[0] ?? "",
+  /ensureDefaultCategories/,
+);

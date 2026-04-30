@@ -1,11 +1,11 @@
 import { requireUser } from "@/lib/auth/server";
-import { listCategories } from "@/lib/db/categories";
+import { listCategoriesEnsuringDefaults } from "@/lib/db/categories";
 
 import { KnowledgeForm } from "./knowledge-form";
 
 export default async function NewKnowledgeItemPage() {
   const user = await requireUser();
-  const categories = await listCategories(user.id);
+  const categories = await listCategoriesEnsuringDefaults(user.id);
 
   return (
     <section className="min-w-0 w-full max-w-3xl">

@@ -54,13 +54,19 @@ export async function listCategories(userId: string): Promise<Category[]> {
   const { db } = await import("./client");
   const { categories } = await import("./schema");
 
-  await ensureDefaultCategories(userId);
-
   return db
     .select()
     .from(categories)
     .where(eq(categories.user_id, userId))
     .orderBy(asc(categories.name));
+}
+
+export async function listCategoriesEnsuringDefaults(
+  userId: string,
+): Promise<Category[]> {
+  await ensureDefaultCategories(userId);
+
+  return listCategories(userId);
 }
 
 export async function createCategory(

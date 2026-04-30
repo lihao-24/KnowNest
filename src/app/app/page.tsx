@@ -15,7 +15,7 @@ import { getSelectedTagId } from "@/components/tags/tag-filter-model";
 import { requireUser } from "@/lib/auth/server";
 import {
   attachCategoriesToKnowledgeItems,
-  listCategories,
+  listCategoriesEnsuringDefaults,
 } from "@/lib/db/categories";
 import { listKnowledgeItems } from "@/lib/db/knowledge-items";
 import { attachTagsToKnowledgeItems, listTags } from "@/lib/db/tags";
@@ -47,7 +47,7 @@ export default async function AppPage({ searchParams }: AppPageProps) {
   const sortOrder = getKnowledgeSortOrder(resolvedSearchParams);
   const isFavoriteOnly = getKnowledgeFavoriteFilter(resolvedSearchParams);
   const [categories, tags] = await Promise.all([
-    listCategories(user.id),
+    listCategoriesEnsuringDefaults(user.id),
     listTags(user.id),
   ]);
   const selectedCategoryId = categories.some(

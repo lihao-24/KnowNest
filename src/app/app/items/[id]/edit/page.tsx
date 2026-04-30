@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { requireUser } from "@/lib/auth/server";
-import { listCategories } from "@/lib/db/categories";
+import { listCategoriesEnsuringDefaults } from "@/lib/db/categories";
 import { getKnowledgeItemById } from "@/lib/db/knowledge-items";
 import { listTagsByItemId } from "@/lib/db/tags";
 
@@ -25,7 +25,7 @@ export default async function EditKnowledgeItemPage({
   }
 
   const [categories, tags] = await Promise.all([
-    listCategories(user.id),
+    listCategoriesEnsuringDefaults(user.id),
     listTagsByItemId(user.id, item.id),
   ]);
 

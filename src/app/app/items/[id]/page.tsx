@@ -3,7 +3,10 @@ import Link from "next/link";
 import { AIAssistantPanel } from "@/components/ai/ai-assistant-panel";
 import { MarkdownPreview } from "@/components/markdown/markdown-preview";
 import { requireUser } from "@/lib/auth/server";
-import { getCategoryById, listCategories } from "@/lib/db/categories";
+import {
+  getCategoryById,
+  listCategoriesEnsuringDefaults,
+} from "@/lib/db/categories";
 import { getKnowledgeItemById } from "@/lib/db/knowledge-items";
 import { listTagsByItemId } from "@/lib/db/tags";
 
@@ -37,7 +40,7 @@ export default async function KnowledgeItemPage({
   const category = item.category_id
     ? await getCategoryById(user.id, item.category_id)
     : null;
-  const categories = await listCategories(user.id);
+  const categories = await listCategoriesEnsuringDefaults(user.id);
   const summary = item.summary?.trim();
   const applySummary = applyKnowledgeItemSummaryAction.bind(null, item.id);
   const applyTags = applyKnowledgeItemTagsAction.bind(null, item.id);
