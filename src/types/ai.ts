@@ -10,6 +10,7 @@ export type AIGenerateRequest = {
   knowledgeItemId?: string;
   title?: string;
   content?: string;
+  modelId?: string;
 };
 
 export type AIGenerateResult =
