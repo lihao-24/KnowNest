@@ -5,8 +5,8 @@
 - Vercel Team / Scope：`haohaos-projects-a0810bdc`
 - Vercel Project：`knownest`
 - 生产域名：`https://knownest.vercel.app`
-- 当前部署：`https://knownest-f90rj7707-haohaos-projects-a0810bdc.vercel.app`
-- Vercel Inspector：`https://vercel.com/haohaos-projects-a0810bdc/knownest/8LrEwB2iJpfVqpuStW5EkpsED1MF`
+- 当前部署：`https://knownest-h8zvziim8-haohaos-projects-a0810bdc.vercel.app`
+- Vercel Inspector：`https://vercel.com/haohaos-projects-a0810bdc/knownest/wmaAF666J7fppcyma5CrigQLxAPF`
 
 ## 部署前提
 
@@ -77,6 +77,21 @@ npx.cmd vercel --prod --yes
 - Inspector URL
 - `readyState: READY`
 
+## V0.3 部署记录
+
+### 2026-04-30
+
+- 部署命令：`npx.cmd vercel --prod --yes --scope haohaos-projects-a0810bdc`。
+- Deployment URL：`https://knownest-h8zvziim8-haohaos-projects-a0810bdc.vercel.app`。
+- Production URL：`https://knownest.vercel.app`。
+- Vercel Inspector：`https://vercel.com/haohaos-projects-a0810bdc/knownest/wmaAF666J7fppcyma5CrigQLxAPF`。
+- Vercel deployment id：`dpl_wmaAF666J7fppcyma5CrigQLxAPF`。
+- 部署状态：`READY`。
+- 部署前验证通过：`npm.cmd run lint`、`npm.cmd run test:ai`、`npm.cmd run test:knowledge-items`、`npm.cmd run test:tags`、`npm.cmd run test:categories`、`npm.cmd run test:knowledge-item-draft`、`npm.cmd run test:knowledge-list-item`、`npm.cmd run test:security`、`npm.cmd run build`、`git diff --check`。
+- Production 环境变量名检查通过：必需 AI 变量、模型 allowlist 变量和 Xiaomi MiMo Token Plan 变量均已配置；未发现 `NEXT_PUBLIC_DEEPSEEK_API_KEY` 或其他 `NEXT_PUBLIC_*` AI 密钥名。
+- 已新增 `.vercelignore`，用于避免本地 `.env*`、依赖目录和构建产物进入 Vercel CLI 上传包。
+- Vercel 构建日志仍提示检测到 `.env` 文件；当前真实值应只保留在 Vercel Environment Variables，不写入仓库或文档。
+
 ## 部署后验证
 
 最小验证清单：
@@ -91,8 +106,10 @@ npx.cmd vercel --prod --yes
 本次部署已确认：
 
 - Vercel Production 部署成功，状态 `READY`。
-- `https://knownest.vercel.app/` 已返回登录页内容，不再显示旧占位首页。
-- 未登录访问 `/app` 进入登录页，路由保护生效。
+- `https://knownest.vercel.app/` 返回 307，`Location: /login`。
+- `https://knownest.vercel.app/login` 返回 200，页面包含登录内容。
+- 未登录访问 `https://knownest.vercel.app/app` 返回 307，`Location: /login`，路由保护生效。
+- 尚未在本轮 agent 中验证真实账号登录后的知识列表、新建、编辑、详情、AI 摘要/标签/分类/标题/正文整理和移动端布局；这些需要真实账号和人工浏览器操作继续验收。
 
 ## 常见问题
 
