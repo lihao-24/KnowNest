@@ -17,6 +17,7 @@
     "test:knowledge-item-favorite": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/knowledge/knowledge-item-favorite.test.mjs",
     "test:knowledge-list-item": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/knowledge/knowledge-list-item-view-model.test.mjs",
     "test:markdown-preview": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/markdown/markdown-preview-model.test.mjs",
+    "test:security": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/lib/security/headers.test.mjs",
     "test:tag-input": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/components/tags/tag-input-model.test.mjs"
   },
   "dependencies": {
