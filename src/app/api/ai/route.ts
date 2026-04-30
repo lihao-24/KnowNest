@@ -1,8 +1,8 @@
 import { AUTH_REQUIRED_MESSAGE, requireUser } from "@/lib/auth/server";
 import { buildAIGenerateContext, parseAIGenerateRequest } from "@/lib/ai/actions";
 import {
-  readAIConfig,
   readAIModelRegistry,
+  readAIUsageConfig,
   resolveAIModelConfig,
 } from "@/lib/ai/config";
 import { toAIErrorResponse } from "@/lib/ai/errors";
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const user = await requireUser();
     userId = user.id;
 
-    const config = readAIConfig();
+    const config = readAIUsageConfig();
     const body = await readJsonBody(request);
     const aiRequest = parseAIGenerateRequest(body);
     actionType = aiRequest.action;

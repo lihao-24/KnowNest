@@ -4,6 +4,7 @@ import {
   getModelForAction,
   getPublicAIModelOptions,
   readAIConfig,
+  readAIUsageConfig,
   readAIModelRegistry,
   resolveAIModelConfig,
 } from "./config.ts";
@@ -44,6 +45,25 @@ assert.equal(customConfig.modelQuality, "quality-model");
 assert.equal(customConfig.dailyLimit, 7);
 assert.equal(customConfig.maxInputChars, 500);
 assert.equal(customConfig.minInputChars, 10);
+
+assert.deepEqual(readAIUsageConfig({}), {
+  dailyLimit: 20,
+  maxInputChars: 8000,
+  minInputChars: 20,
+});
+
+assert.deepEqual(
+  readAIUsageConfig({
+    AI_DAILY_LIMIT: "7",
+    AI_MAX_INPUT_CHARS: "500",
+    AI_MIN_INPUT_CHARS: "10",
+  }),
+  {
+    dailyLimit: 7,
+    maxInputChars: 500,
+    minInputChars: 10,
+  },
+);
 
 assert.equal(getModelForAction("generate_summary", customConfig), "fast-model");
 assert.equal(getModelForAction("suggest_tags", customConfig), "fast-model");

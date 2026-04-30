@@ -12,6 +12,11 @@ export type AIConfig = {
   minInputChars: number;
 };
 
+export type AIUsageConfig = Pick<
+  AIConfig,
+  "dailyLimit" | "maxInputChars" | "minInputChars"
+>;
+
 export type AIModelProvider = "openai-compatible";
 
 export type AIModelOption = {
@@ -84,6 +89,12 @@ export function readAIConfig(env: AIEnv = process.env): AIConfig {
     modelFast: readString(env.AI_MODEL_FAST, DEFAULT_FAST_MODEL),
     modelDefault: readString(env.AI_MODEL_DEFAULT, DEFAULT_DEFAULT_MODEL),
     modelQuality: readString(env.AI_MODEL_QUALITY, DEFAULT_QUALITY_MODEL),
+    ...readAIUsageConfig(env),
+  };
+}
+
+export function readAIUsageConfig(env: AIEnv = process.env): AIUsageConfig {
+  return {
     dailyLimit: readPositiveInteger(env.AI_DAILY_LIMIT, DEFAULT_DAILY_LIMIT),
     maxInputChars: readPositiveInteger(
       env.AI_MAX_INPUT_CHARS,
