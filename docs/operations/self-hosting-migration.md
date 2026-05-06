@@ -5,8 +5,9 @@
 - 当前阶段：Mac mini Docker 承接原 Vercel Production。
 - 应用公网访问地址统一使用 `APP_URL` / `NEXT_PUBLIC_APP_URL` 配置，不在业务代码或主动运维文档中写死具体生产域名。
 - 当前 Docker 生产镜像使用 Next.js `standalone` 输出，并通过 `node server.js` 启动，不使用 `next dev`。
-- 生产 compose 文件：`docker-compose.prod.yml`。
+- 生产 compose 文件：`docker-compose.yml`。
 - 生产环境变量文件：`.env.production`，不得提交真实密钥。
+- 日常运维命令见 `docs/operations/ops-commands.md`。
 
 ## 下一阶段
 
@@ -54,7 +55,7 @@ XIAOMI_MIMO_TOKEN_PLAN_BASE_URL=
 - `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`NEXT_PUBLIC_APP_URL` 会进入浏览器端构建产物，应只放可公开值。
 - `DATABASE_URL`、`DEEPSEEK_API_KEY`、`XIAOMI_MIMO_TOKEN_PLAN_API_KEY` 和其他 Provider 密钥只能作为服务端变量配置。
 - `AI_MODEL_OPTIONS` 必须保持为单行 JSON，且只写环境变量名，不写真实 key。
-- Docker 构建时需要可公开的 `NEXT_PUBLIC_*` 值；建议使用 `docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build`。
+- Docker 构建时需要可公开的 `NEXT_PUBLIC_*` 值；建议使用 `docker compose --env-file .env.production up -d --build`。
 
 ## 需要验证的功能清单
 
@@ -73,7 +74,7 @@ XIAOMI_MIMO_TOKEN_PLAN_BASE_URL=
 
 ## 回滚方案
 
-- 应用层回滚：保留上一版 Docker image 或 Git commit，回滚代码后重新构建并启动 `docker-compose.prod.yml`。
+- 应用层回滚：保留上一版 Docker image 或 Git commit，回滚代码后重新构建并启动 `docker-compose.yml`。
 - 配置层回滚：保留上一版 `.env.production` 备份，确认没有真实密钥进入 Git，再恢复并重启容器。
 - 入口层回滚：如果公网入口或反向代理切换失败，将域名 / 反向代理指回上一稳定服务。
 - 数据层回滚：本阶段不执行 migration；后续 Supabase 迁移前必须先准备数据库备份和恢复演练。
