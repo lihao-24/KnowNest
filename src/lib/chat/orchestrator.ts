@@ -42,7 +42,8 @@ export async function runChatOrchestrator({
   await persistChatTurn({
     userId,
     userMessage: message,
-    assistantMessage
+    assistantMessage,
+    profile
   });
 
   return {

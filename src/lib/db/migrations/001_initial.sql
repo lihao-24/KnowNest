@@ -25,7 +25,8 @@ create table if not exists candidate_profiles (
   user_id text not null,
   profile jsonb not null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  unique (session_id, user_id)
 );
 
 create table if not exists saved_choices (

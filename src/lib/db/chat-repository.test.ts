@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { demoSessions } from "@/lib/chat/demo-data";
 import type { ChatMessage } from "@/lib/chat/types";
 import { getDbPool, hasDatabaseConnection } from "./client";
-import { listChatSessionsForUser, persistChatTurn } from "./chat-repository";
+import {
+  getCandidateProfileForSession,
+  listChatSessionsForUser,
+  persistChatTurn
+} from "./chat-repository";
 
 vi.mock("./client", () => ({
   getDbPool: vi.fn(),
@@ -91,5 +95,93 @@ describe("chat repository", () => {
       "先补全省位次。",
       "2026-06-09T08:31:00.000Z"
     ]);
+  });
+
+  it("persists the extracted candidate profile for the authenticated user session", async () => {
+    mockedHasDatabaseConnection.mockReturnValue(true);
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ id: "session-1" }] })
+      .mockResolvedValue({ rows: [] });
+    mockedGetDbPool.mockReturnValue({ query } as never);
+    const assistantMessage: ChatMessage = {
+      id: "assistant-1",
+      role: "assistant",
+      content: "已记录画像。",
+      createdAt: "2026-06-09T08:31:00.000Z"
+    };
+
+    await persistChatTurn({
+      userId: "user-1",
+      userMessage: "河南理科 580 分，位次 3 万",
+      assistantMessage,
+      profile: {
+        province: "河南",
+        score: 580,
+        rank: 30000,
+        subjectType: "物理类",
+        preferredRegions: [],
+        excludedRegions: [],
+        interestedMajors: [],
+        excludedMajors: []
+      }
+    });
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining("insert into candidate_profiles"),
+      [
+        "session-1",
+        "user-1",
+        expect.objectContaining({
+          province: "河南",
+          score: 580,
+          rank: 30000,
+          subjectType: "物理类"
+        }),
+        "2026-06-09T08:31:00.000Z"
+      ]
+    );
+    expect(
+      query.mock.calls.some(
+        ([sql]) =>
+          typeof sql === "string" &&
+          sql.includes("where candidate_profiles.session_id = excluded.session_id") &&
+          sql.includes("candidate_profiles.user_id = excluded.user_id")
+      )
+    ).toBe(true);
+  });
+
+  it("loads candidate profiles by session id and authenticated user id", async () => {
+    mockedHasDatabaseConnection.mockReturnValue(true);
+    const query = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          profile: {
+            province: "河南",
+            score: 580,
+            rank: 30000,
+            subjectType: "物理类",
+            preferredRegions: [],
+            excludedRegions: [],
+            interestedMajors: [],
+            excludedMajors: []
+          }
+        }
+      ]
+    });
+    mockedGetDbPool.mockReturnValue({ query } as never);
+
+    const profile = await getCandidateProfileForSession("user-1", "session-1");
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining("where session_id = $1 and user_id = $2"),
+      ["session-1", "user-1"]
+    );
+    expect(profile).toMatchObject({
+      province: "河南",
+      score: 580,
+      rank: 30000,
+      subjectType: "物理类"
+    });
   });
 });

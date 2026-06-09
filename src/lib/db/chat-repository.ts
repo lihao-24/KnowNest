@@ -1,11 +1,13 @@
 import { demoSessions } from "@/lib/chat/demo-data";
 import type { ChatMessage, ChatSession, StatusKind } from "@/lib/chat/types";
+import type { CandidateProfile } from "@/lib/profile/types";
 import { getDbPool, hasDatabaseConnection } from "./client";
 
 export type PersistChatTurnInput = {
   userId: string;
   userMessage: string;
   assistantMessage: ChatMessage;
+  profile?: CandidateProfile;
 };
 
 export async function listChatSessionsForUser(userId: string): Promise<ChatSession[]> {
@@ -95,9 +97,81 @@ export async function persistChatTurn(input: PersistChatTurnInput): Promise<void
       input.assistantMessage.createdAt,
       input.userId
     ]);
+
+    if (input.profile) {
+      await persistCandidateProfile({
+        sessionId,
+        userId: input.userId,
+        profile: input.profile,
+        updatedAt: input.assistantMessage.createdAt
+      });
+    }
   } catch {
     return;
   }
+}
+
+export async function getCandidateProfileForSession(
+  userId: string,
+  sessionId: string
+): Promise<CandidateProfile | null> {
+  if (!hasDatabaseConnection()) {
+    return null;
+  }
+
+  const pool = getDbPool();
+  if (!pool) {
+    return null;
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        select profile
+        from candidate_profiles
+        where session_id = $1 and user_id = $2
+        limit 1
+      `,
+      [sessionId, userId]
+    );
+
+    return normalizeCandidateProfile(result.rows[0]?.profile);
+  } catch {
+    return null;
+  }
+}
+
+type PersistCandidateProfileInput = {
+  sessionId: string;
+  userId: string;
+  profile: CandidateProfile;
+  updatedAt: string;
+};
+
+async function persistCandidateProfile({
+  sessionId,
+  userId,
+  profile,
+  updatedAt
+}: PersistCandidateProfileInput): Promise<void> {
+  const pool = getDbPool();
+  if (!pool) {
+    throw new Error("database pool unavailable");
+  }
+
+  await pool.query(
+    `
+      insert into candidate_profiles (session_id, user_id, profile, updated_at)
+      values ($1, $2, $3, $4)
+      on conflict (session_id, user_id)
+      do update set
+        profile = excluded.profile,
+        updated_at = excluded.updated_at
+      where candidate_profiles.session_id = excluded.session_id
+        and candidate_profiles.user_id = excluded.user_id
+    `,
+    [sessionId, userId, profile, updatedAt]
+  );
 }
 
 async function getOrCreateDefaultSession(userId: string): Promise<string> {
@@ -160,4 +234,30 @@ function formatTimestamp(value: unknown): string {
   }
 
   return new Date().toISOString();
+}
+
+function normalizeCandidateProfile(value: unknown): CandidateProfile | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const profile = value as Partial<CandidateProfile>;
+  if (profile.province !== "河南") {
+    return null;
+  }
+
+  return {
+    province: "河南",
+    score: profile.score,
+    rank: profile.rank,
+    subjectType: profile.subjectType,
+    eligibleNationalSpecialPlan: profile.eligibleNationalSpecialPlan,
+    preferredRegions: profile.preferredRegions ?? [],
+    excludedRegions: profile.excludedRegions ?? [],
+    interestedMajors: profile.interestedMajors ?? [],
+    excludedMajors: profile.excludedMajors ?? [],
+    familyResources: profile.familyResources,
+    budgetConstraints: profile.budgetConstraints,
+    primaryGoal: profile.primaryGoal
+  };
 }
