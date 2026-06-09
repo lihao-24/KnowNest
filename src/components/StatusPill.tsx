@@ -1,6 +1,7 @@
 import type { StatusKind } from "@/lib/chat/types";
 
 const statusClassName: Record<StatusKind, string> = {
+  数据未导入: "statusPill statusPill--missing-data",
   资料未全: "statusPill statusPill--incomplete",
   待确认: "statusPill statusPill--confirm",
   待核验: "statusPill statusPill--verify",

@@ -17,6 +17,18 @@ describe("runChatOrchestrator", () => {
     expect(result.summary.missingInfo).toContain("全省位次");
     expect(result.summary.status).toBe("资料未全");
     expect(result.assistantMessage.content).toContain("不会编具体录取线或计划数");
+    expect(result.assistantMessage.content).toContain("全省位次");
+  });
+
+  it("asks for official subject type when subject type is missing", async () => {
+    const result = await runChatOrchestrator({
+      message: "河南 580 分，位次 3 万，想省内稳一点",
+      userId: "demo-user"
+    });
+
+    expect(result.summary.missingInfo).toContain("科类：物理类或历史类");
+    expect(result.summary.status).toBe("资料未全");
+    expect(result.assistantMessage.content).toContain("物理类或历史类");
   });
 
   it("builds recommendation summary from sample admissions records when profile is complete", async () => {
@@ -37,6 +49,7 @@ describe("runChatOrchestrator", () => {
     );
     expect(result.summary.sources[0].detail).toContain("样例数据，不用于真实填报");
     expect(result.assistantMessage.content).toContain("样例数据，不用于真实填报");
+    expect(result.assistantMessage.content).not.toContain("结构化招生数据还没有导入");
   });
 
   it("does not fabricate candidates when no admissions data is available", async () => {
@@ -47,8 +60,9 @@ describe("runChatOrchestrator", () => {
     });
 
     expect(result.summary.candidates).toEqual([]);
-    expect(result.summary.status).toBe("资料未全");
+    expect(result.summary.status).toBe("数据未导入");
     expect(result.summary.sources[0].detail).toContain("数据未导入");
     expect(result.assistantMessage.content).toContain("数据未导入");
+    expect(result.assistantMessage.content).toContain("先导入 admission_records");
   });
 });

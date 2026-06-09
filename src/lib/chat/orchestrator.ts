@@ -78,7 +78,7 @@ function createRecommendationSummary(
 
   if (admissionsLookup.records.length === 0) {
     return {
-      status: "资料未全",
+      status: "数据未导入",
       profile: chatProfile,
       missingInfo: ["结构化招生数据"],
       candidates: [],
@@ -103,7 +103,9 @@ function createRecommendationSummary(
 
 function buildSystemContext(summary: ChatSummary, dataMode: AdmissionsLookup["dataMode"]): string {
   if (summary.missingInfo.length > 0 && summary.candidates.length === 0) {
-    return `现在不能做完整冲稳保判断，还缺：${summary.missingInfo.join("、")}。${dataBoundaryText(dataMode)}`;
+    const nextStep =
+      dataMode === "empty" ? "先导入 admission_records 后再生成冲稳保候选。" : "";
+    return `现在不能做完整冲稳保判断，还缺：${summary.missingInfo.join("、")}。${dataBoundaryText(dataMode)}${nextStep}`;
   }
 
   const bucketCounts = summary.candidates.reduce<Record<string, number>>((counts, candidate) => {

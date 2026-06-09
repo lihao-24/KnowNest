@@ -2,7 +2,7 @@ import type { AdmissionRecord } from "@/lib/admissions/types";
 
 export type SubjectType = "物理类" | "历史类";
 
-export type StatusKind = "资料未全" | "待确认" | "待核验" | "可用";
+export type StatusKind = "数据未导入" | "资料未全" | "待确认" | "待核验" | "可用";
 
 export type CandidateBucket = "冲" | "稳" | "保";
 

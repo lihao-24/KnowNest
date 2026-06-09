@@ -1215,6 +1215,19 @@ button:disabled {
   padding: 14px 16px 10px;
 }
 
+.summaryStatus {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.summaryStatus p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .summaryPanel > .summarySection:first-of-type {
   margin-top: 4px;
 }
@@ -1337,6 +1350,11 @@ button:disabled {
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.statusPill--missing-data {
+  background: #f8ded9;
+  color: var(--danger);
 }
 
 .statusPill--incomplete {

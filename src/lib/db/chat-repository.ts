@@ -134,7 +134,13 @@ async function getOrCreateDefaultSession(userId: string): Promise<string> {
 }
 
 function normalizeStatus(status: unknown): StatusKind {
-  if (status === "资料未全" || status === "待确认" || status === "待核验" || status === "可用") {
+  if (
+    status === "数据未导入" ||
+    status === "资料未全" ||
+    status === "待确认" ||
+    status === "待核验" ||
+    status === "可用"
+  ) {
     return status;
   }
 

@@ -197,6 +197,10 @@ export function WorkspaceShell({
         <header>
           <p className="eyebrow">CURRENT SUMMARY</p>
           <h2>当前总结区</h2>
+          <div className="summaryStatus">
+            <StatusPill status={summary.status} />
+            <p>{getSummaryStatusDetail(summary)}</p>
+          </div>
         </header>
 
         <SummarySection title="考生画像">
@@ -225,7 +229,7 @@ export function WorkspaceShell({
 
         <SummarySection title="候选清单">
           {summary.candidates.length === 0 ? (
-            <p className="emptyText">资料未全，暂不生成完整候选。</p>
+            <p className="emptyText">{getEmptyCandidateText(summary.status)}</p>
           ) : (
             <div className="candidateList">
               {summary.candidates.map((candidate) => (
@@ -272,6 +276,38 @@ export function WorkspaceShell({
       </aside>
     </main>
   );
+}
+
+function getSummaryStatusDetail(summary: ChatSummary): string {
+  if (summary.status === "数据未导入") {
+    return "结构化招生数据还不可用，只能解释规则和数据准备，不生成冲稳保。";
+  }
+
+  if (summary.status === "资料未全") {
+    return `还缺 ${summary.missingInfo.length} 项硬信息，先追问再推荐。`;
+  }
+
+  if (summary.status === "待确认") {
+    return "用户口径或偏好还需要确认，暂不作为最终判断。";
+  }
+
+  if (summary.status === "待核验") {
+    return "已形成初筛候选，但招生计划、章程和官方来源仍需核验。";
+  }
+
+  return "当前结构化数据可用，仍需按官方系统做最终确认。";
+}
+
+function getEmptyCandidateText(status: ChatSummary["status"]): string {
+  if (status === "数据未导入") {
+    return "数据未导入，当前不生成冲稳保候选。";
+  }
+
+  if (status === "资料未全") {
+    return "资料未全，暂不生成完整候选。";
+  }
+
+  return "当前条件下没有可展示候选。";
 }
 
 function SummarySection({
