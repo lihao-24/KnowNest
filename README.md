@@ -37,6 +37,7 @@
 
 - `AGENTS.md`：agent 工作规范、项目边界和验证规则
 - `docs/README.md`：文档目录入口
+- `designs/mvp-ui.pen`：当前 MVP 登录页和三栏工作台 UI 基准
 - `docs/specs/initial-product-scope.md`：初始产品范围
 - `docs/specs/mvp-product-design.md`：MVP 产品与交互设计
 - `docs/plans/2026-06-09-mvp-implementation-plan.md`：MVP 开发实施计划

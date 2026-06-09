@@ -6,6 +6,7 @@
 
 - `../README.md`：项目目标、当前状态和计划能力
 - `../AGENTS.md`：agent 工作规范、架构边界、验证和文档更新规则
+- `../designs/mvp-ui.pen`：当前 MVP 登录页和三栏工作台 UI 基准
 - `specs/initial-product-scope.md`：第一阶段产品范围
 - `specs/mvp-product-design.md`：MVP 产品与交互设计
 - `plans/2026-06-09-mvp-implementation-plan.md`：MVP 开发实施计划
@@ -25,6 +26,8 @@ docs/
 ├── specs/       # 阶段性产品规格
 └── plans/       # 阶段性实施计划，完成后作为历史记录保留
 ```
+
+仓库根目录的 `designs/` 保存可直接指导实现的设计文件。当前只有 `designs/mvp-ui.pen`，后续 UI 改版时优先更新该文件或新增明确版本。
 
 推荐未来按需增加：
 

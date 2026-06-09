@@ -23,6 +23,7 @@ pnpm-debug.log*
 # local data and runtime files
 data/raw/
 data/private/
+data-prep/
 *.sqlite
 *.sqlite3
 
