@@ -17,6 +17,22 @@
 - `reference/data-trust-model.md`：数据可信度分级和使用原则
 - `reference/upstream/xuefeng-agent/README.md`：上游 `xuefeng-agent` 参考资料索引和使用边界
 
+## 当前开发状态
+
+截至 2026-06-09，`plans/2026-06-09-mvp-implementation-plan.md` 已开始执行并完成第一条可运行 demo 竖切：
+
+- 阶段 0 应用骨架：基本完成并通过验证。
+- 阶段 1 登录：完成 demo auth 和 Supabase server helper，真实 Supabase 登录流程待接入验证。
+- 阶段 2 数据库：schema、迁移脚本、会话 repository 初稿完成，真实 Postgres 端到端验证待做。
+- 阶段 3 数据导入：`admission_records` CSV 校验和导入脚本初稿完成，样例 CSV 入库待做。
+- 阶段 4 画像提取：硬字段规则提取初稿完成，手动修正画像待做。
+- 阶段 5 推荐规则：内存数据规则筛选初稿完成，数据库驱动候选查询待做。
+- 阶段 6 LLM 编排：demo provider 边界完成，真实 OpenAI-compatible Provider 待接入。
+- 阶段 7 工作台 UI：桌面三栏 demo 初稿完成，真实数据驱动和窄屏抽屉交互待完善。
+- 阶段 8 Docker：Dockerfile / Compose 初稿完成，`docker compose up -d --build` 待验证。
+
+最近验证：`pnpm test`、`pnpm typecheck`、`pnpm lint`、`pnpm build`、`git diff --check` 均已通过。当前 `pnpm build` 使用 webpack 构建。
+
 ## 目录说明
 
 ```text

@@ -67,6 +67,21 @@
 
 `data-prep/` 当前仍用于本地数据整理，用户明确放出前不要提交到 Git。
 
+## 当前实现状态
+
+截至 2026-06-09，项目已有可本地运行的 MVP 骨架：
+
+- Next.js App Router + React + TypeScript。
+- 登录页和 `/workspace` 三栏工作台。
+- demo auth + Supabase Auth server helper。
+- `/api/auth/me` 和 `/api/chat`。
+- `src/lib/profile`、`src/lib/admissions`、`src/lib/recommendation` 的第一版核心规则与测试。
+- `src/lib/db` 的 Postgres 连接、迁移、会话 repository 初稿。
+- `scripts/migrate.ts` 和 `scripts/import-admissions.ts`。
+- `Dockerfile` 和 `docker-compose.yml` 初稿。
+
+当前仍是 demo 数据竖切，未完成真实 Supabase 登录、真实 Postgres 端到端验证、河南招生样例 CSV 入库、数据库驱动推荐和真实 LLM Provider 调用。
+
 ## UI 实现基准
 
 - 当前 UI 设计文件：`designs/mvp-ui.pen`。
@@ -109,6 +124,16 @@ pnpm test
 pnpm build
 git diff --check
 ```
+
+最近一次完整验证结果：
+
+- `pnpm test`：通过，5 个测试文件、10 个测试。
+- `pnpm typecheck`：通过。
+- `pnpm lint`：通过。
+- `pnpm build`：通过。
+- `git diff --check`：通过。
+
+注意：`pnpm build` 当前使用 `next build --webpack`。Next 16 默认 Turbopack 在当前沙箱环境中处理 CSS 时曾触发 `binding to a port` 权限错误，因此先显式使用 webpack 构建。
 
 ## 文档更新触发器
 

@@ -36,6 +36,14 @@
 
 ## 建议数据表
 
+当前迁移已创建以下表：
+
+- 用户私有表：`chat_sessions`、`chat_messages`、`candidate_profiles`、`saved_choices`。
+- 公共数据表：`score_segments`、`admission_records`、`enrollment_plans`、`school_documents`。
+- RAG 预留表：`document_chunks`。
+
+当前已实现 `admission_records` CSV parser 和导入脚本，`score_segments`、`enrollment_plans`、`school_documents` 的导入脚本仍待补齐。
+
 ### admission_records
 
 记录近三年河南本科批和国家专项计划的录取或投档结果。
@@ -162,6 +170,14 @@ primary_goal
 缺少 `score`、`rank`、`subject_type`、`primary_goal` 时，不进入完整推荐，只追问或做概念解释。
 
 ## 推荐流程
+
+当前实现状态（2026-06-09）：
+
+- `src/lib/profile` 已支持从单轮文本中提取分数、位次、科类、国家专项资格、地域/专业偏好和核心诉求。
+- `src/lib/admissions` 已支持 `admission_records` CSV header 解析、字段校验、行号/字段级错误报告和 snake_case 到 camelCase 转换。
+- `src/lib/recommendation` 已支持内存 `AdmissionRecord[]` 的河南、本科批、科类、国家专项资格过滤，以及按位次粗分“冲/稳/保”。
+- 当前推荐结果尚未从数据库查询，也尚未结合 `enrollment_plans` 和 `school_documents` 做完整风险分析。
+- 工作台右侧候选、来源和核验事项目前仍主要由 demo summary 驱动。
 
 ### 1. 画像校验
 

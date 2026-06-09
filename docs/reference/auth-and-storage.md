@@ -6,6 +6,27 @@
 
 业务数据使用本项目独立数据库。第一阶段推荐独立 Postgres，并预留后续文档检索和向量能力；如果实现阶段为了极简验证采用 SQLite，仍必须保持同样的用户隔离边界。
 
+## 当前实现状态
+
+截至 2026-06-09：
+
+- 已有 `src/lib/auth/server.ts`：
+  - `getCurrentUser()`：优先用 Supabase server client 读取 cookie session。
+  - `requireAuthenticatedUser()`：未认证时跳转 `/login`。
+  - `DEMO_AUTH_ENABLED=true` 且 Supabase 配置缺失时，返回本地 demo user，方便 MVP UI 本地查看。
+- 已有 `/api/auth/me`，返回服务端认证得到的用户，不接受客户端传入 `user_id`。
+- 已有 `/api/chat`，只接收 `message`，`userId` 来自服务端认证结果。
+- 已有 `src/lib/db/client.ts`，`DATABASE_URL=disabled` 时不连接数据库并使用 demo fallback。
+- 已有 `src/lib/db/chat-repository.ts`，数据库可用时按 `user_id` 查询/写入聊天会话和消息；数据库不可用时降级到 demo sessions。
+- 已有 `src/lib/db/migrations/001_initial.sql`，包含用户私有表、公共招生数据表和 RAG 预留表。
+
+待验证/待完成：
+
+- 真实 Supabase 登录 UI 和回调流程尚未打通。
+- 真实 Postgres 迁移、写入和用户隔离端到端验证尚未完成。
+- `candidate_profiles`、`saved_choices` repository 尚未实现。
+- 管理员/维护者权限尚未实现，公共招生数据导入仍默认走本地脚本。
+
 ## 参考模式
 
 现有 `image-service` 和 `diagram-service` 已采用类似模式：
@@ -77,14 +98,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 业务库：
 
 ```env
-DATABASE_URL=
+DATABASE_URL=disabled
 ```
 
 AI Provider：
 
 ```env
 AI_DEFAULT_PROVIDER=
-AI_PROVIDER_OPTIONS=
+AI_PROVIDER_BASE_URL=
+AI_PROVIDER_API_KEY=
+AI_PROVIDER_MODEL=
 ```
 
 真实密钥和连接串只放本地 `.env.local` 或部署环境，不进入 Git。

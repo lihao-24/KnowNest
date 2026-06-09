@@ -13,6 +13,14 @@
 - 考生画像提取、招生 CSV 校验导入、冲稳保推荐规则的第一版核心模块和测试。
 - 独立 Postgres schema 初稿、Dockerfile 和 Docker Compose 初稿。
 
+当前最近进度（2026-06-09）：
+
+- 已安装依赖并提交 `pnpm-lock.yaml`。
+- 本地开发服务已能启动并打开查看。
+- `pnpm test`、`pnpm typecheck`、`pnpm lint`、`pnpm build`、`git diff --check` 已通过。
+- `pnpm build` 当前显式使用 `next build --webpack`，原因是 Next 16 默认 Turbopack 在当前沙箱环境中会触发端口绑定限制。
+- 当前可用体验仍是 demo auth + demo 数据竖切；还不是完整真实数据驱动 MVP。
+
 当前已确定的边界：
 
 - 只服务河南省高考志愿填报，不做全国通用版本。
@@ -100,6 +108,15 @@ git diff --check
 ```
 
 当前仓库不提交 `data-prep/`，该目录由数据整理阶段单独放出。
+
+## 后续接手重点
+
+1. 接入真实 Supabase 登录流程，验证未登录跳转和登录后服务端 user id。
+2. 启动 Postgres，执行 `pnpm db:migrate`，验证会话和消息按 `user_id` 隔离写入。
+3. 准备一小份非真实隐私的样例 CSV，通过 `pnpm import:admissions <csv>` 验证导入报告和入库。
+4. 把推荐规则从 demo 数据改为查询 `admission_records` / `enrollment_plans`。
+5. 接入 OpenAI-compatible Provider，保持 LLM 只解释规则层候选、不直接决定候选。
+6. 做一次浏览器/窄屏 UI smoke，确认三栏、长回答和右侧总结区不遮挡。
 
 ## Git 状态
 

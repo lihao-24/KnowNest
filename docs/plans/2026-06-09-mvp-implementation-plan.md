@@ -1,5 +1,7 @@
 # MVP 实施计划
 
+> 当前状态（2026-06-09）：本计划已进入执行阶段。已完成可本地启动查看的 demo 竖切和基础验证，但还不是完整真实数据驱动 MVP。后续优先接入真实 Supabase 登录、Postgres 端到端验证、样例 CSV 入库、数据库驱动推荐和真实 LLM Provider。
+
 ## 目标
 
 把项目从文档阶段推进到可本地运行的 MVP：
@@ -32,6 +34,27 @@
 - 数据导入校验脚本。
 
 ## 阶段 0：应用骨架
+
+状态：基本完成。
+
+已完成：
+
+- Next.js App Router + TypeScript 应用骨架。
+- lint、typecheck、test、build 脚本。
+- 基础目录 `src/app`、`src/components`、`src/lib/*`、`scripts`。
+- `.env.example`。
+- Dockerfile 和 Docker Compose 初稿。
+- 登录页和工作台 UI 初版，参考 `designs/mvp-ui.pen`。
+
+验证：
+
+- `pnpm test` 通过。
+- `pnpm typecheck` 通过。
+- `pnpm lint` 通过。
+- `pnpm build` 通过。
+- `git diff --check` 通过。
+
+说明：`pnpm build` 当前显式使用 `next build --webpack`，避免 Next 16 默认 Turbopack 在当前沙箱环境触发端口绑定权限错误。
 
 任务：
 
@@ -70,6 +93,23 @@ scripts/
 
 ## 阶段 1：统一登录
 
+状态：部分完成。
+
+已完成：
+
+- 登录页初版。
+- 服务端 auth helper。
+- `requireAuthenticatedUser()`。
+- `/workspace` 受保护页面。
+- `/api/auth/me`。
+- 本地 demo auth 入口。
+
+待完成：
+
+- 接入真实 Supabase 登录 UI/流程。
+- 验证未登录访问工作台跳转登录。
+- 验证登录后服务端能拿到真实 Supabase user id。
+
 任务：
 
 - 复用 Supabase Auth。
@@ -92,6 +132,22 @@ scripts/
 - 服务端能拿到 Supabase user id。
 
 ## 阶段 2：业务数据库和 schema
+
+状态：部分完成。
+
+已完成：
+
+- Postgres 连接 helper。
+- 初始迁移 `001_initial.sql`。
+- 用户私有表和公共招生数据表初稿。
+- `chat_sessions` / `chat_messages` repository 初稿，查询和写入按 `user_id` 过滤。
+- `pnpm db:migrate` 脚本入口。
+
+待完成：
+
+- 启动真实 Postgres 并执行迁移。
+- 验证创建会话、保存消息、保存画像。
+- 写用户隔离端到端用例。
 
 任务：
 
@@ -140,6 +196,20 @@ document_chunks
 
 ## 阶段 3：数据导入
 
+状态：部分完成。
+
+已完成：
+
+- `admission_records` CSV parser 和字段校验。
+- 导入错误包含行号和字段。
+- `pnpm import:admissions <csv>` 脚本入口。
+
+待完成：
+
+- `score_segments`、`enrollment_plans`、`school_documents` 导入脚本。
+- 准备一小份样例 CSV 并验证入库。
+- 增加重复记录校验和导入报告细化。
+
 任务：
 
 - 定义 CSV 模板。
@@ -173,6 +243,21 @@ document_chunks
 
 ## 阶段 4：考生画像提取
 
+状态：部分完成。
+
+已完成：
+
+- 画像数据模型初稿。
+- 从用户消息中提取分数、位次、科类、国家专项资格、偏好和核心诉求的规则实现。
+- 支持“理科/文科”归一化到“物理类/历史类”。
+- 缺失字段判断。
+
+待完成：
+
+- 用户手动修正画像。
+- 软字段的 LLM 辅助结构化和用户确认流程。
+- 画像持久化到数据库。
+
 任务：
 
 - 建立画像数据模型。
@@ -192,6 +277,21 @@ document_chunks
 - 右侧画像同步更新。
 
 ## 阶段 5：推荐规则服务
+
+状态：部分完成。
+
+已完成：
+
+- 内存 `AdmissionRecord[]` 推荐规则初稿。
+- 河南、本科批、科类、国家专项资格过滤。
+- 位次粗分“冲/稳/保”。
+- 缺少招生计划时标记风险和 missing source。
+
+待完成：
+
+- 从数据库查询候选。
+- 接入 `enrollment_plans` 判断当年计划变化。
+- 更完整的风险标签和可配置阈值。
 
 任务：
 
@@ -231,6 +331,21 @@ missing_sources
 
 ## 阶段 6：LLM 问答编排
 
+状态：部分完成。
+
+已完成：
+
+- demo AI provider 边界。
+- `/api/chat` 只接收用户消息，服务端获取 user id。
+- 信息不足时生成追问式 demo 回复。
+
+待完成：
+
+- 接入真实 OpenAI-compatible Provider。
+- 建立 system prompt。
+- 将结构化候选、画像、来源和方法论资料传给 LLM。
+- 输出可关联 evidence/source 的回答。
+
 任务：
 
 - 配置 OpenAI-compatible Provider。
@@ -253,6 +368,22 @@ missing_sources
 - 没有数据时明确说明不能判断。
 
 ## 阶段 7：工作台 UI
+
+状态：部分完成。
+
+已完成：
+
+- 桌面三栏布局初版。
+- 会话列表、聊天主区、右侧总结区。
+- 右侧展示画像、缺失信息、候选、来源和待核验事项的 demo 数据。
+- 状态标签初版。
+
+待完成：
+
+- 真正保存到志愿篮。
+- 真实数据驱动候选和来源。
+- 窄屏抽屉式右侧面板。
+- 浏览器 smoke 和视觉细节复核。
 
 任务：
 
@@ -277,6 +408,20 @@ missing_sources
 - 长回答和候选列表不互相遮挡。
 
 ## 阶段 8：Docker 本地部署
+
+状态：部分完成。
+
+已完成：
+
+- Dockerfile 初稿。
+- Docker Compose 初稿。
+- Postgres volume 和健康检查初稿。
+- 环境变量模板。
+
+待完成：
+
+- 实际执行 `docker compose up -d --build`。
+- 验证应用可访问、Postgres 持久化和 Supabase Auth 配置。
 
 任务：
 
