@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
+import { importAdmissionRecords } from "../src/lib/admissions/db-import";
 import { parseAdmissionRecordsCsv } from "../src/lib/admissions/importer";
-import type { AdmissionRecord } from "../src/lib/admissions/types";
 import { getDbPool, hasDatabaseConnection } from "../src/lib/db/client";
 
 async function main() {
@@ -35,77 +35,10 @@ async function main() {
     return;
   }
 
-  for (const record of result.records) {
-    await insertAdmissionRecord(record);
-  }
+  await importAdmissionRecords(result.records, pool);
 
   await pool.end();
   console.log(`inserted_records=${result.records.length}`);
-}
-
-async function insertAdmissionRecord(record: AdmissionRecord) {
-  const pool = getDbPool();
-  if (!pool) {
-    throw new Error("database pool unavailable");
-  }
-
-  await pool.query(
-    `
-      insert into admission_records (
-        year,
-        province,
-        batch,
-        plan_type,
-        subject_type,
-        school_code,
-        school_name,
-        major_group_code,
-        major_group_name,
-        major_code,
-        major_name,
-        min_score,
-        min_rank,
-        avg_score,
-        avg_rank,
-        plan_count,
-        source_name,
-        source_url,
-        source_published_at,
-        trust_level,
-        notes
-      )
-      values (
-        $1, $2, $3, $4, $5,
-        $6, $7, $8, $9, $10,
-        $11, $12, $13, $14, $15,
-        $16, $17, $18, $19, $20,
-        $21
-      )
-    `,
-    [
-      record.year,
-      record.province,
-      record.batch,
-      record.planType,
-      record.subjectType,
-      record.schoolCode,
-      record.schoolName,
-      record.majorGroupCode ?? null,
-      record.majorGroupName ?? null,
-      record.majorCode ?? null,
-      record.majorName ?? null,
-      record.minScore ?? null,
-      record.minRank ?? null,
-      record.avgScore ?? null,
-      record.avgRank ?? null,
-      record.planCount ?? null,
-      record.sourceName,
-      record.sourceUrl ?? null,
-      record.sourcePublishedAt ?? null,
-      record.trustLevel,
-      record.notes ?? null
-    ]
-  );
 }
 
 main().catch(async (error) => {

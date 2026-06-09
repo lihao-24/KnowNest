@@ -91,11 +91,32 @@ Docker 本地启动：
 docker compose up -d --build
 ```
 
+如果本机 `5432` 已被其他 Postgres 或 Supabase 占用，可以临时改用其他宿主机端口：
+
+```bash
+POSTGRES_PORT=55432 docker compose up -d db
+```
+
 如果要连接本地 Postgres，把 `.env.local` 中的 `DATABASE_URL` 改成：
 
 ```env
 DATABASE_URL=postgres://henan_gaokao:henan_gaokao@localhost:5432/henan_gaokao
 ```
+
+对应使用 `POSTGRES_PORT=55432` 时：
+
+```env
+DATABASE_URL=postgres://henan_gaokao:henan_gaokao@localhost:55432/henan_gaokao
+```
+
+执行迁移和导入可提交样例数据：
+
+```bash
+pnpm db:migrate
+pnpm import:admissions fixtures/admissions/sample-admission-records.csv
+```
+
+`fixtures/admissions/sample-admission-records.csv` 是虚构样例数据，只用于端到端开发验证，不用于真实填报。
 
 常用验证：
 
