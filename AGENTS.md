@@ -69,18 +69,20 @@
 
 ## 当前实现状态
 
-截至 2026-06-09，项目已有可本地运行的 MVP 骨架：
+截至 2026-06-10，项目已有可本地运行的样例数据驱动 MVP 竖切：
 
 - Next.js App Router + React + TypeScript。
 - 登录页和 `/workspace` 三栏工作台。
 - demo auth + Supabase Auth server helper。
 - `/api/auth/me` 和 `/api/chat`。
 - `src/lib/profile`、`src/lib/admissions`、`src/lib/recommendation` 的第一版核心规则与测试。
-- `src/lib/db` 的 Postgres 连接、迁移、会话 repository 初稿。
+- `src/lib/admissions/repository.ts` 支持数据库优先、`DATABASE_URL=disabled` 时读取样例 CSV。
+- `src/lib/db` 的 Postgres 连接、迁移、会话 repository 和 candidate profile 持久化初稿。
 - `scripts/migrate.ts` 和 `scripts/import-admissions.ts`。
+- `fixtures/admissions/sample-admission-records.csv`，仅为虚构样例数据，不用于真实填报。
 - `Dockerfile` 和 `docker-compose.yml` 初稿。
 
-当前仍是 demo 数据竖切，未完成真实 Supabase 登录、真实 Postgres 端到端验证、河南招生样例 CSV 入库、数据库驱动推荐和真实 LLM Provider 调用。
+当前仍是 demo auth + 样例数据竖切，未完成真实 Supabase 登录、真实 Postgres 端到端验证、真实河南招生数据入库、`enrollment_plans` 驱动风险分析和真实 LLM Provider 调用。
 
 ## UI 实现基准
 
@@ -127,13 +129,19 @@ git diff --check
 
 最近一次完整验证结果：
 
-- `pnpm test`：通过，5 个测试文件、10 个测试。
+- `pnpm test`：通过，6 个测试文件、17 个测试。
 - `pnpm typecheck`：通过。
 - `pnpm lint`：通过。
 - `pnpm build`：通过。
 - `git diff --check`：通过。
 
 注意：`pnpm build` 当前使用 `next build --webpack`。Next 16 默认 Turbopack 在当前沙箱环境中处理 CSS 时曾触发 `binding to a port` 权限错误，因此先显式使用 webpack 构建。
+
+最近 Docker/Postgres 验证备注：
+
+- `docker compose up -d db` 默认映射 `5432:5432` 时，本机 Supabase pooler 已占用 `127.0.0.1:5432`。
+- `docker-compose.yml` 已支持 `POSTGRES_PORT`，例如 `POSTGRES_PORT=55432 docker compose up -d db`。
+- 当前会话中改端口启动需要 Docker socket 提权，但审批服务返回 503，真实 Postgres 迁移和入库实跑仍需在本机重试。
 
 ## 文档更新触发器
 
