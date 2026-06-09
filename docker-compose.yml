@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+      DATABASE_URL: ${DATABASE_URL:-postgres://henan_gaokao:henan_gaokao@db:5432/henan_gaokao}
+      AI_DEFAULT_PROVIDER: ${AI_DEFAULT_PROVIDER:-openai-compatible}
+      AI_PROVIDER_BASE_URL: ${AI_PROVIDER_BASE_URL:-}
+      AI_PROVIDER_API_KEY: ${AI_PROVIDER_API_KEY:-}
+      AI_PROVIDER_MODEL: ${AI_PROVIDER_MODEL:-}
+      DEMO_AUTH_ENABLED: ${DEMO_AUTH_ENABLED:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: henan_gaokao
+      POSTGRES_USER: henan_gaokao
+      POSTGRES_PASSWORD: henan_gaokao
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./src/lib/db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U henan_gaokao -d henan_gaokao"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  postgres-data:
