@@ -151,9 +151,13 @@ LLM 输入应包含规则层筛出的候选、检索到的资料和明确的数�
 - Next.js + React + TypeScript。
 - Docker 本地运行。
 - 服务端调用 OpenAI-compatible Provider。
-- 第一版数据库可选 SQLite 或 Postgres；如果后续和本地其他项目共用部署形态，优先考虑 Docker Compose。
+- 复用统一 Supabase Auth 做登录。
+- 本项目使用独立业务数据库，推荐 Postgres，并预留后续 `pgvector`。
+- Docker Compose 本地运行，后续通过个人域名和反向代理暴露访问。
 
 前端不得直接访问模型 Provider 或持有模型密钥。
+
+认证和存储边界详见 `auth-and-storage.md`。
 
 ## 关键边界
 

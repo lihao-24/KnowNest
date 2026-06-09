@@ -1,0 +1,106 @@
+# 认证与存储边界
+
+## 决策
+
+本项目复用个人应用体系中的统一 Supabase Auth，只复用登录身份，不复用其他应用的业务数据。
+
+业务数据使用本项目独立数据库。第一阶段推荐独立 Postgres，并预留后续文档检索和向量能力；如果实现阶段为了极简验证采用 SQLite，仍必须保持同样的用户隔离边界。
+
+## 参考模式
+
+现有 `image-service` 和 `diagram-service` 已采用类似模式：
+
+- Supabase Auth 负责登录和 cookie session。
+- 服务端通过 Supabase `auth.getUser()` 获取当前用户。
+- 业务数据落在项目自己的数据库中。
+- 用户私有表都带 `user_id`。
+- API route 中的 `user_id` 只能来自服务端认证结果，不接受客户端传入。
+
+本项目沿用这个身份边界，但业务数据库建议从一开始独立于其他应用。
+
+## 身份与数据关系
+
+```text
+统一 Supabase Auth
+  -> 本项目服务端校验 session
+  -> 得到 auth user id
+  -> 写入/读取本项目业务数据库
+  -> 所有用户私有数据按 user_id 隔离
+```
+
+## 数据分类
+
+### 用户私有数据
+
+必须带 `user_id`：
+
+- 聊天会话。
+- 聊天消息。
+- 考生画像。
+- 志愿篮。
+- 用户保存的候选项。
+- 用户标注、备注、排除项和偏好。
+
+这些数据只能由当前登录用户访问。服务端查询必须包含当前认证用户的 `user_id` 过滤条件。
+
+### 公共参考数据
+
+通常不带 `user_id`：
+
+- 河南近三年一分一段表。
+- 河南近三年本科批投档/录取数据。
+- 河南近三年国家专项计划投档/录取数据。
+- 当年招生计划。
+- 高校招生章程。
+- 专业介绍、就业质量报告等公开资料。
+- 项目方法论文档和上游精选参考。
+
+公共数据可以被所有已登录用户读取，但导入、更新和删除应限制在管理员或本地维护流程中。
+
+## 服务端边界
+
+- 前端不得传入或覆盖 `user_id`。
+- API route 和 server action 必须先校验 Supabase session。
+- 用户私有数据的创建、读取、更新、删除，都必须使用服务端认证得到的 `user_id`。
+- 模型 Provider API key、数据库连接串和服务端配置不得暴露给浏览器。
+- 不使用 Supabase service role key 做普通用户请求。
+
+## 推荐环境变量
+
+认证：
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+业务库：
+
+```env
+DATABASE_URL=
+```
+
+AI Provider：
+
+```env
+AI_DEFAULT_PROVIDER=
+AI_PROVIDER_OPTIONS=
+```
+
+真实密钥和连接串只放本地 `.env.local` 或部署环境，不进入 Git。
+
+## 部署方向
+
+第一阶段推荐：
+
+- Next.js 应用容器。
+- 独立 Postgres 容器或外部自托管 Postgres。
+- 复用现有 Supabase Auth 实例。
+- Docker Compose 本地运行。
+- 通过个人域名和反向代理暴露访问。
+
+## 后续可扩展点
+
+- 增加管理员标记，用于限制数据导入和资料维护入口。
+- 增加 `pgvector`，将文档 RAG 与结构化数据放在同一个 Postgres。
+- 增加统一个人应用入口，但仍保持各应用业务数据隔离。

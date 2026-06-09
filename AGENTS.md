@@ -16,8 +16,10 @@
 2. `docs/README.md`
 3. `docs/specs/initial-product-scope.md`
 4. `docs/reference/architecture.md`
-5. `docs/reference/data-and-recommendation.md`
-6. `docs/reference/data-trust-model.md`
+5. `docs/reference/auth-and-storage.md`
+6. `docs/reference/data-and-recommendation.md`
+7. `docs/reference/data-preparation-checklist.md`
+8. `docs/reference/data-trust-model.md`
 
 ## 当前目录
 
@@ -29,7 +31,9 @@
     ├── README.md
     ├── reference/
     │   ├── architecture.md
+    │   ├── auth-and-storage.md
     │   ├── data-and-recommendation.md
+    │   ├── data-preparation-checklist.md
     │   ├── data-trust-model.md
     │   └── upstream/
     └── specs/
