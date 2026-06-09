@@ -8,13 +8,14 @@
 - `../AGENTS.md`：agent 工作规范、架构边界、验证和文档更新规则
 - `specs/initial-product-scope.md`：第一阶段产品范围
 - `reference/data-trust-model.md`：数据可信度分级和使用原则
+- `reference/upstream/xuefeng-agent/README.md`：上游 `xuefeng-agent` 参考资料索引和使用边界
 
 ## 目录说明
 
 ```text
 docs/
 ├── README.md
-├── reference/   # 长期有效的系统事实和原则
+├── reference/   # 长期有效的系统事实、原则和上游参考资料
 └── specs/       # 阶段性产品规格
 ```
 
