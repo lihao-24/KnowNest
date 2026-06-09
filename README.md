@@ -24,18 +24,25 @@
 
 ## 建议技术方向
 
-技术栈尚未最终锁定。当前推荐方向：
+当前推荐方向：
 
 - Next.js App Router + React + TypeScript
-- 本地优先运行，后续 Docker 化部署
+- 复用统一 Supabase Auth 做登录
+- 独立 Postgres 业务库，预留后续 `pgvector`
+- Docker Compose 本地运行，后续通过个人域名暴露
 - OpenAI-compatible Provider 作为服务端 AI 模型接口
-- 第一版数据可从 CSV/JSON 导入，后续再演进到 SQLite/Postgres
+- 第一版数据从 CSV/Excel 人工整理后导入
 
 ## 文档入口
 
 - `AGENTS.md`：agent 工作规范、项目边界和验证规则
 - `docs/README.md`：文档目录入口
 - `docs/specs/initial-product-scope.md`：初始产品范围
+- `docs/specs/mvp-product-design.md`：MVP 产品与交互设计
+- `docs/plans/2026-06-09-mvp-implementation-plan.md`：MVP 开发实施计划
+- `docs/reference/architecture.md`：双层 RAG、规则筛选和模块边界
+- `docs/reference/auth-and-storage.md`：统一登录与独立业务库边界
+- `docs/reference/data-preparation-checklist.md`：河南数据准备清单
 - `docs/reference/data-trust-model.md`：数据可信度分级和使用原则
 
 ## 本地运行

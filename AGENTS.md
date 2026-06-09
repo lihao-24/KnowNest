@@ -15,11 +15,13 @@
 1. `README.md`
 2. `docs/README.md`
 3. `docs/specs/initial-product-scope.md`
-4. `docs/reference/architecture.md`
-5. `docs/reference/auth-and-storage.md`
-6. `docs/reference/data-and-recommendation.md`
-7. `docs/reference/data-preparation-checklist.md`
-8. `docs/reference/data-trust-model.md`
+4. `docs/specs/mvp-product-design.md`
+5. `docs/plans/2026-06-09-mvp-implementation-plan.md`
+6. `docs/reference/architecture.md`
+7. `docs/reference/auth-and-storage.md`
+8. `docs/reference/data-and-recommendation.md`
+9. `docs/reference/data-preparation-checklist.md`
+10. `docs/reference/data-trust-model.md`
 
 ## 当前目录
 
@@ -36,8 +38,11 @@
     │   ├── data-preparation-checklist.md
     │   ├── data-trust-model.md
     │   └── upstream/
+    ├── plans/
+    │   └── 2026-06-09-mvp-implementation-plan.md
     └── specs/
-        └── initial-product-scope.md
+        ├── initial-product-scope.md
+        └── mvp-product-design.md
 ```
 
 业务代码尚未创建。确定技术栈后再补充 `src/`、数据目录、测试目录和部署文件说明。
