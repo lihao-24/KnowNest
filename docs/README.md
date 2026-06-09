@@ -7,6 +7,8 @@
 - `../README.md`：项目目标、当前状态和计划能力
 - `../AGENTS.md`：agent 工作规范、架构边界、验证和文档更新规则
 - `specs/initial-product-scope.md`：第一阶段产品范围
+- `reference/architecture.md`：双层 RAG、规则筛选和模块边界
+- `reference/data-and-recommendation.md`：河南本科批/国家专项数据模型和推荐流程
 - `reference/data-trust-model.md`：数据可信度分级和使用原则
 - `reference/upstream/xuefeng-agent/README.md`：上游 `xuefeng-agent` 参考资料索引和使用边界
 
@@ -21,7 +23,6 @@ docs/
 
 推荐未来按需增加：
 
-- `docs/reference/architecture.md`：技术栈确定后的模块职责和数据流
 - `docs/reference/data-and-storage.md`：数据表、导入流程、隐私和留存策略
 - `docs/reference/external-services.md`：AI Provider、官方数据来源和域名暴露方式
 - `docs/reference/verification.md`：测试、构建、数据校验和上线检查

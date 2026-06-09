@@ -15,7 +15,9 @@
 1. `README.md`
 2. `docs/README.md`
 3. `docs/specs/initial-product-scope.md`
-4. `docs/reference/data-trust-model.md`
+4. `docs/reference/architecture.md`
+5. `docs/reference/data-and-recommendation.md`
+6. `docs/reference/data-trust-model.md`
 
 ## 当前目录
 
@@ -26,7 +28,10 @@
 └── docs/
     ├── README.md
     ├── reference/
-    │   └── data-trust-model.md
+    │   ├── architecture.md
+    │   ├── data-and-recommendation.md
+    │   ├── data-trust-model.md
+    │   └── upstream/
     └── specs/
         └── initial-product-scope.md
 ```
