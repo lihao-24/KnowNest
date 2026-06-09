@@ -3,7 +3,7 @@ import { Pool } from "pg";
 let pool: Pool | null = null;
 
 export function getDbPool(): Pool | null {
-  if (!process.env.DATABASE_URL) {
+  if (!hasDatabaseConnection()) {
     return null;
   }
 
@@ -15,5 +15,5 @@ export function getDbPool(): Pool | null {
 }
 
 export function hasDatabaseConnection(): boolean {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL !== "disabled");
 }

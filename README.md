@@ -4,7 +4,16 @@
 
 ## 当前阶段
 
-项目处于初始化阶段。当前已确定的边界：
+项目已进入 MVP 开发阶段。当前已落地的基础能力：
+
+- Next.js App Router + TypeScript 应用骨架。
+- 登录页和受保护三栏工作台 UI。
+- Supabase Auth 服务端 helper，并提供本地 demo auth 方便开发。
+- `/api/auth/me` 和 `/api/chat` 服务端接口边界。
+- 考生画像提取、招生 CSV 校验导入、冲稳保推荐规则的第一版核心模块和测试。
+- 独立 Postgres schema 初稿、Dockerfile 和 Docker Compose 初稿。
+
+当前已确定的边界：
 
 - 只服务河南省高考志愿填报，不做全国通用版本。
 - 第一阶段优先做本地运行，后续通过个人域名暴露访问。
@@ -48,7 +57,49 @@
 
 ## 本地运行
 
-业务代码尚未创建。本节会在确定技术栈并生成应用骨架后更新。
+先安装依赖：
+
+```bash
+pnpm install
+```
+
+复制环境变量模板：
+
+```bash
+cp .env.example .env.local
+```
+
+本地开发默认可使用 `DEMO_AUTH_ENABLED=true` 进入工作台：
+
+```bash
+pnpm dev
+```
+
+浏览器打开 `http://localhost:3000`。
+
+Docker 本地启动：
+
+```bash
+docker compose up -d --build
+```
+
+如果要连接本地 Postgres，把 `.env.local` 中的 `DATABASE_URL` 改成：
+
+```env
+DATABASE_URL=postgres://henan_gaokao:henan_gaokao@localhost:5432/henan_gaokao
+```
+
+常用验证：
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+git diff --check
+```
+
+当前仓库不提交 `data-prep/`，该目录由数据整理阶段单独放出。
 
 ## Git 状态
 

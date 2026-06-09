@@ -1,3 +1,5 @@
+create extension if not exists pgcrypto;
+
 create table if not exists chat_sessions (
   id uuid primary key default gen_random_uuid(),
   user_id text not null,

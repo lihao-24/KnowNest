@@ -49,7 +49,23 @@
         └── mvp-product-design.md
 ```
 
-业务代码尚未创建。确定技术栈后再补充 `src/`、数据目录、测试目录和部署文件说明。
+业务代码已开始创建。当前主要目录：
+
+```text
+.
+├── src/
+│   ├── app/          # Next.js App Router 页面与 API routes
+│   ├── components/   # 登录页、工作台和通用展示组件
+│   ├── lib/          # auth/db/ai/profile/admissions/recommendation/chat/rag
+│   └── styles/
+├── public/
+├── Dockerfile
+├── docker-compose.yml
+├── package.json
+└── docs/
+```
+
+`data-prep/` 当前仍用于本地数据整理，用户明确放出前不要提交到 Git。
 
 ## UI 实现基准
 
@@ -84,17 +100,14 @@
 
 ## 验证命令
 
-当前仓库只有文档，最小验证为：
+当前应用骨架生成后，优先使用：
 
 ```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
 git diff --check
-```
-
-生成应用骨架后，应在本节补充实际命令，例如：
-
-```bash
-npm run lint
-npm run build
 ```
 
 ## 文档更新触发器
