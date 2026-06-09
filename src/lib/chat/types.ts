@@ -1,3 +1,5 @@
+import type { AdmissionRecord } from "@/lib/admissions/types";
+
 export type SubjectType = "物理类" | "历史类";
 
 export type StatusKind = "资料未全" | "待确认" | "待核验" | "可用";
@@ -63,6 +65,7 @@ export type ChatSession = {
 export type ChatOrchestratorInput = {
   message: string;
   userId: string;
+  admissionRecords?: AdmissionRecord[];
 };
 
 export type ChatOrchestratorResult = {
