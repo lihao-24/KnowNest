@@ -18,9 +18,12 @@ const requiredHeaders = [
   "school_name",
   "min_score",
   "min_rank",
-  "plan_count",
   "source_name"
 ];
+
+const requiredValueFields = requiredHeaders;
+
+const optionalHeaders = ["plan_count"];
 
 const numericFields = new Set([
   "year",
@@ -50,7 +53,7 @@ export function parseAdmissionRecordsCsv(csv: string): AdmissionImportResult {
   const headers = rows[0].map((header) => header.trim());
   const headerSet = new Set(headers);
 
-  for (const header of requiredHeaders) {
+  for (const header of [...requiredHeaders, ...optionalHeaders]) {
     if (!headerSet.has(header)) {
       errors.push({ row: 1, field: header, message: `缺少必填字段 ${header}` });
     }
@@ -87,7 +90,7 @@ export function parseAdmissionRecordsCsv(csv: string): AdmissionImportResult {
 function validateAdmissionRow(row: Record<string, string>, rowNumber: number): AdmissionImportError[] {
   const errors: AdmissionImportError[] = [];
 
-  for (const field of requiredHeaders) {
+  for (const field of requiredValueFields) {
     if (!row[field]) {
       errors.push({ row: rowNumber, field, message: "字段不能为空" });
     }

@@ -1,7 +1,38 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { parseAdmissionRecordsCsv } from "./importer";
 
 describe("parseAdmissionRecordsCsv", () => {
+  it("imports the committed sample admissions fixture", () => {
+    const csv = readFileSync(
+      join(process.cwd(), "fixtures/admissions/sample-admission-records.csv"),
+      "utf8"
+    );
+
+    const result = parseAdmissionRecordsCsv(csv);
+
+    expect(result.errors).toEqual([]);
+    expect(result.records).toHaveLength(12);
+    expect(result.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          planType: "普通本科批",
+          subjectType: "物理类",
+          minRank: 28500
+        }),
+        expect.objectContaining({
+          planType: "国家专项计划",
+          subjectType: "历史类"
+        })
+      ])
+    );
+    expect(result.records.some((record) => record.planCount === undefined)).toBe(true);
+    expect(
+      result.records.every((record) => record.sourceName.includes("样例"))
+    ).toBe(true);
+  });
+
   it("imports valid admission rows with official subject type", () => {
     const csv = [
       "year,province,batch,plan_type,subject_type,school_code,school_name,major_group_code,major_group_name,major_code,major_name,min_score,min_rank,avg_score,avg_rank,plan_count,source_name,source_url,source_published_at,notes",
