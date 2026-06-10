@@ -47,8 +47,11 @@ export function WorkspaceShell({
   );
   const [savingCandidateId, setSavingCandidateId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileDraft, setProfileDraft] = useState(() => createProfileDraft(initialSummary));
   const [isSending, setIsSending] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const canSend = message.trim().length > 0 && !isSending && !isLoadingSession;
   const knownProfileCount = useMemo(
     () =>
@@ -134,6 +137,8 @@ export function WorkspaceShell({
       setSessions(result.sessions);
       setActiveSessionId(result.session.id);
       setSummary(initialSummary);
+      setProfileDraft(createProfileDraft(initialSummary));
+      setIsEditingProfile(false);
       setMessages(starterMessages);
       setMessage("");
     } catch {
@@ -166,6 +171,8 @@ export function WorkspaceShell({
 
       setActiveSessionId(sessionId);
       setSummary(result.summary);
+      setProfileDraft(createProfileDraft(result.summary));
+      setIsEditingProfile(false);
       setMessages(result.messages.length > 0 ? result.messages : starterMessages);
       setMessage("");
     } catch {
@@ -233,6 +240,40 @@ export function WorkspaceShell({
       ]);
     } finally {
       setSavingCandidateId(null);
+    }
+  }
+
+  async function handleSaveProfile() {
+    if (!activeSessionId || isSavingProfile) {
+      return;
+    }
+
+    setIsSavingProfile(true);
+
+    try {
+      const response = await fetch(`/api/chat/sessions/${activeSessionId}/profile`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(toProfilePayload(profileDraft))
+      });
+
+      if (!response.ok) {
+        throw new Error("save profile failed");
+      }
+
+      const result = (await response.json()) as { summary: ChatSummary };
+      setSummary(result.summary);
+      setProfileDraft(createProfileDraft(result.summary));
+      setIsEditingProfile(false);
+    } catch {
+      setMessages((current) => [
+        ...current,
+        createTransientAssistantMessage("画像保存失败。请稍后重试，或先检查当前会话和登录状态。")
+      ]);
+    } finally {
+      setIsSavingProfile(false);
     }
   }
 
@@ -360,24 +401,55 @@ export function WorkspaceShell({
           </div>
         </header>
 
-        <SummarySection title="考生画像" testId="profile-summary">
-          <InfoGrid
-            rows={[
-              ["省份", summary.profile.province],
-              ["分数", summary.profile.score?.toString() ?? "待补充"],
-              ["位次", summary.profile.rank?.toLocaleString("zh-CN") ?? "待补充"],
-              ["科类", summary.profile.subjectType ?? "待补充"],
-              [
-                "国家专项",
-                summary.profile.eligibleNationalSpecialPlan === null
-                  ? "待确认"
-                  : summary.profile.eligibleNationalSpecialPlan
-                    ? "具备"
-                    : "不具备"
-              ],
-              ["核心诉求", summary.profile.primaryGoal ?? "待补充"]
-            ]}
-          />
+        <SummarySection
+          title="考生画像"
+          testId="profile-summary"
+          action={
+            <button
+              className="sectionActionButton"
+              data-testid="edit-profile-button"
+              type="button"
+              onClick={() => {
+                setProfileDraft(createProfileDraft(summary));
+                setIsEditingProfile((current) => !current);
+              }}
+            >
+              {isEditingProfile ? "取消" : "编辑"}
+            </button>
+          }
+        >
+          {isEditingProfile ? (
+            <ProfileEditor
+              draft={profileDraft}
+              isSaving={isSavingProfile}
+              onChange={setProfileDraft}
+              onCancel={() => {
+                setProfileDraft(createProfileDraft(summary));
+                setIsEditingProfile(false);
+              }}
+              onSave={handleSaveProfile}
+            />
+          ) : (
+            <InfoGrid
+              rows={[
+                ["省份", summary.profile.province],
+                ["分数", summary.profile.score?.toString() ?? "待补充"],
+                ["位次", summary.profile.rank?.toLocaleString("zh-CN") ?? "待补充"],
+                ["科类", summary.profile.subjectType ?? "待补充"],
+                [
+                  "国家专项",
+                  summary.profile.eligibleNationalSpecialPlan === null
+                    ? "待确认"
+                    : summary.profile.eligibleNationalSpecialPlan
+                      ? "具备"
+                      : "不具备"
+                ],
+                ["核心诉求", summary.profile.primaryGoal ?? "待补充"],
+                ["地域偏好", summary.profile.preferredRegions.join("、") || "待补充"],
+                ["专业兴趣", summary.profile.interestedMajors.join("、") || "待补充"]
+              ]}
+            />
+          )}
         </SummarySection>
 
         <SummarySection title="缺失信息">
@@ -496,17 +568,194 @@ function getEmptyCandidateText(status: ChatSummary["status"]): string {
 function SummarySection({
   title,
   children,
+  action,
   testId
 }: {
   title: string;
   children: ReactNode;
+  action?: ReactNode;
   testId?: string;
 }) {
   return (
     <section className="summarySection" data-testid={testId}>
-      <h3>{title}</h3>
+      <div className="summarySectionHeader">
+        <h3>{title}</h3>
+        {action}
+      </div>
       {children}
     </section>
+  );
+}
+
+type ProfileDraft = {
+  score: string;
+  rank: string;
+  subjectType: "" | "物理类" | "历史类";
+  eligibleNationalSpecialPlan: "" | "true" | "false";
+  primaryGoal: "" | "稳定" | "就业" | "考公" | "考研" | "高薪" | "离家近";
+  preferredRegions: string;
+  interestedMajors: string;
+};
+
+function createProfileDraft(summary: ChatSummary): ProfileDraft {
+  return {
+    score: summary.profile.score?.toString() ?? "",
+    rank: summary.profile.rank?.toString() ?? "",
+    subjectType: summary.profile.subjectType ?? "",
+    eligibleNationalSpecialPlan:
+      summary.profile.eligibleNationalSpecialPlan === null
+        ? ""
+        : summary.profile.eligibleNationalSpecialPlan
+          ? "true"
+          : "false",
+    primaryGoal: (summary.profile.primaryGoal as ProfileDraft["primaryGoal"]) ?? "",
+    preferredRegions: summary.profile.preferredRegions.join("、"),
+    interestedMajors: summary.profile.interestedMajors.join("、")
+  };
+}
+
+function toProfilePayload(draft: ProfileDraft) {
+  return {
+    province: "河南",
+    score: toPositiveIntegerOrNull(draft.score),
+    rank: toPositiveIntegerOrNull(draft.rank),
+    subjectType: draft.subjectType || null,
+    eligibleNationalSpecialPlan:
+      draft.eligibleNationalSpecialPlan === ""
+        ? null
+        : draft.eligibleNationalSpecialPlan === "true",
+    primaryGoal: draft.primaryGoal || null,
+    preferredRegions: splitChineseList(draft.preferredRegions),
+    interestedMajors: splitChineseList(draft.interestedMajors)
+  };
+}
+
+function toPositiveIntegerOrNull(value: string): number | null {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function splitChineseList(value: string): string[] {
+  return value
+    .split(/[、,，\s]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function ProfileEditor({
+  draft,
+  isSaving,
+  onChange,
+  onCancel,
+  onSave
+}: {
+  draft: ProfileDraft;
+  isSaving: boolean;
+  onChange: (draft: ProfileDraft) => void;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <div className="profileEditor">
+      <label>
+        <span>分数</span>
+        <input
+          data-testid="profile-score"
+          inputMode="numeric"
+          value={draft.score}
+          onChange={(event) => onChange({ ...draft, score: event.target.value })}
+        />
+      </label>
+      <label>
+        <span>位次</span>
+        <input
+          data-testid="profile-rank"
+          inputMode="numeric"
+          value={draft.rank}
+          onChange={(event) => onChange({ ...draft, rank: event.target.value })}
+        />
+      </label>
+      <label>
+        <span>科类</span>
+        <select
+          data-testid="profile-subject"
+          value={draft.subjectType}
+          onChange={(event) =>
+            onChange({ ...draft, subjectType: event.target.value as ProfileDraft["subjectType"] })
+          }
+        >
+          <option value="">待补充</option>
+          <option value="物理类">物理类</option>
+          <option value="历史类">历史类</option>
+        </select>
+      </label>
+      <label>
+        <span>国家专项</span>
+        <select
+          data-testid="profile-national-special"
+          value={draft.eligibleNationalSpecialPlan}
+          onChange={(event) =>
+            onChange({
+              ...draft,
+              eligibleNationalSpecialPlan: event.target
+                .value as ProfileDraft["eligibleNationalSpecialPlan"]
+            })
+          }
+        >
+          <option value="">待确认</option>
+          <option value="true">具备</option>
+          <option value="false">不具备</option>
+        </select>
+      </label>
+      <label>
+        <span>核心诉求</span>
+        <select
+          data-testid="profile-goal"
+          value={draft.primaryGoal}
+          onChange={(event) =>
+            onChange({ ...draft, primaryGoal: event.target.value as ProfileDraft["primaryGoal"] })
+          }
+        >
+          <option value="">待补充</option>
+          <option value="稳定">稳定</option>
+          <option value="就业">就业</option>
+          <option value="考公">考公</option>
+          <option value="考研">考研</option>
+          <option value="高薪">高薪</option>
+          <option value="离家近">离家近</option>
+        </select>
+      </label>
+      <label>
+        <span>地域偏好</span>
+        <input
+          data-testid="profile-regions"
+          value={draft.preferredRegions}
+          onChange={(event) => onChange({ ...draft, preferredRegions: event.target.value })}
+        />
+      </label>
+      <label>
+        <span>专业兴趣</span>
+        <input
+          data-testid="profile-majors"
+          value={draft.interestedMajors}
+          onChange={(event) => onChange({ ...draft, interestedMajors: event.target.value })}
+        />
+      </label>
+      <div className="profileEditorActions">
+        <button type="button" className="secondaryMiniButton" onClick={onCancel} disabled={isSaving}>
+          取消
+        </button>
+        <button
+          type="button"
+          className="primaryMiniButton"
+          data-testid="save-profile-button"
+          onClick={onSave}
+          disabled={isSaving}
+        >
+          {isSaving ? "保存中" : "保存"}
+        </button>
+      </div>
+    </div>
   );
 }
 

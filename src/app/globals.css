@@ -593,8 +593,38 @@ button:disabled {
 }
 
 .summarySection h3 {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 14px;
+}
+
+.summarySectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sectionActionButton,
+.secondaryMiniButton,
+.primaryMiniButton {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.sectionActionButton,
+.secondaryMiniButton {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.primaryMiniButton {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+  color: #fff;
 }
 
 .infoGrid {
@@ -613,6 +643,41 @@ button:disabled {
 .infoGrid dd {
   margin: 0;
   font-size: 13px;
+}
+
+.profileEditor {
+  display: grid;
+  gap: 8px;
+}
+
+.profileEditor label {
+  display: grid;
+  gap: 5px;
+}
+
+.profileEditor span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profileEditor input,
+.profileEditor select {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 0 9px;
+  color: var(--text);
+  outline: none;
+}
+
+.profileEditorActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 2px;
 }
 
 .infoGrid dt {

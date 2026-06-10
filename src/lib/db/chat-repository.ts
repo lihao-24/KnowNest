@@ -19,6 +19,12 @@ export type PersistChatTurnInput = {
   profile?: CandidateProfile;
 };
 
+export type PersistCandidateProfileForSessionInput = {
+  userId: string;
+  sessionId: string;
+  profile: CandidateProfile;
+};
+
 export async function createChatSessionForUser(userId: string): Promise<ChatSession> {
   if (!hasDatabaseConnection()) {
     const session = createFallbackSession();
@@ -238,6 +244,34 @@ export async function getLatestCandidateProfileForUser(userId: string): Promise<
   } catch {
     return null;
   }
+}
+
+export async function persistCandidateProfileForSession({
+  userId,
+  sessionId,
+  profile
+}: PersistCandidateProfileForSessionInput): Promise<void> {
+  if (!hasDatabaseConnection()) {
+    const record = getFallbackSessionForUser(userId, sessionId);
+    if (record) {
+      record.profile = profile;
+      record.session = {
+        ...record.session,
+        status: "资料未全",
+        updatedAt: new Date().toISOString(),
+        preview: "已手动修正考生画像。"
+      };
+    }
+    return;
+  }
+
+  const session = await getAuthenticatedSessionId(userId, sessionId);
+  await persistCandidateProfile({
+    sessionId: session,
+    userId,
+    profile,
+    updatedAt: new Date().toISOString()
+  });
 }
 
 type PersistCandidateProfileInput = {

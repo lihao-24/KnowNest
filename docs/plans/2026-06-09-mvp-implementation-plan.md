@@ -1,6 +1,6 @@
 # MVP 实施计划
 
-> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。已新增默认 browser smoke/e2e，覆盖 demo auth + `DATABASE_URL=disabled` 的工作台、问答、右栏联动、志愿篮保存/取消保存、新建/切换会话。后续优先做画像手动修正、真实河南招生数据和 `score_segments` / `school_documents` / RAG。
+> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。已新增默认 browser smoke/e2e，覆盖 demo auth + `DATABASE_URL=disabled` 的工作台、问答、右栏联动、画像手动修正、志愿篮保存/取消保存、新建/切换会话。后续优先做真实河南招生数据和 `score_segments` / `school_documents` / RAG。
 
 ## 目标
 
@@ -246,7 +246,7 @@ document_chunks
 
 ## 阶段 4：考生画像提取
 
-状态：部分完成，手动修正画像待做；志愿篮保存/取消保存已先行完成。
+状态：基本完成第一版。
 
 已完成：
 
@@ -254,10 +254,10 @@ document_chunks
 - 从用户消息中提取分数、位次、科类、国家专项资格、偏好和核心诉求的规则实现。
 - 支持“理科/文科”归一化到“物理类/历史类”。
 - 缺失字段判断。
+- 右侧画像最小手动修正闭环，支持按当前会话保存分数、位次、科类、国家专项资格、核心诉求、地域偏好和专业兴趣。
 
 待完成：
 
-- 用户手动修正画像。
 - 软字段的 LLM 辅助结构化和用户确认流程。
 
 任务：

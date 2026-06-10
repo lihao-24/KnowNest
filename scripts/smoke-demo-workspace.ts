@@ -49,6 +49,18 @@ async function main() {
       const newSessionId = await page.getByTestId("session-item-0").getAttribute("data-session-id");
       assert(newSessionId && newSessionId !== firstSessionId, "new session should become active");
       await page.getByText("资料未全，暂不生成完整候选。").waitFor();
+      await page.getByTestId("edit-profile-button").click();
+      await page.getByTestId("profile-score").fill("590");
+      await page.getByTestId("profile-rank").fill("26000");
+      await page.getByTestId("profile-subject").selectOption("物理类");
+      await page.getByTestId("profile-national-special").selectOption("false");
+      await page.getByTestId("profile-goal").selectOption("就业");
+      await page.getByTestId("profile-regions").fill("郑州、洛阳");
+      await page.getByTestId("profile-majors").fill("计算机");
+      await page.getByTestId("save-profile-button").click();
+      await page.getByTestId("profile-summary").getByText("590").waitFor();
+      await page.getByTestId("profile-summary").getByText("26,000").waitFor();
+      await page.getByTestId("profile-summary").getByText("就业").waitFor();
 
       await page.locator(`[data-session-id="${firstSessionId}"]`).click();
       await page

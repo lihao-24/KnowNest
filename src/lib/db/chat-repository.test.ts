@@ -8,6 +8,7 @@ import {
   getLatestCandidateProfileForUser,
   listChatMessagesForSession,
   listChatSessionsForUser,
+  persistCandidateProfileForSession,
   persistChatTurn
 } from "./chat-repository";
 
@@ -340,5 +341,52 @@ describe("chat repository", () => {
       interestedMajors: ["计算机"],
       primaryGoal: "考研"
     });
+  });
+
+  it("persists a manually edited candidate profile for the requested authenticated session", async () => {
+    mockedHasDatabaseConnection.mockReturnValue(true);
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ id: "session-requested" }] })
+      .mockResolvedValue({ rows: [] });
+    mockedGetDbPool.mockReturnValue({ query } as never);
+
+    await persistCandidateProfileForSession({
+      userId: "user-1",
+      sessionId: "session-requested",
+      profile: {
+        province: "河南",
+        score: 585,
+        rank: 26000,
+        subjectType: "物理类",
+        eligibleNationalSpecialPlan: false,
+        preferredRegions: ["郑州"],
+        excludedRegions: [],
+        interestedMajors: ["计算机"],
+        excludedMajors: [],
+        primaryGoal: "就业"
+      }
+    });
+
+    expect(query).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("where id = $1 and user_id = $2"),
+      ["session-requested", "user-1"]
+    );
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining("insert into candidate_profiles"),
+      [
+        "session-requested",
+        "user-1",
+        expect.objectContaining({
+          province: "河南",
+          score: 585,
+          rank: 26000,
+          subjectType: "物理类",
+          primaryGoal: "就业"
+        }),
+        expect.any(String)
+      ]
+    );
   });
 });
