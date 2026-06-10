@@ -70,7 +70,7 @@ LLM 可以调整表达、提醒风险、提出补充问题，但不能绕过规�
 
 ### 当前代码映射
 
-截至 2026-06-09，当前实现已落到以下目录：
+截至 2026-06-10，当前实现已落到以下目录：
 
 - `src/app/`：Next.js App Router 页面和 API routes。
   - `/login`：工具入口式登录页。
@@ -79,16 +79,16 @@ LLM 可以调整表达、提醒风险、提出补充问题，但不能绕过规�
   - `/api/chat`：接收用户消息并调用服务端对话编排。
 - `src/components/`：登录页、工作台、状态标签等 UI 组件。
 - `src/lib/auth/`：Supabase server auth helper 和本地 demo auth。
-- `src/lib/db/`：Postgres 连接、迁移、聊天会话 repository。
+- `src/lib/db/`：Postgres 连接、迁移、聊天会话 repository 和 candidate profile 持久化。
 - `src/lib/profile/`：考生画像提取和缺失字段判断。
-- `src/lib/admissions/`：`admission_records` CSV 解析与校验。
+- `src/lib/admissions/`：`admission_records` CSV 解析、校验、样例/数据库查询和导入 helper。
 - `src/lib/recommendation/`：第一版内存数据推荐规则。
-- `src/lib/chat/`：demo 对话编排、summary 生成和前端数据结构。
+- `src/lib/chat/`：服务端对话编排、summary 生成和前端数据结构。
 - `src/lib/ai/`：OpenAI-compatible Provider 边界，目前仍为 demo 生成。
 - `src/lib/rag/`：文档 RAG 预留目录。
 - `scripts/`：数据库迁移和招生数据导入脚本。
 
-当前可运行体验仍是 demo auth + demo 数据竖切。真实 Supabase 登录、真实 Postgres 数据驱动推荐和真实 LLM Provider 尚未完成。
+当前可运行体验是 demo auth + 样例数据竖切；`DATABASE_URL=disabled` 时读取 `fixtures/admissions/sample-admission-records.csv`，配置数据库时优先查询 `admission_records`。本地 Postgres 已可通过 `POSTGRES_PORT=55432` 启动，迁移和样例 CSV 导入已验证。真实 Supabase 登录、真实河南招生数据、`enrollment_plans` 风险分析和真实 LLM Provider 尚未完成。
 
 ### 前端层
 

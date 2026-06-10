@@ -1,6 +1,6 @@
 # MVP 实施计划
 
-> 当前状态（2026-06-09）：本计划已进入执行阶段。已完成可本地启动查看的 demo 竖切和基础验证，但还不是完整真实数据驱动 MVP。后续优先接入真实 Supabase 登录、Postgres 端到端验证、样例 CSV 入库、数据库驱动推荐和真实 LLM Provider。
+> 当前状态（2026-06-10）：本计划已进入执行阶段。已完成 demo auth + 样例数据驱动竖切：样例 `admission_records` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、Postgres 迁移和样例导入均已验证。后续优先接入真实 Supabase 登录、`enrollment_plans` 风险分析、真实河南招生数据和真实 LLM Provider。
 
 ## 目标
 
@@ -375,13 +375,14 @@ missing_sources
 
 - 桌面三栏布局初版。
 - 会话列表、聊天主区、右侧总结区。
-- 右侧展示画像、缺失信息、候选、来源和待核验事项的 demo 数据。
-- 状态标签初版。
+- 右侧展示画像、缺失信息、候选、来源和待核验事项。
+- 状态标签已覆盖 `数据未导入`、`资料未全`、`待确认`、`待核验`、`可用`。
+- 候选、来源和核验事项已接入样例/数据库 `admission_records` 驱动的 summary。
 
 待完成：
 
 - 真正保存到志愿篮。
-- 真实数据驱动候选和来源。
+- 接入 `enrollment_plans`、`school_documents` 后展示更完整风险和来源。
 - 窄屏抽屉式右侧面板。
 - 浏览器 smoke 和视觉细节复核。
 
@@ -399,7 +400,7 @@ missing_sources
 - 登录页保持工具入口风格，不做营销页。
 - 主页保持左侧会话、中间问答、右侧总结的三栏结构。
 - 右侧总结区必须展示画像、缺失信息、候选清单、数据来源和待核验事项。
-- 状态标签需体现 `资料未全`、`待确认`、`待核验`、`可用` 等系统状态。
+- 状态标签需体现 `数据未导入`、`资料未全`、`待确认`、`待核验`、`可用` 等系统状态。
 
 验收：
 
@@ -417,11 +418,15 @@ missing_sources
 - Docker Compose 初稿。
 - Postgres volume 和健康检查初稿。
 - 环境变量模板。
+- `POSTGRES_PORT` 可配置，已用 `55432` 避开本机 Supabase pooler 的 `5432` 占用。
+- Postgres db 服务已启动并 healthy。
+- 已执行 `pnpm db:migrate`，完成 `001_initial.sql`。
+- 已执行 `pnpm import:admissions fixtures/admissions/sample-admission-records.csv`，导入 12 条样例 `admission_records`。
 
 待完成：
 
-- 实际执行 `docker compose up -d --build`。
-- 验证应用可访问、Postgres 持久化和 Supabase Auth 配置。
+- 实际执行完整 `docker compose up -d --build`。
+- 验证 app 容器可访问、Postgres 持久化和 Supabase Auth 配置。
 
 任务：
 
