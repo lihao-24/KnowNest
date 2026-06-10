@@ -3,7 +3,8 @@ import {
   listAdmissionRecordsForProfile,
   listEnrollmentPlansForProfile
 } from "@/lib/admissions/repository";
-import type { AdmissionRecord, EnrollmentPlan } from "@/lib/admissions/types";
+import { listScoreSegmentsForProfile } from "@/lib/admissions/score-segment-repository";
+import type { AdmissionRecord, EnrollmentPlan, ScoreSegment } from "@/lib/admissions/types";
 import {
   getCandidateProfileForSession,
   getLatestCandidateProfileForUser,
@@ -48,11 +49,13 @@ export async function runChatOrchestrator({
           dataMode: enrollmentPlans.length > 0 ? ("sample" as const) : ("empty" as const)
         }
       : await listEnrollmentPlansForProfile(profile);
+  const scoreSegmentsLookup = await listScoreSegmentsForProfile(profile);
   const summary = createRecommendationSummary(
     profile,
     missingFields,
     admissionsLookup,
-    enrollmentPlansLookup
+    enrollmentPlansLookup,
+    scoreSegmentsLookup
   );
   const systemContext = buildSystemContext(summary, admissionsLookup.dataMode);
   const generation = await generateAssistantText({
@@ -143,11 +146,18 @@ type EnrollmentPlansLookup = {
   dataMode: "database" | "sample" | "empty";
 };
 
+type ScoreSegmentsLookup = {
+  segments: ScoreSegment[];
+  nearestSegment: ScoreSegment | null;
+  dataMode: "database" | "sample" | "empty";
+};
+
 function createRecommendationSummary(
   profile: ExtractedProfile,
   missingFields: RequiredProfileField[],
   admissionsLookup: AdmissionsLookup,
-  enrollmentPlansLookup: EnrollmentPlansLookup
+  enrollmentPlansLookup: EnrollmentPlansLookup,
+  scoreSegmentsLookup: ScoreSegmentsLookup
 ): ChatSummary {
   const chatProfile = toChatProfile(profile);
   const missingInfo = missingFields.map(toMissingInfoLabel);
@@ -158,8 +168,8 @@ function createRecommendationSummary(
       profile: chatProfile,
       missingInfo,
       candidates: [],
-      sources: buildDataSources(admissionsLookup, enrollmentPlansLookup),
-      verificationItems: buildVerificationItems(admissionsLookup.dataMode)
+      sources: buildDataSources(admissionsLookup, enrollmentPlansLookup, scoreSegmentsLookup),
+      verificationItems: buildVerificationItems(admissionsLookup.dataMode, scoreSegmentsLookup)
     };
   }
 
@@ -169,8 +179,8 @@ function createRecommendationSummary(
       profile: chatProfile,
       missingInfo: ["结构化招生数据"],
       candidates: [],
-      sources: buildDataSources({ records: [], dataMode: "empty" }, enrollmentPlansLookup),
-      verificationItems: buildVerificationItems("empty")
+      sources: buildDataSources({ records: [], dataMode: "empty" }, enrollmentPlansLookup, scoreSegmentsLookup),
+      verificationItems: buildVerificationItems("empty", scoreSegmentsLookup)
     };
   }
 
@@ -183,8 +193,8 @@ function createRecommendationSummary(
     profile: chatProfile,
     missingInfo: recommendations.candidates.length > 0 ? [] : ["可匹配的招生记录"],
     candidates: recommendations.candidates.map(toVolunteerCandidate),
-    sources: buildDataSources(admissionsLookup, enrollmentPlansLookup),
-    verificationItems: buildVerificationItems(admissionsLookup.dataMode)
+    sources: buildDataSources(admissionsLookup, enrollmentPlansLookup, scoreSegmentsLookup),
+    verificationItems: buildVerificationItems(admissionsLookup.dataMode, scoreSegmentsLookup)
   };
 }
 
@@ -313,19 +323,63 @@ function toEnrollmentPlanSource(
   };
 }
 
+function toScoreSegmentSource({
+  dataMode,
+  segments,
+  nearestSegment
+}: ScoreSegmentsLookup): DataSourceSummary {
+  const nearestDetail = nearestSegment
+    ? `最近分段：${nearestSegment.score} 分，累计 ${nearestSegment.cumulativeCount.toLocaleString("zh-CN")} 人。`
+    : "尚未匹配到当前分数附近的一分一段记录。";
+
+  if (dataMode === "sample") {
+    return {
+      id: "score-segments-sample",
+      title: "score_segments 样例 CSV",
+      trustLevel: "T5",
+      status: "待核验",
+      detail: `已加载 ${segments.length} 条一分一段样例；${nearestDetail}仅用于验证分数/位次上下文，不用于真实填报。`
+    };
+  }
+
+  if (dataMode === "database") {
+    return {
+      id: "score-segments-db",
+      title: "score_segments 数据库记录",
+      trustLevel: "T1",
+      status: "待核验",
+      detail: `已从数据库读取 ${segments.length} 条一分一段记录；${nearestDetail}仍需核验官方来源。`
+    };
+  }
+
+  return {
+    id: "score-segments-empty",
+    title: "score_segments 一分一段表",
+    trustLevel: "T5",
+    status: "资料未全",
+    detail: "一分一段表未导入，暂不能校验分数和位次是否明显不一致。"
+  };
+}
+
 function buildDataSources(
   admissionsLookup: AdmissionsLookup,
-  enrollmentPlansLookup: EnrollmentPlansLookup
+  enrollmentPlansLookup: EnrollmentPlansLookup,
+  scoreSegmentsLookup: ScoreSegmentsLookup
 ): DataSourceSummary[] {
   return [
     toAdmissionSource(admissionsLookup.dataMode, admissionsLookup.records.length),
-    toEnrollmentPlanSource(enrollmentPlansLookup.dataMode, enrollmentPlansLookup.plans.length)
+    toEnrollmentPlanSource(enrollmentPlansLookup.dataMode, enrollmentPlansLookup.plans.length),
+    toScoreSegmentSource(scoreSegmentsLookup)
   ];
 }
 
-function buildVerificationItems(dataMode: AdmissionsLookup["dataMode"]): string[] {
+function buildVerificationItems(
+  dataMode: AdmissionsLookup["dataMode"],
+  scoreSegmentsLookup: ScoreSegmentsLookup
+): string[] {
   const items = [
     "用河南省教育考试院官方数据核对近三年最低位次。",
+    buildScoreSegmentVerificationItem(scoreSegmentsLookup),
     "回查高校招生章程中的体检、单科、外语语种和调剂规则。",
     "确认当年招生计划、校区、学费和专业名称是否变化。"
   ];
@@ -339,6 +393,14 @@ function buildVerificationItems(dataMode: AdmissionsLookup["dataMode"]): string[
   }
 
   return items;
+}
+
+function buildScoreSegmentVerificationItem(scoreSegmentsLookup: ScoreSegmentsLookup): string {
+  if (scoreSegmentsLookup.nearestSegment) {
+    return `用官方一分一段表核对分数和位次；当前样例最近分段为 ${scoreSegmentsLookup.nearestSegment.score} 分、累计 ${scoreSegmentsLookup.nearestSegment.cumulativeCount.toLocaleString("zh-CN")} 人。`;
+  }
+
+  return "导入官方一分一段表后，核对用户分数和位次是否明显不一致。";
 }
 
 function dataBoundaryText(dataMode: AdmissionsLookup["dataMode"]): string {

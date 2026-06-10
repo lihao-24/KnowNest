@@ -21,6 +21,7 @@
 - 已新增 browser smoke 脚本：默认 `pnpm smoke:demo` 使用 demo auth + `DATABASE_URL=disabled` 覆盖工作台、问答、右栏联动、志愿篮保存/取消保存和新建/切换会话；真实 Supabase 登录和真实 Provider smoke 均为环境变量门控，缺失时跳过。
 - 志愿篮最小闭环已完成：候选卡可保存/取消保存，服务端通过 `saved_choices` repository 和 API 按当前认证用户隔离。
 - 右侧考生画像已支持最小手动修正：可编辑分数、位次、科类、国家专项资格、核心诉求、地域偏好和专业兴趣，并按当前会话保存。
+- `score_segments` 样例链路已完成：虚构一分一段 CSV parser、导入脚本、repository 和聊天 summary 上下文已接入。
 - 已新增 `fixtures/admissions/sample-admission-records.csv`，这是虚构样例数据，只用于端到端开发验证。
 - 已新增 `fixtures/admissions/sample-enrollment-plans.csv`，这是虚构当年招生计划样例，只用于计划变化风险验证。
 - `/api/chat` 已从 demo 候选改为服务端画像提取、读取 `admission_records`、规则层生成候选、右侧 summary 展示候选的闭环。
@@ -144,9 +145,10 @@ DATABASE_URL=postgres://henan_gaokao:henan_gaokao@localhost:55432/henan_gaokao
 pnpm db:migrate
 pnpm import:admissions fixtures/admissions/sample-admission-records.csv
 pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv
+pnpm import:score-segments fixtures/admissions/sample-score-segments.csv
 ```
 
-`fixtures/admissions/sample-admission-records.csv` 和 `fixtures/admissions/sample-enrollment-plans.csv` 是虚构样例数据，只用于端到端开发验证，不用于真实填报。
+`fixtures/admissions/sample-admission-records.csv`、`fixtures/admissions/sample-enrollment-plans.csv` 和 `fixtures/admissions/sample-score-segments.csv` 是虚构样例数据，只用于端到端开发验证，不用于真实填报。
 
 常用验证：
 

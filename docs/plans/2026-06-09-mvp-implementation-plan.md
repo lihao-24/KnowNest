@@ -1,6 +1,6 @@
 # MVP 实施计划
 
-> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。已新增默认 browser smoke/e2e，覆盖 demo auth + `DATABASE_URL=disabled` 的工作台、问答、右栏联动、画像手动修正、志愿篮保存/取消保存、新建/切换会话。后续优先做真实河南招生数据和 `score_segments` / `school_documents` / RAG。
+> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` / `score_segments` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。已新增默认 browser smoke/e2e，覆盖 demo auth + `DATABASE_URL=disabled` 的工作台、问答、右栏联动、画像手动修正、志愿篮保存/取消保存、新建/切换会话。后续优先做真实河南招生数据和 `school_documents` / RAG。
 
 ## 目标
 
@@ -209,7 +209,7 @@ document_chunks
 
 待完成：
 
-- `score_segments`、`school_documents` 导入脚本。
+- `school_documents` 导入脚本。
 - 真实河南招生数据准备和入库。
 - 增加重复记录校验和导入报告细化。
 

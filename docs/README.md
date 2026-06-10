@@ -25,9 +25,9 @@
 - 阶段 0 应用骨架：基本完成并通过验证。
 - 阶段 1 登录：完成 Supabase server helper、真实邮箱密码登录表单、服务端登录/退出路由；真实账号浏览器 smoke 待验证。
 - 阶段 2 数据库：schema、迁移脚本、会话 repository、candidate profile 持久化、按 session 续聊、新建/切换会话 API 初稿完成；`saved_choices` repository/API 已支持按认证用户保存和取消保存候选，真实 Postgres 浏览器端到端验证待补。
-- 阶段 3 数据导入：`admission_records` / `enrollment_plans` CSV 校验、样例 fixture、可测数据库导入 helper 和导入脚本完成；`score_segments` / `school_documents` 待做。
+- 阶段 3 数据导入：`admission_records` / `enrollment_plans` / `score_segments` CSV 校验、样例 fixture、可测数据库导入 helper 和导入脚本完成；`school_documents` 待做。
 - 阶段 4 画像提取：硬字段规则提取初稿完成，聊天编排会把提取画像传给 repository；右侧画像已支持按当前会话手动修正分数、位次、科类、国家专项资格、核心诉求、地域偏好和专业兴趣。
-- 阶段 5 推荐规则：样例/数据库 `admission_records` 驱动候选查询完成，`enrollment_plans` 匹配和计划减少风险初稿完成。
+- 阶段 5 推荐规则：样例/数据库 `admission_records` 驱动候选查询完成，`enrollment_plans` 匹配和计划减少风险初稿完成；`score_segments` 样例/数据库 repository 已接入聊天 summary，用于提示分数/位次核验上下文。
 - 阶段 6 LLM 编排：OpenAI-compatible Provider 已接入服务端 Chat Completions，输入使用服务端结构化 summary / 候选 / 来源 / 核验项，并有候选越权安全回退；真实 key 浏览器 smoke 待补。
 - 阶段 7 工作台 UI：桌面三栏初稿完成，右侧总结区已区分数据未导入、资料未全、待确认、待核验、可用；左侧支持新建会话、切换会话和恢复消息历史；右侧画像支持手动编辑保存；候选卡支持保存/取消保存到志愿篮；默认 browser smoke 已覆盖 demo auth + 样例数据路径下的进入工作台、发起问答、右栏联动、画像手动修正、志愿篮保存/取消保存、新建和切换会话；窄屏抽屉交互待完善。
 - 阶段 8 Docker：Dockerfile / Compose 初稿完成，`POSTGRES_PORT` 可配置；当前默认 5432 被本机 Supabase pooler 占用，改端口启动因 Docker socket 提权审批 503 未完成实跑。

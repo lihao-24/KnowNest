@@ -14,7 +14,8 @@
     "smoke:provider": "tsx scripts/smoke-provider.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "import:admissions": "tsx scripts/import-admissions.ts",
-    "import:enrollment-plans": "tsx scripts/import-enrollment-plans.ts"
+    "import:enrollment-plans": "tsx scripts/import-enrollment-plans.ts",
+    "import:score-segments": "tsx scripts/import-score-segments.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

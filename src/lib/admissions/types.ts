@@ -56,6 +56,22 @@ export type EnrollmentPlan = {
   notes?: string;
 };
 
+export type ScoreSegment = {
+  id?: string;
+  year: number;
+  province: string;
+  subjectType: SubjectType;
+  score: number;
+  sameScoreCount: number;
+  cumulativeCount: number;
+  sourceName: string;
+  sourceUrl?: string;
+  sourcePublishedAt?: string;
+  trustLevel: TrustLevel;
+  importedAt?: string;
+  notes?: string;
+};
+
 export type AdmissionImportError = {
   row: number;
   field: string;
@@ -69,5 +85,10 @@ export type AdmissionImportResult = {
 
 export type EnrollmentPlanImportResult = {
   plans: EnrollmentPlan[];
+  errors: AdmissionImportError[];
+};
+
+export type ScoreSegmentImportResult = {
+  segments: ScoreSegment[];
   errors: AdmissionImportError[];
 };

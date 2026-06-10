@@ -1,4 +1,4 @@
-import type { AdmissionRecord, EnrollmentPlan } from "./types";
+import type { AdmissionRecord, EnrollmentPlan, ScoreSegment } from "./types";
 
 export type AdmissionImportQueryClient = {
   query(sql: string, values: unknown[]): Promise<unknown>;
@@ -19,6 +19,15 @@ export async function importEnrollmentPlans(
 ): Promise<void> {
   for (const plan of plans) {
     await insertEnrollmentPlan(plan, client);
+  }
+}
+
+export async function importScoreSegments(
+  segments: ScoreSegment[],
+  client: AdmissionImportQueryClient
+): Promise<void> {
+  for (const segment of segments) {
+    await insertScoreSegment(segment, client);
   }
 }
 
@@ -144,6 +153,52 @@ async function insertEnrollmentPlan(
       plan.sourcePublishedAt ?? null,
       plan.trustLevel,
       plan.notes ?? null
+    ]
+  );
+}
+
+async function insertScoreSegment(
+  segment: ScoreSegment,
+  client: AdmissionImportQueryClient
+): Promise<void> {
+  await client.query(
+    `
+      insert into score_segments (
+        year,
+        province,
+        subject_type,
+        score,
+        same_score_count,
+        cumulative_count,
+        source_name,
+        source_url,
+        source_published_at,
+        trust_level,
+        notes
+      )
+      values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      on conflict (year, province, subject_type, score)
+      do update set
+        same_score_count = excluded.same_score_count,
+        cumulative_count = excluded.cumulative_count,
+        source_name = excluded.source_name,
+        source_url = excluded.source_url,
+        source_published_at = excluded.source_published_at,
+        trust_level = excluded.trust_level,
+        notes = excluded.notes
+    `,
+    [
+      segment.year,
+      segment.province,
+      segment.subjectType,
+      segment.score,
+      segment.sameScoreCount,
+      segment.cumulativeCount,
+      segment.sourceName,
+      segment.sourceUrl ?? null,
+      segment.sourcePublishedAt ?? null,
+      segment.trustLevel,
+      segment.notes ?? null
     ]
   );
 }
