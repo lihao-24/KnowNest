@@ -98,6 +98,7 @@ describe("runChatOrchestrator", () => {
 
     expect(matchedCandidate?.riskTags).toContain("当年招生计划减少");
     expect(matchedCandidate?.status).toBe("可用");
+    expect(matchedCandidate?.evidence).toContain("当年计划 60 人");
     expect(result.summary.sources.map((source) => source.id)).toContain("enrollment-plans-sample");
     expect(result.summary.sources.find((source) => source.id === "enrollment-plans-sample")?.detail).toContain(
       "已匹配 1 条当年招生计划"

@@ -163,6 +163,9 @@ function buildPlanBoundaryText(summary: ChatSummary): string {
 
 function toVolunteerCandidate(candidate: RecommendationCandidate): VolunteerCandidate {
   const record = candidate.admissionRecord;
+  const planEvidence = candidate.enrollmentPlan
+    ? `当年计划 ${candidate.enrollmentPlan.planCount} 人。计划来源：${candidate.enrollmentPlan.sourceName}。`
+    : "";
 
   return {
     id: candidate.candidateId,
@@ -174,7 +177,7 @@ function toVolunteerCandidate(candidate: RecommendationCandidate): VolunteerCand
     city: extractCity(record),
     evidence: `${record.year} 年${record.province}${record.batch}${record.planType}样例/记录：最低分 ${record.minScore ?? "未标注"}，最低位次 ${
       record.minRank ?? "未标注"
-    }。来源：${record.sourceName}。`,
+    }。来源：${record.sourceName}。${planEvidence}`,
     riskTags: candidate.riskTags,
     status: candidate.missingSources.length > 0 ? "待核验" : "可用"
   };
