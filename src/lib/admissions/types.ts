@@ -30,6 +30,32 @@ export type AdmissionRecord = {
   notes?: string;
 };
 
+export type EnrollmentPlan = {
+  id?: string;
+  year: number;
+  province: string;
+  batch: Batch;
+  planType: PlanType;
+  subjectType: SubjectType;
+  schoolCode: string;
+  schoolName: string;
+  majorGroupCode?: string;
+  majorGroupName?: string;
+  majorCode?: string;
+  majorName?: string;
+  planCount: number;
+  tuition?: string;
+  duration?: string;
+  campus?: string;
+  requirements?: string;
+  sourceName: string;
+  sourceUrl?: string;
+  sourcePublishedAt?: string;
+  trustLevel: TrustLevel;
+  importedAt?: string;
+  notes?: string;
+};
+
 export type AdmissionImportError = {
   row: number;
   field: string;

@@ -1,6 +1,9 @@
 import { generateAssistantText } from "@/lib/ai/provider";
-import { listAdmissionRecordsForProfile } from "@/lib/admissions/repository";
-import type { AdmissionRecord } from "@/lib/admissions/types";
+import {
+  listAdmissionRecordsForProfile,
+  listEnrollmentPlansForProfile
+} from "@/lib/admissions/repository";
+import type { AdmissionRecord, EnrollmentPlan } from "@/lib/admissions/types";
 import { listChatSessionsForUser, persistChatTurn } from "@/lib/db/chat-repository";
 import { buildRecommendations } from "@/lib/recommendation";
 import type { RecommendationCandidate } from "@/lib/recommendation/types";
@@ -18,7 +21,8 @@ import type {
 export async function runChatOrchestrator({
   message,
   userId,
-  admissionRecords
+  admissionRecords,
+  enrollmentPlans
 }: ChatOrchestratorInput): Promise<ChatOrchestratorResult> {
   const profile = extractProfileFromMessage(message);
   const missingFields = getMissingProfileFields(profile);
@@ -26,7 +30,19 @@ export async function runChatOrchestrator({
     admissionRecords !== undefined
       ? { records: admissionRecords, dataMode: "empty" as const }
       : await listAdmissionRecordsForProfile(profile);
-  const summary = createRecommendationSummary(profile, missingFields, admissionsLookup);
+  const enrollmentPlansLookup =
+    enrollmentPlans !== undefined
+      ? {
+          plans: enrollmentPlans,
+          dataMode: enrollmentPlans.length > 0 ? ("sample" as const) : ("empty" as const)
+        }
+      : await listEnrollmentPlansForProfile(profile);
+  const summary = createRecommendationSummary(
+    profile,
+    missingFields,
+    admissionsLookup,
+    enrollmentPlansLookup
+  );
   const systemContext = buildSystemContext(summary, admissionsLookup.dataMode);
   const generation = await generateAssistantText({
     userMessage: message,
@@ -58,10 +74,16 @@ type AdmissionsLookup = {
   dataMode: "database" | "sample" | "empty";
 };
 
+type EnrollmentPlansLookup = {
+  plans: EnrollmentPlan[];
+  dataMode: "database" | "sample" | "empty";
+};
+
 function createRecommendationSummary(
   profile: ExtractedProfile,
   missingFields: RequiredProfileField[],
-  admissionsLookup: AdmissionsLookup
+  admissionsLookup: AdmissionsLookup,
+  enrollmentPlansLookup: EnrollmentPlansLookup
 ): ChatSummary {
   const chatProfile = toChatProfile(profile);
   const missingInfo = missingFields.map(toMissingInfoLabel);
@@ -72,7 +94,7 @@ function createRecommendationSummary(
       profile: chatProfile,
       missingInfo,
       candidates: [],
-      sources: [toAdmissionSource(admissionsLookup.dataMode, admissionsLookup.records.length)],
+      sources: buildDataSources(admissionsLookup, enrollmentPlansLookup),
       verificationItems: buildVerificationItems(admissionsLookup.dataMode)
     };
   }
@@ -83,13 +105,13 @@ function createRecommendationSummary(
       profile: chatProfile,
       missingInfo: ["结构化招生数据"],
       candidates: [],
-      sources: [toAdmissionSource("empty", 0)],
+      sources: buildDataSources({ records: [], dataMode: "empty" }, enrollmentPlansLookup),
       verificationItems: buildVerificationItems("empty")
     };
   }
 
   const recommendations = buildRecommendations(profile, admissionsLookup.records, {
-    hasEnrollmentPlans: false
+    enrollmentPlans: enrollmentPlansLookup.plans
   });
 
   return {
@@ -97,7 +119,7 @@ function createRecommendationSummary(
     profile: chatProfile,
     missingInfo: recommendations.candidates.length > 0 ? [] : ["可匹配的招生记录"],
     candidates: recommendations.candidates.map(toVolunteerCandidate),
-    sources: [toAdmissionSource(admissionsLookup.dataMode, admissionsLookup.records.length)],
+    sources: buildDataSources(admissionsLookup, enrollmentPlansLookup),
     verificationItems: buildVerificationItems(admissionsLookup.dataMode)
   };
 }
@@ -119,8 +141,24 @@ function buildSystemContext(summary: ChatSummary, dataMode: AdmissionsLookup["da
       bucketCounts["稳"] ?? 0
     } 个、保 ${bucketCounts["保"] ?? 0} 个。`,
     dataBoundaryText(dataMode),
-    "候选仍缺当年招生计划和招生章程核验，不能当作最终填报结论。"
+    buildPlanBoundaryText(summary)
   ].join("");
+}
+
+function buildPlanBoundaryText(summary: ChatSummary): string {
+  const missingPlanCount = summary.candidates.filter((candidate) =>
+    candidate.riskTags.includes("缺少当年招生计划")
+  ).length;
+
+  if (missingPlanCount === 0) {
+    return "候选已匹配当年招生计划时，仍需继续核验招生章程，不能当作最终填报结论。";
+  }
+
+  if (missingPlanCount === summary.candidates.length) {
+    return "候选仍缺当年招生计划和招生章程核验，不能当作最终填报结论。";
+  }
+
+  return "部分候选仍缺当年招生计划，全部候选仍需招生章程核验，不能当作最终填报结论。";
 }
 
 function toVolunteerCandidate(candidate: RecommendationCandidate): VolunteerCandidate {
@@ -173,6 +211,49 @@ function toAdmissionSource(
     status: "资料未全",
     detail: "数据未导入，当前不能生成真实冲稳保候选。"
   };
+}
+
+function toEnrollmentPlanSource(
+  dataMode: EnrollmentPlansLookup["dataMode"],
+  planCount: number
+): DataSourceSummary {
+  if (dataMode === "sample") {
+    return {
+      id: "enrollment-plans-sample",
+      title: "enrollment_plans 注入样例",
+      trustLevel: "T5",
+      status: "待核验",
+      detail: `已匹配 ${planCount} 条当年招生计划样例；仅用于验证计划变化风险。`
+    };
+  }
+
+  if (dataMode === "database") {
+    return {
+      id: "enrollment-plans-db",
+      title: "enrollment_plans 数据库记录",
+      trustLevel: "T2",
+      status: "待核验",
+      detail: `已从数据库读取 ${planCount} 条当年招生计划；仍需核验官方来源。`
+    };
+  }
+
+  return {
+    id: "enrollment-plans-empty",
+    title: "enrollment_plans 当年招生计划",
+    trustLevel: "T5",
+    status: "资料未全",
+    detail: "当年招生计划未导入，候选只能基于往年位次做初筛。"
+  };
+}
+
+function buildDataSources(
+  admissionsLookup: AdmissionsLookup,
+  enrollmentPlansLookup: EnrollmentPlansLookup
+): DataSourceSummary[] {
+  return [
+    toAdmissionSource(admissionsLookup.dataMode, admissionsLookup.records.length),
+    toEnrollmentPlanSource(enrollmentPlansLookup.dataMode, enrollmentPlansLookup.plans.length)
+  ];
 }
 
 function buildVerificationItems(dataMode: AdmissionsLookup["dataMode"]): string[] {

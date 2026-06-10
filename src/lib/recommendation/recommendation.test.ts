@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildRecommendations } from "./engine";
-import type { AdmissionRecord } from "@/lib/admissions/types";
+import type { AdmissionRecord, EnrollmentPlan } from "@/lib/admissions/types";
 import type { CandidateProfile } from "@/lib/profile/types";
 
 const baseProfile: CandidateProfile = {
@@ -53,6 +53,24 @@ const records: AdmissionRecord[] = [
   }
 ];
 
+const enrollmentPlans: EnrollmentPlan[] = [
+  {
+    id: "regular-safe-plan",
+    year: 2026,
+    province: "河南",
+    batch: "本科批",
+    planType: "普通本科批",
+    subjectType: "物理类",
+    schoolCode: "10001",
+    schoolName: "河南样例大学",
+    majorCode: "080901",
+    majorName: "计算机类",
+    planCount: 50,
+    sourceName: "河南省教育考试院",
+    trustLevel: "T1"
+  }
+];
+
 describe("buildRecommendations", () => {
   it("filters national special plan records when the user has no eligibility", () => {
     const result = buildRecommendations(baseProfile, records);
@@ -68,5 +86,13 @@ describe("buildRecommendations", () => {
 
     expect(result.candidates[0].riskTags).toContain("缺少当年招生计划");
     expect(result.candidates[0].missingSources).toContain("enrollment_plans");
+  });
+
+  it("uses matching enrollment plans to mark plan decrease risk without missing plan source", () => {
+    const result = buildRecommendations(baseProfile, records, { enrollmentPlans });
+
+    expect(result.candidates[0].missingSources).not.toContain("enrollment_plans");
+    expect(result.candidates[0].riskTags).toContain("当年招生计划减少");
+    expect(result.candidates[0].enrollmentPlan?.planCount).toBe(50);
   });
 });

@@ -3,13 +3,18 @@ import { join } from "node:path";
 import { getDbPool, hasDatabaseConnection } from "@/lib/db/client";
 import type { CandidateProfile } from "@/lib/profile/types";
 import { parseAdmissionRecordsCsv } from "./importer";
-import type { AdmissionRecord, Batch, PlanType, TrustLevel } from "./types";
+import type { AdmissionRecord, Batch, EnrollmentPlan, PlanType, TrustLevel } from "./types";
 
 const sampleAdmissionsPath = "fixtures/admissions/sample-admission-records.csv";
 
 export type AdmissionRecordsLookupResult = {
   records: AdmissionRecord[];
   dataMode: "database" | "sample" | "empty";
+};
+
+export type EnrollmentPlansLookupResult = {
+  plans: EnrollmentPlan[];
+  dataMode: "database" | "empty";
 };
 
 export async function listAdmissionRecordsForProfile(
@@ -31,6 +36,20 @@ export async function listAdmissionRecordsForProfile(
   }
 
   return { records: result.records, dataMode: "sample" };
+}
+
+export async function listEnrollmentPlansForProfile(
+  profile: CandidateProfile
+): Promise<EnrollmentPlansLookupResult> {
+  if (!hasDatabaseConnection()) {
+    return { plans: [], dataMode: "empty" };
+  }
+
+  const databasePlans = await listDatabaseEnrollmentPlans(profile);
+  return {
+    plans: databasePlans,
+    dataMode: databasePlans.length > 0 ? "database" : "empty"
+  };
 }
 
 async function listDatabaseAdmissionRecords(profile: CandidateProfile): Promise<AdmissionRecord[]> {
@@ -94,6 +113,79 @@ async function listDatabaseAdmissionRecords(profile: CandidateProfile): Promise<
       avgScore: optionalNumber(row.avg_score),
       avgRank: optionalNumber(row.avg_rank),
       planCount: optionalNumber(row.plan_count),
+      sourceName: String(row.source_name),
+      sourceUrl: optionalString(row.source_url),
+      sourcePublishedAt: optionalString(row.source_published_at),
+      trustLevel: row.trust_level as TrustLevel,
+      importedAt: optionalString(row.imported_at),
+      notes: optionalString(row.notes)
+    }));
+  } catch {
+    return [];
+  }
+}
+
+async function listDatabaseEnrollmentPlans(profile: CandidateProfile): Promise<EnrollmentPlan[]> {
+  const pool = getDbPool();
+  if (!pool || !profile.subjectType) {
+    return [];
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        select
+          id,
+          year,
+          province,
+          batch,
+          plan_type,
+          subject_type,
+          school_code,
+          school_name,
+          major_group_code,
+          major_group_name,
+          major_code,
+          major_name,
+          plan_count,
+          tuition,
+          duration,
+          campus,
+          requirements,
+          source_name,
+          source_url,
+          source_published_at,
+          trust_level,
+          imported_at,
+          notes
+        from enrollment_plans
+        where province = $1
+          and batch = $2
+          and subject_type = $3
+        order by year desc, school_name asc, major_name asc nulls last
+        limit 500
+      `,
+      [profile.province, "本科批", profile.subjectType]
+    );
+
+    return result.rows.map((row) => ({
+      id: String(row.id),
+      year: Number(row.year),
+      province: String(row.province),
+      batch: row.batch as Batch,
+      planType: row.plan_type as PlanType,
+      subjectType: row.subject_type,
+      schoolCode: String(row.school_code ?? ""),
+      schoolName: String(row.school_name),
+      majorGroupCode: optionalString(row.major_group_code),
+      majorGroupName: optionalString(row.major_group_name),
+      majorCode: optionalString(row.major_code),
+      majorName: optionalString(row.major_name),
+      planCount: Number(row.plan_count),
+      tuition: optionalString(row.tuition),
+      duration: optionalString(row.duration),
+      campus: optionalString(row.campus),
+      requirements: optionalString(row.requirements),
       sourceName: String(row.source_name),
       sourceUrl: optionalString(row.source_url),
       sourcePublishedAt: optionalString(row.source_published_at),

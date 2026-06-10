@@ -1,4 +1,4 @@
-import type { AdmissionRecord } from "@/lib/admissions/types";
+import type { AdmissionRecord, EnrollmentPlan } from "@/lib/admissions/types";
 
 export type SubjectType = "物理类" | "历史类";
 
@@ -66,6 +66,7 @@ export type ChatOrchestratorInput = {
   message: string;
   userId: string;
   admissionRecords?: AdmissionRecord[];
+  enrollmentPlans?: EnrollmentPlan[];
 };
 
 export type ChatOrchestratorResult = {

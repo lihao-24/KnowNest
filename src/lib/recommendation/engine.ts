@@ -1,4 +1,4 @@
-import type { AdmissionRecord } from "@/lib/admissions/types";
+import type { AdmissionRecord, EnrollmentPlan } from "@/lib/admissions/types";
 import type { CandidateProfile } from "@/lib/profile/types";
 import type {
   MissingSource,
@@ -11,6 +11,7 @@ type RecommendationOptions = {
   targetProvince?: string;
   targetBatch?: "本科批";
   hasEnrollmentPlans?: boolean;
+  enrollmentPlans?: EnrollmentPlan[];
 };
 
 export function buildRecommendations(
@@ -20,7 +21,8 @@ export function buildRecommendations(
 ): RecommendationResult {
   const targetProvince = options.targetProvince ?? "河南";
   const targetBatch = options.targetBatch ?? "本科批";
-  const hasEnrollmentPlans = options.hasEnrollmentPlans ?? false;
+  const enrollmentPlans = options.enrollmentPlans ?? [];
+  const hasEnrollmentPlans = options.hasEnrollmentPlans ?? enrollmentPlans.length > 0;
 
   const candidates = records
     .filter((record) => record.province === targetProvince)
@@ -34,7 +36,9 @@ export function buildRecommendations(
       return profile.eligibleNationalSpecialPlan === true;
     })
     .filter((record) => matchesProfilePreferences(profile, record))
-    .map((record) => toCandidate(profile, record, hasEnrollmentPlans))
+    .map((record) =>
+      toCandidate(profile, record, hasEnrollmentPlans, findMatchingEnrollmentPlan(record, enrollmentPlans))
+    )
     .filter((candidate): candidate is RecommendationCandidate => candidate !== undefined)
     .sort((left, right) => bucketOrder(left.bucket) - bucketOrder(right.bucket));
 
@@ -47,7 +51,8 @@ export function buildRecommendations(
 function toCandidate(
   profile: CandidateProfile,
   record: AdmissionRecord,
-  hasEnrollmentPlans: boolean
+  hasEnrollmentPlans: boolean,
+  enrollmentPlan: EnrollmentPlan | undefined
 ): RecommendationCandidate | undefined {
   if (profile.rank === undefined || record.minRank === undefined) {
     return undefined;
@@ -61,9 +66,17 @@ function toCandidate(
   const riskTags: string[] = [];
   const missingSources: MissingSource[] = [];
 
-  if (!hasEnrollmentPlans) {
+  if (!hasEnrollmentPlans || !enrollmentPlan) {
     riskTags.push("缺少当年招生计划");
     missingSources.push("enrollment_plans");
+  }
+
+  if (
+    enrollmentPlan &&
+    record.planCount !== undefined &&
+    enrollmentPlan.planCount < record.planCount
+  ) {
+    riskTags.push("当年招生计划减少");
   }
 
   return {
@@ -73,9 +86,30 @@ function toCandidate(
     majorName: record.majorName,
     planType: record.planType,
     admissionRecord: record,
+    enrollmentPlan,
     riskTags,
     missingSources
   };
+}
+
+function findMatchingEnrollmentPlan(
+  record: AdmissionRecord,
+  plans: EnrollmentPlan[]
+): EnrollmentPlan | undefined {
+  return plans.find(
+    (plan) =>
+      plan.province === record.province &&
+      plan.batch === record.batch &&
+      plan.planType === record.planType &&
+      plan.subjectType === record.subjectType &&
+      plan.schoolCode === record.schoolCode &&
+      sameOptionalCode(plan.majorGroupCode, record.majorGroupCode) &&
+      sameOptionalCode(plan.majorCode, record.majorCode)
+  );
+}
+
+function sameOptionalCode(left: string | undefined, right: string | undefined): boolean {
+  return (left ?? "") === (right ?? "");
 }
 
 function classifyByRank(profileRank: number, recordMinRank: number): RecommendationBucket | undefined {
