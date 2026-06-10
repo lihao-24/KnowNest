@@ -13,6 +13,8 @@ import {
 } from "@/lib/db/chat-repository";
 import { buildRecommendations } from "@/lib/recommendation";
 import type { RecommendationCandidate } from "@/lib/recommendation/types";
+import { searchSchoolDocumentsForCandidates } from "@/lib/rag/school-document-search";
+import type { SchoolDocumentMatch } from "@/lib/rag/school-document-search";
 import { extractProfileFromMessage, getMissingProfileFields } from "@/lib/profile";
 import type { CandidateProfile as ExtractedProfile, RequiredProfileField } from "@/lib/profile/types";
 import { toChatProfile } from "./demo-data";
@@ -50,7 +52,7 @@ export async function runChatOrchestrator({
         }
       : await listEnrollmentPlansForProfile(profile);
   const scoreSegmentsLookup = await listScoreSegmentsForProfile(profile);
-  const summary = createRecommendationSummary(
+  const summary = await createRecommendationSummary(
     profile,
     missingFields,
     admissionsLookup,
@@ -152,13 +154,18 @@ type ScoreSegmentsLookup = {
   dataMode: "database" | "sample" | "empty";
 };
 
-function createRecommendationSummary(
+type SchoolDocumentsLookup = {
+  matches: SchoolDocumentMatch[];
+  dataMode: "database" | "sample" | "empty";
+};
+
+async function createRecommendationSummary(
   profile: ExtractedProfile,
   missingFields: RequiredProfileField[],
   admissionsLookup: AdmissionsLookup,
   enrollmentPlansLookup: EnrollmentPlansLookup,
   scoreSegmentsLookup: ScoreSegmentsLookup
-): ChatSummary {
+): Promise<ChatSummary> {
   const chatProfile = toChatProfile(profile);
   const missingInfo = missingFields.map(toMissingInfoLabel);
 
@@ -168,8 +175,11 @@ function createRecommendationSummary(
       profile: chatProfile,
       missingInfo,
       candidates: [],
-      sources: buildDataSources(admissionsLookup, enrollmentPlansLookup, scoreSegmentsLookup),
-      verificationItems: buildVerificationItems(admissionsLookup.dataMode, scoreSegmentsLookup)
+      sources: buildDataSources(admissionsLookup, enrollmentPlansLookup, scoreSegmentsLookup, {
+        matches: [],
+        dataMode: "empty"
+      }),
+      verificationItems: buildVerificationItems(admissionsLookup.dataMode, scoreSegmentsLookup, [])
     };
   }
 
@@ -179,22 +189,44 @@ function createRecommendationSummary(
       profile: chatProfile,
       missingInfo: ["结构化招生数据"],
       candidates: [],
-      sources: buildDataSources({ records: [], dataMode: "empty" }, enrollmentPlansLookup, scoreSegmentsLookup),
-      verificationItems: buildVerificationItems("empty", scoreSegmentsLookup)
+      sources: buildDataSources({ records: [], dataMode: "empty" }, enrollmentPlansLookup, scoreSegmentsLookup, {
+        matches: [],
+        dataMode: "empty"
+      }),
+      verificationItems: buildVerificationItems("empty", scoreSegmentsLookup, [])
     };
   }
 
   const recommendations = buildRecommendations(profile, admissionsLookup.records, {
     enrollmentPlans: enrollmentPlansLookup.plans
   });
+  const documentLookup = await searchSchoolDocumentsForCandidates(
+    recommendations.candidates.map((candidate) => ({
+      id: candidate.candidateId,
+      schoolName: candidate.schoolName,
+      majorName: candidate.majorName ?? "",
+      riskTags: candidate.riskTags
+    }))
+  );
 
   return {
     status: recommendations.candidates.length > 0 ? "待核验" : "资料未全",
     profile: chatProfile,
     missingInfo: recommendations.candidates.length > 0 ? [] : ["可匹配的招生记录"],
-    candidates: recommendations.candidates.map(toVolunteerCandidate),
-    sources: buildDataSources(admissionsLookup, enrollmentPlansLookup, scoreSegmentsLookup),
-    verificationItems: buildVerificationItems(admissionsLookup.dataMode, scoreSegmentsLookup)
+    candidates: recommendations.candidates.map((candidate) =>
+      toVolunteerCandidate(candidate, documentLookup.matches)
+    ),
+    sources: buildDataSources(
+      admissionsLookup,
+      enrollmentPlansLookup,
+      scoreSegmentsLookup,
+      documentLookup
+    ),
+    verificationItems: buildVerificationItems(
+      admissionsLookup.dataMode,
+      scoreSegmentsLookup,
+      documentLookup.matches
+    )
   };
 }
 
@@ -235,10 +267,19 @@ function buildPlanBoundaryText(summary: ChatSummary): string {
   return "部分候选仍缺当年招生计划，全部候选仍需招生章程核验，不能当作最终填报结论。";
 }
 
-function toVolunteerCandidate(candidate: RecommendationCandidate): VolunteerCandidate {
+function toVolunteerCandidate(
+  candidate: RecommendationCandidate,
+  documentMatches: SchoolDocumentMatch[]
+): VolunteerCandidate {
   const record = candidate.admissionRecord;
   const planEvidence = candidate.enrollmentPlan
     ? `当年计划 ${candidate.enrollmentPlan.planCount} 人。计划来源：${candidate.enrollmentPlan.sourceName}。`
+    : "";
+  const candidateDocumentMatches = documentMatches.filter(
+    (match) => match.candidateId === candidate.candidateId
+  );
+  const documentEvidence = candidateDocumentMatches[0]
+    ? `章程样例提示：${candidateDocumentMatches[0].snippet}。`
     : "";
 
   return {
@@ -251,8 +292,8 @@ function toVolunteerCandidate(candidate: RecommendationCandidate): VolunteerCand
     city: extractCity(record),
     evidence: `${record.year} 年${record.province}${record.batch}${record.planType}样例/记录：最低分 ${record.minScore ?? "未标注"}，最低位次 ${
       record.minRank ?? "未标注"
-    }。来源：${record.sourceName}。${planEvidence}`,
-    riskTags: candidate.riskTags,
+    }。来源：${record.sourceName}。${planEvidence}${documentEvidence}`,
+    riskTags: [...new Set([...candidate.riskTags, ...candidateDocumentMatches.flatMap((match) => match.riskTags)])],
     status: candidate.missingSources.length > 0 ? "待核验" : "可用"
   };
 }
@@ -361,26 +402,59 @@ function toScoreSegmentSource({
   };
 }
 
+function toSchoolDocumentSource({ dataMode, matches }: SchoolDocumentsLookup): DataSourceSummary {
+  if (dataMode === "sample") {
+    return {
+      id: "school-documents-sample",
+      title: "school_documents 样例 CSV",
+      trustLevel: "T5",
+      status: "待核验",
+      detail: `已命中 ${matches.length} 条章程/资料样例；仅用于验证关键词检索和风险提示，不用于真实填报。`
+    };
+  }
+
+  if (dataMode === "database") {
+    return {
+      id: "school-documents-db",
+      title: "school_documents 数据库记录",
+      trustLevel: "T2",
+      status: "待核验",
+      detail: `已命中 ${matches.length} 条高校资料；仍需回查高校官方原文。`
+    };
+  }
+
+  return {
+    id: "school-documents-empty",
+    title: "school_documents 招生章程",
+    trustLevel: "T5",
+    status: "资料未全",
+    detail: "招生章程样例/数据未命中，体检、单科、校区、学费和调剂规则仍需人工核验。"
+  };
+}
+
 function buildDataSources(
   admissionsLookup: AdmissionsLookup,
   enrollmentPlansLookup: EnrollmentPlansLookup,
-  scoreSegmentsLookup: ScoreSegmentsLookup
+  scoreSegmentsLookup: ScoreSegmentsLookup,
+  schoolDocumentsLookup: SchoolDocumentsLookup
 ): DataSourceSummary[] {
   return [
     toAdmissionSource(admissionsLookup.dataMode, admissionsLookup.records.length),
     toEnrollmentPlanSource(enrollmentPlansLookup.dataMode, enrollmentPlansLookup.plans.length),
-    toScoreSegmentSource(scoreSegmentsLookup)
+    toScoreSegmentSource(scoreSegmentsLookup),
+    toSchoolDocumentSource(schoolDocumentsLookup)
   ];
 }
 
 function buildVerificationItems(
   dataMode: AdmissionsLookup["dataMode"],
-  scoreSegmentsLookup: ScoreSegmentsLookup
+  scoreSegmentsLookup: ScoreSegmentsLookup,
+  documentMatches: SchoolDocumentMatch[]
 ): string[] {
   const items = [
     "用河南省教育考试院官方数据核对近三年最低位次。",
     buildScoreSegmentVerificationItem(scoreSegmentsLookup),
-    "回查高校招生章程中的体检、单科、外语语种和调剂规则。",
+    buildSchoolDocumentVerificationItem(documentMatches),
     "确认当年招生计划、校区、学费和专业名称是否变化。"
   ];
 
@@ -401,6 +475,15 @@ function buildScoreSegmentVerificationItem(scoreSegmentsLookup: ScoreSegmentsLoo
   }
 
   return "导入官方一分一段表后，核对用户分数和位次是否明显不一致。";
+}
+
+function buildSchoolDocumentVerificationItem(documentMatches: SchoolDocumentMatch[]): string {
+  if (documentMatches.length === 0) {
+    return "回查高校招生章程中的体检、单科、外语语种和调剂规则。";
+  }
+
+  const firstMatch = documentMatches[0];
+  return `回查高校招生章程原文；当前关键词样例命中 ${firstMatch.schoolName}：${firstMatch.snippet}`;
 }
 
 function dataBoundaryText(dataMode: AdmissionsLookup["dataMode"]): string {

@@ -42,7 +42,7 @@
 - 公共数据表：`score_segments`、`admission_records`、`enrollment_plans`、`school_documents`。
 - RAG 预留表：`document_chunks`。
 
-当前已实现 `admission_records`、`enrollment_plans` 和 `score_segments` CSV parser、样例 fixture、数据库导入 helper 和导入脚本；`school_documents` 的导入脚本仍待补齐。
+当前已实现 `admission_records`、`enrollment_plans`、`score_segments` 和 `school_documents` CSV parser、样例 fixture、数据库导入 helper 和导入脚本。
 
 ### admission_records
 
@@ -174,14 +174,14 @@ primary_goal
 当前实现状态（2026-06-11）：
 
 - `src/lib/profile` 已支持从单轮文本中提取分数、位次、科类、国家专项资格、地域/专业偏好和核心诉求。
-- `src/lib/admissions` 已支持 `admission_records` / `enrollment_plans` / `score_segments` CSV header 解析、字段校验、行号/字段级错误报告和 snake_case 到 camelCase 转换。
+- `src/lib/admissions` 已支持 `admission_records` / `enrollment_plans` / `score_segments` / `school_documents` CSV header 解析、字段校验、行号/字段级错误报告和 snake_case 到 camelCase 转换。
 - `fixtures/admissions/sample-admission-records.csv` 提供 12 条虚构样例记录，覆盖普通本科批、国家专项计划、物理类/历史类、冲稳保区间和缺少招生计划的风险场景；仅用于开发验证，不用于真实填报。
 - `src/lib/admissions/repository.ts` 已支持数据库优先查询 `admission_records` 和 `enrollment_plans`，`src/lib/admissions/score-segment-repository.ts` 已支持数据库优先查询 `score_segments`，`DATABASE_URL=disabled` 时读取样例 CSV。
 - `src/lib/recommendation` 已支持 `AdmissionRecord[]` 的河南、本科批、科类、国家专项资格过滤，以及按位次粗分“冲/稳/保”。
-- `/api/chat` 已将用户消息提取出的画像、`admission_records` / `enrollment_plans` / `score_segments` 查询结果和规则层候选组装为 summary，右侧候选、来源和核验事项不再依赖固定 demo 候选。
+- `/api/chat` 已将用户消息提取出的画像、`admission_records` / `enrollment_plans` / `score_segments` 查询结果、`school_documents` 关键词检索结果和规则层候选组装为 summary，右侧候选、来源和核验事项不再依赖固定 demo 候选。
 - OpenAI-compatible Provider 已接收服务端结构化 summary、候选、来源和核验项；LLM 输出出现未授权候选学校时会回退到安全文案。
 - 本地 Postgres 已验证迁移和样例 CSV 导入，当前样例 `admission_records` 入库 12 条。
-- 当前已用 `enrollment_plans` 初步匹配当年计划并标记计划减少风险，并接入 `score_segments` 样例链路提示分数/位次核验；仍未结合 `school_documents` 和 RAG 做完整章程风险分析，缺少当年招生计划或章程时仍需标记待核验。
+- 当前已用 `enrollment_plans` 初步匹配当年计划并标记计划减少风险，接入 `score_segments` 样例链路提示分数/位次核验，并接入 `school_documents` 关键词检索提示章程风险；这仍是样例 RAG，不使用 embedding/pgvector，缺少真实当年招生计划或章程时仍需标记待核验。
 
 ### 1. 画像校验
 

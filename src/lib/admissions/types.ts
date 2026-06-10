@@ -72,6 +72,22 @@ export type ScoreSegment = {
   notes?: string;
 };
 
+export type SchoolDocument = {
+  id?: string;
+  year: number;
+  schoolCode: string;
+  schoolName: string;
+  docType: "招生章程" | "招生计划" | "专业介绍" | "就业质量报告";
+  title: string;
+  sourceName: string;
+  sourceUrl?: string;
+  publishedAt?: string;
+  trustLevel: TrustLevel;
+  content: string;
+  importedAt?: string;
+  notes?: string;
+};
+
 export type AdmissionImportError = {
   row: number;
   field: string;
@@ -90,5 +106,10 @@ export type EnrollmentPlanImportResult = {
 
 export type ScoreSegmentImportResult = {
   segments: ScoreSegment[];
+  errors: AdmissionImportError[];
+};
+
+export type SchoolDocumentImportResult = {
+  documents: SchoolDocument[];
   errors: AdmissionImportError[];
 };

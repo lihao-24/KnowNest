@@ -15,7 +15,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "import:admissions": "tsx scripts/import-admissions.ts",
     "import:enrollment-plans": "tsx scripts/import-enrollment-plans.ts",
-    "import:score-segments": "tsx scripts/import-score-segments.ts"
+    "import:score-segments": "tsx scripts/import-score-segments.ts",
+    "import:school-documents": "tsx scripts/import-school-documents.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

@@ -32,6 +32,7 @@ async function main() {
       await page.getByTestId("candidate-card").first().waitFor();
       await page.getByText("样例数据，不用于真实填报").first().waitFor();
       await page.getByText("score_segments 样例 CSV").waitFor();
+      await page.getByText("school_documents 样例 CSV").waitFor();
 
       const firstSaveButton = page.getByTestId(/^save-choice-/).first();
       await firstSaveButton.click();

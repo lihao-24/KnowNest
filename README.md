@@ -22,6 +22,7 @@
 - 志愿篮最小闭环已完成：候选卡可保存/取消保存，服务端通过 `saved_choices` repository 和 API 按当前认证用户隔离。
 - 右侧考生画像已支持最小手动修正：可编辑分数、位次、科类、国家专项资格、核心诉求、地域偏好和专业兴趣，并按当前会话保存。
 - `score_segments` 样例链路已完成：虚构一分一段 CSV parser、导入脚本、repository 和聊天 summary 上下文已接入。
+- `school_documents` / RAG 样例链路已完成：虚构章程 CSV parser、导入脚本、关键词检索和候选章程风险提示已接入，不使用 embedding 或 pgvector。
 - 已新增 `fixtures/admissions/sample-admission-records.csv`，这是虚构样例数据，只用于端到端开发验证。
 - 已新增 `fixtures/admissions/sample-enrollment-plans.csv`，这是虚构当年招生计划样例，只用于计划变化风险验证。
 - `/api/chat` 已从 demo 候选改为服务端画像提取、读取 `admission_records`、规则层生成候选、右侧 summary 展示候选的闭环。
@@ -146,9 +147,10 @@ pnpm db:migrate
 pnpm import:admissions fixtures/admissions/sample-admission-records.csv
 pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv
 pnpm import:score-segments fixtures/admissions/sample-score-segments.csv
+pnpm import:school-documents fixtures/admissions/sample-school-documents.csv
 ```
 
-`fixtures/admissions/sample-admission-records.csv`、`fixtures/admissions/sample-enrollment-plans.csv` 和 `fixtures/admissions/sample-score-segments.csv` 是虚构样例数据，只用于端到端开发验证，不用于真实填报。
+`fixtures/admissions/sample-admission-records.csv`、`fixtures/admissions/sample-enrollment-plans.csv`、`fixtures/admissions/sample-score-segments.csv` 和 `fixtures/admissions/sample-school-documents.csv` 是虚构样例数据，只用于端到端开发验证，不用于真实填报。
 
 常用验证：
 

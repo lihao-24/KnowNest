@@ -1,4 +1,4 @@
-import type { AdmissionRecord, EnrollmentPlan, ScoreSegment } from "./types";
+import type { AdmissionRecord, EnrollmentPlan, SchoolDocument, ScoreSegment } from "./types";
 
 export type AdmissionImportQueryClient = {
   query(sql: string, values: unknown[]): Promise<unknown>;
@@ -28,6 +28,15 @@ export async function importScoreSegments(
 ): Promise<void> {
   for (const segment of segments) {
     await insertScoreSegment(segment, client);
+  }
+}
+
+export async function importSchoolDocuments(
+  documents: SchoolDocument[],
+  client: AdmissionImportQueryClient
+): Promise<void> {
+  for (const document of documents) {
+    await insertSchoolDocument(document, client);
   }
 }
 
@@ -199,6 +208,41 @@ async function insertScoreSegment(
       segment.sourcePublishedAt ?? null,
       segment.trustLevel,
       segment.notes ?? null
+    ]
+  );
+}
+
+async function insertSchoolDocument(
+  document: SchoolDocument,
+  client: AdmissionImportQueryClient
+): Promise<void> {
+  await client.query(
+    `
+      insert into school_documents (
+        year,
+        school_code,
+        school_name,
+        doc_type,
+        title,
+        source_name,
+        source_url,
+        published_at,
+        trust_level,
+        content
+      )
+      values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `,
+    [
+      document.year,
+      document.schoolCode,
+      document.schoolName,
+      document.docType,
+      document.title,
+      document.sourceName,
+      document.sourceUrl ?? null,
+      document.publishedAt ?? null,
+      document.trustLevel,
+      document.content
     ]
   );
 }
