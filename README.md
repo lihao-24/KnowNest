@@ -177,10 +177,10 @@ pnpm smoke:provider
 ## 后续接手重点
 
 1. 验证真实 Supabase 登录流程、未登录跳转和登录后服务端 user id。
-3. 启动 Postgres，执行 `pnpm db:migrate`，验证会话、消息、画像和多会话切换按 `user_id` 隔离写入。
-4. 通过 `pnpm import:admissions fixtures/admissions/sample-admission-records.csv` 和 `pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv` 验证样例导入报告和入库。
-5. 接入 `score_segments`、`school_documents` 和 RAG 链路，继续细化计划变化、章程限制和风险来源。
-6. 用真实 OpenAI-compatible key 做一次门控 smoke，确认模型只解释服务端候选、不新增学校清单。
+2. 启动 Postgres，执行 `pnpm db:migrate`，验证会话、消息、画像、志愿篮和多会话切换按 `user_id` 隔离写入。
+3. 用样例 CSV 执行 `admission_records`、`enrollment_plans`、`score_segments`、`school_documents` 导入脚本，验证真实 Postgres 入库。
+4. 准备真实河南招生数据入库，替换当前虚构样例数据。
+5. 用真实 OpenAI-compatible key 做一次门控 smoke，确认模型只解释服务端候选、不新增学校清单。
 
 ## Git 状态
 

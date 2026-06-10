@@ -74,17 +74,17 @@
 - Next.js App Router + React + TypeScript。
 - 登录页和 `/workspace` 三栏工作台。
 - Supabase Auth server helper、真实邮箱密码登录表单和服务端登录/退出路由。
-- `/api/auth/me`、`/api/chat`、`/api/chat/sessions` 和 `/api/chat/sessions/[sessionId]`。
+- `/api/auth/me`、`/api/chat`、`/api/chat/sessions`、`/api/chat/sessions/[sessionId]`、画像修正和志愿篮 API。
 - `src/lib/profile`、`src/lib/admissions`、`src/lib/recommendation` 的第一版核心规则与测试。
-- `src/lib/admissions/repository.ts` 支持数据库优先、`DATABASE_URL=disabled` 时读取样例 CSV。
-- `src/lib/db` 的 Postgres 连接、迁移、会话 repository、消息历史、candidate profile 持久化和按 session 续聊初稿。
-- 左侧会话已支持新建、切换、恢复消息历史，并按当前 session 续聊。
+- `src/lib/admissions/repository.ts`、`score-segment-repository.ts` 和 RAG 样例检索支持数据库优先、`DATABASE_URL=disabled` 时读取样例 CSV。
+- `src/lib/db` 的 Postgres 连接、迁移、会话 repository、消息历史、candidate profile 持久化、saved_choices repository 和按 session 续聊初稿。
+- 左侧会话已支持新建、切换、恢复消息历史，并按当前 session 续聊；右侧画像支持手动修正；候选卡支持保存/取消保存到志愿篮。
 - `src/lib/ai/provider.ts` 已接入 OpenAI-compatible Chat Completions；模型输入包含服务端结构化 summary，并有候选越权安全回退。
-- `scripts/migrate.ts`、`scripts/import-admissions.ts` 和 `scripts/import-enrollment-plans.ts`。
-- `fixtures/admissions/sample-admission-records.csv` 和 `fixtures/admissions/sample-enrollment-plans.csv`，仅为虚构样例数据，不用于真实填报。
+- `scripts/migrate.ts`、`scripts/import-admissions.ts`、`scripts/import-enrollment-plans.ts`、`scripts/import-score-segments.ts` 和 `scripts/import-school-documents.ts`。
+- `fixtures/admissions/sample-admission-records.csv`、`sample-enrollment-plans.csv`、`sample-score-segments.csv` 和 `sample-school-documents.csv`，仅为虚构样例数据，不用于真实填报。
 - `Dockerfile` 和 `docker-compose.yml` 初稿。
 
-当前仍是 Supabase Auth + 样例数据竖切，未完成真实账号浏览器端到端 smoke、真实河南招生数据入库、志愿篮保存、`score_segments` / `school_documents` / RAG 链路和完整章程风险分析。真实 LLM Provider 已有服务端接入边界，但尚未用真实 key 做浏览器 smoke。
+当前仍是 Supabase Auth + 样例数据竖切，未完成真实账号浏览器端到端 smoke、真实 Postgres 浏览器端到端 smoke、真实河南招生数据入库和完整章程风险分析。真实 LLM Provider 已有服务端接入边界，但尚未用真实 key 做浏览器 smoke。
 
 ## UI 实现基准
 
@@ -135,6 +135,8 @@ git diff --check
 - `pnpm typecheck`：通过。
 - `pnpm lint`：通过。
 - `pnpm build`：通过。
+- `pnpm smoke:demo`：通过。
+- `pnpm smoke:supabase` / `pnpm smoke:provider`：环境变量缺失时按设计跳过。
 - `git diff --check`：通过。
 
 注意：`pnpm build` 当前使用 `next build --webpack`。Next 16 默认 Turbopack 在当前沙箱环境中处理 CSS 时曾触发 `binding to a port` 权限错误，因此先显式使用 webpack 构建。

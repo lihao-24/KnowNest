@@ -198,18 +198,19 @@ document_chunks
 
 ## 阶段 3：数据导入
 
-状态：部分完成。
+状态：样例导入链路基本完成，真实河南数据待接入。
 
 已完成：
 
 - `admission_records` CSV parser 和字段校验。
 - `enrollment_plans` CSV parser、样例 fixture、数据库导入 helper 和 `pnpm import:enrollment-plans <csv>` 脚本入口。
+- `score_segments` CSV parser、样例 fixture、数据库导入 helper 和 `pnpm import:score-segments <csv>` 脚本入口。
+- `school_documents` CSV parser、样例 fixture、数据库导入 helper 和 `pnpm import:school-documents <csv>` 脚本入口。
 - 导入错误包含行号和字段。
 - `pnpm import:admissions <csv>` 脚本入口。
 
 待完成：
 
-- 真实河南招生数据准备和入库。
 - 真实河南招生数据准备和入库。
 - 增加重复记录校验和导入报告细化。
 

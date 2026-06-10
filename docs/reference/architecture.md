@@ -79,18 +79,21 @@ LLM 可以调整表达、提醒风险、提出补充问题，但不能绕过规�
   - `/api/chat`：接收用户消息并调用服务端对话编排，支持按 `sessionId` 续聊。
   - `/api/chat/sessions`：创建当前用户的新聊天会话。
   - `/api/chat/sessions/[sessionId]`：按当前用户读取指定会话消息历史和画像 summary。
+  - `/api/chat/sessions/[sessionId]/profile`：按当前用户和会话保存手动修正画像。
+  - `/api/saved-choices`：按当前用户保存和读取志愿篮候选。
+  - `/api/saved-choices/[candidateId]`：按当前用户取消保存候选。
 - `src/components/`：登录页、工作台、状态标签等 UI 组件。
 - `src/lib/auth/`：Supabase server auth helper、真实登录/退出和本地兜底 demo auth。
-- `src/lib/db/`：Postgres 连接、迁移、聊天会话 repository、消息历史和 candidate profile 持久化。
+- `src/lib/db/`：Postgres 连接、迁移、聊天会话 repository、消息历史、candidate profile 和 saved_choices 持久化。
 - `src/lib/profile/`：考生画像提取和缺失字段判断。
-- `src/lib/admissions/`：`admission_records` CSV 解析、校验、样例/数据库查询和导入 helper。
+- `src/lib/admissions/`：`admission_records`、`enrollment_plans`、`score_segments`、`school_documents` CSV 解析、校验、样例/数据库查询和导入 helper。
 - `src/lib/recommendation/`：第一版内存数据推荐规则。
 - `src/lib/chat/`：服务端对话编排、summary 生成和前端数据结构。
 - `src/lib/ai/`：OpenAI-compatible Provider 边界，配置齐全时调用 Chat Completions；输入使用服务端结构化 summary，并有候选越权安全回退。
-- `src/lib/rag/`：文档 RAG 预留目录。
-- `scripts/`：数据库迁移和招生数据导入脚本。
+- `src/lib/rag/`：`school_documents` 关键词检索样例链路，不使用 embedding/pgvector。
+- `scripts/`：数据库迁移和招生数据导入/smoke 脚本。
 
-当前可运行体验是 Supabase Auth + 样例数据竖切；`DATABASE_URL=disabled` 时读取 `fixtures/admissions/sample-admission-records.csv`，配置数据库时优先查询 `admission_records` 和 `enrollment_plans`。本地 Postgres 已可通过 `POSTGRES_PORT=55432` 启动，迁移和样例 CSV 导入已验证。真实账号浏览器端到端 smoke、真实河南招生数据、志愿篮、`score_segments` / `school_documents` / RAG 和完整章程风险分析尚未完成。真实 LLM Provider 已有服务端接入边界，但尚未用真实 key 做浏览器 smoke。
+当前可运行体验是 Supabase Auth + 样例数据竖切；`DATABASE_URL=disabled` 时读取 `fixtures/admissions/` 下的虚构样例 CSV，配置数据库时优先查询 `admission_records`、`enrollment_plans`、`score_segments` 和 `school_documents`。本地 Postgres 已可通过 `POSTGRES_PORT=55432` 启动，迁移和样例 CSV 导入已有脚本；默认 browser smoke 已覆盖 demo auth 下的工作台、问答、右栏联动、画像修正、志愿篮保存/取消保存和多会话切换。真实账号浏览器端到端 smoke、真实 Postgres 浏览器端到端 smoke、真实河南招生数据和完整章程风险分析尚未完成。真实 LLM Provider 已有服务端接入边界，但尚未用真实 key 做浏览器 smoke。
 
 ### 前端层
 
