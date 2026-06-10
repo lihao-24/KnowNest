@@ -9,11 +9,12 @@
 - Next.js App Router + TypeScript 应用骨架。
 - 登录页和受保护三栏工作台 UI。
 - Supabase Auth 服务端登录、退出和受保护页面 helper。
-- `/api/auth/me` 和 `/api/chat` 服务端接口边界。
+- `/api/auth/me`、`/api/chat` 和会话管理服务端接口边界。
 - 考生画像提取、招生 CSV 校验导入、冲稳保推荐规则的第一版核心模块和测试。
+- OpenAI-compatible Provider 服务端接入和结构化 summary grounding。
 - 独立 Postgres schema 初稿、Dockerfile 和 Docker Compose 初稿。
 
-当前最近进度（2026-06-10）：
+当前最近进度（2026-06-11）：
 
 - 已安装依赖并提交 `pnpm-lock.yaml`。
 - 本地开发服务已能启动并打开查看。
@@ -21,7 +22,8 @@
 - 已新增 `fixtures/admissions/sample-enrollment-plans.csv`，这是虚构当年招生计划样例，只用于计划变化风险验证。
 - `/api/chat` 已从 demo 候选改为服务端画像提取、读取 `admission_records`、规则层生成候选、右侧 summary 展示候选的闭环。
 - `DATABASE_URL=disabled` 时使用样例 CSV；配置数据库时优先查询 `admission_records`。
-- 会话消息和提取出的 candidate profile 已可在数据库可用时按服务端 `user_id` 持久化。
+- 会话消息和提取出的 candidate profile 已可在数据库可用时按服务端 `user_id` 持久化；工作台支持新建会话、切换会话、恢复消息历史，并按当前 session 续聊。
+- OpenAI-compatible Provider 已接入服务端 Chat Completions，模型只接收服务端结构化 summary / 候选 / 来源 / 核验项，并在输出出现未授权候选学校时回退到安全文案。
 - `pnpm test`、`pnpm typecheck`、`pnpm lint`、`pnpm build`、`git diff --check` 已通过。
 - `pnpm build` 当前显式使用 `next build --webpack`，原因是 Next 16 默认 Turbopack 在当前沙箱环境中会触发端口绑定限制。
 - 当前可用体验是 Supabase Auth + 样例数据竖切；还不是完整真实数据驱动 MVP。
@@ -90,6 +92,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 DEMO_AUTH_ENABLED=false
 ```
 
+如需启用真实模型回复，继续填写 OpenAI-compatible Provider 配置；不配置时会回落到本地安全 demo 文案：
+
+```env
+AI_DEFAULT_PROVIDER=openai-compatible
+AI_PROVIDER_BASE_URL=
+AI_PROVIDER_API_KEY=
+AI_PROVIDER_MODEL=
+AI_PROVIDER_TEMPERATURE=0.2
+AI_PROVIDER_MAX_TOKENS=900
+```
+
 启动本地开发服务：
 
 ```bash
@@ -146,12 +159,13 @@ git diff --check
 
 ## 后续接手重点
 
-1. 验证真实 Supabase 登录流程、未登录跳转和登录后服务端 user id。
-2. 启动 Postgres，执行 `pnpm db:migrate`，验证会话、消息和画像按 `user_id` 隔离写入。
-3. 通过 `pnpm import:admissions fixtures/admissions/sample-admission-records.csv` 验证样例导入报告和入库。
-4. 通过 `pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv` 验证当年招生计划样例导入，并继续细化计划变化风险。
-5. 接入 OpenAI-compatible Provider，保持 LLM 只解释规则层候选、不直接决定候选。
-6. 做一次浏览器/窄屏 UI smoke，确认三栏、长回答和右侧总结区不遮挡。
+1. 建立 browser smoke/e2e，覆盖 demo auth 进入工作台、发起问答、右栏联动、新建/切换会话。
+2. 验证真实 Supabase 登录流程、未登录跳转和登录后服务端 user id。
+3. 启动 Postgres，执行 `pnpm db:migrate`，验证会话、消息、画像和多会话切换按 `user_id` 隔离写入。
+4. 通过 `pnpm import:admissions fixtures/admissions/sample-admission-records.csv` 和 `pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv` 验证样例导入报告和入库。
+5. 实现志愿篮最小保存/取消保存闭环。
+6. 接入 `score_segments`、`school_documents` 和 RAG 链路，继续细化计划变化、章程限制和风险来源。
+7. 用真实 OpenAI-compatible key 做一次门控 smoke，确认模型只解释服务端候选、不新增学校清单。
 
 ## Git 状态
 

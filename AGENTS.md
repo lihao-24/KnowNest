@@ -69,20 +69,22 @@
 
 ## 当前实现状态
 
-截至 2026-06-10，项目已有可本地运行的样例数据驱动 MVP 竖切：
+截至 2026-06-11，项目已有可本地运行的样例数据驱动 MVP 竖切：
 
 - Next.js App Router + React + TypeScript。
 - 登录页和 `/workspace` 三栏工作台。
 - Supabase Auth server helper、真实邮箱密码登录表单和服务端登录/退出路由。
-- `/api/auth/me` 和 `/api/chat`。
+- `/api/auth/me`、`/api/chat`、`/api/chat/sessions` 和 `/api/chat/sessions/[sessionId]`。
 - `src/lib/profile`、`src/lib/admissions`、`src/lib/recommendation` 的第一版核心规则与测试。
 - `src/lib/admissions/repository.ts` 支持数据库优先、`DATABASE_URL=disabled` 时读取样例 CSV。
-- `src/lib/db` 的 Postgres 连接、迁移、会话 repository 和 candidate profile 持久化初稿。
-- `scripts/migrate.ts` 和 `scripts/import-admissions.ts`。
-- `fixtures/admissions/sample-admission-records.csv`，仅为虚构样例数据，不用于真实填报。
+- `src/lib/db` 的 Postgres 连接、迁移、会话 repository、消息历史、candidate profile 持久化和按 session 续聊初稿。
+- 左侧会话已支持新建、切换、恢复消息历史，并按当前 session 续聊。
+- `src/lib/ai/provider.ts` 已接入 OpenAI-compatible Chat Completions；模型输入包含服务端结构化 summary，并有候选越权安全回退。
+- `scripts/migrate.ts`、`scripts/import-admissions.ts` 和 `scripts/import-enrollment-plans.ts`。
+- `fixtures/admissions/sample-admission-records.csv` 和 `fixtures/admissions/sample-enrollment-plans.csv`，仅为虚构样例数据，不用于真实填报。
 - `Dockerfile` 和 `docker-compose.yml` 初稿。
 
-当前仍是 Supabase Auth + 样例数据竖切，未完成真实账号浏览器端到端 smoke、真实河南招生数据入库、完整 `enrollment_plans` 风险分析和真实 LLM Provider 调用。
+当前仍是 Supabase Auth + 样例数据竖切，未完成真实账号浏览器端到端 smoke、真实河南招生数据入库、志愿篮保存、`score_segments` / `school_documents` / RAG 链路和完整章程风险分析。真实 LLM Provider 已有服务端接入边界，但尚未用真实 key 做浏览器 smoke。
 
 ## UI 实现基准
 
@@ -129,7 +131,7 @@ git diff --check
 
 最近一次完整验证结果：
 
-- `pnpm test`：通过，6 个测试文件、17 个测试。
+- `pnpm test`：通过，8 个测试文件、34 个测试。
 - `pnpm typecheck`：通过。
 - `pnpm lint`：通过。
 - `pnpm build`：通过。
@@ -141,7 +143,7 @@ git diff --check
 
 - `docker compose up -d db` 默认映射 `5432:5432` 时，本机 Supabase pooler 已占用 `127.0.0.1:5432`。
 - `docker-compose.yml` 已支持 `POSTGRES_PORT`，例如 `POSTGRES_PORT=55432 docker compose up -d db`。
-- 当前会话中改端口启动需要 Docker socket 提权，但审批服务返回 503，真实 Postgres 迁移和入库实跑仍需在本机重试。
+- 后续仍需补浏览器/API 级 smoke 来证明真实 Supabase 账号、Postgres 持久化、多会话切换和右侧 summary 联动在浏览器中闭环。
 
 ## 文档更新触发器
 

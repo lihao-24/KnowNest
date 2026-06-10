@@ -42,7 +42,7 @@
 - 公共数据表：`score_segments`、`admission_records`、`enrollment_plans`、`school_documents`。
 - RAG 预留表：`document_chunks`。
 
-当前已实现 `admission_records` CSV parser 和导入脚本，`score_segments`、`enrollment_plans`、`school_documents` 的导入脚本仍待补齐。
+当前已实现 `admission_records` 和 `enrollment_plans` CSV parser、样例 fixture、数据库导入 helper 和导入脚本；`score_segments`、`school_documents` 的导入脚本仍待补齐。
 
 ### admission_records
 
@@ -171,16 +171,17 @@ primary_goal
 
 ## 推荐流程
 
-当前实现状态（2026-06-10）：
+当前实现状态（2026-06-11）：
 
 - `src/lib/profile` 已支持从单轮文本中提取分数、位次、科类、国家专项资格、地域/专业偏好和核心诉求。
-- `src/lib/admissions` 已支持 `admission_records` CSV header 解析、字段校验、行号/字段级错误报告和 snake_case 到 camelCase 转换。
+- `src/lib/admissions` 已支持 `admission_records` / `enrollment_plans` CSV header 解析、字段校验、行号/字段级错误报告和 snake_case 到 camelCase 转换。
 - `fixtures/admissions/sample-admission-records.csv` 提供 12 条虚构样例记录，覆盖普通本科批、国家专项计划、物理类/历史类、冲稳保区间和缺少招生计划的风险场景；仅用于开发验证，不用于真实填报。
-- `src/lib/admissions/repository.ts` 已支持数据库优先查询 `admission_records`，`DATABASE_URL=disabled` 时读取样例 CSV。
+- `src/lib/admissions/repository.ts` 已支持数据库优先查询 `admission_records` 和 `enrollment_plans`，`DATABASE_URL=disabled` 时读取样例 CSV。
 - `src/lib/recommendation` 已支持 `AdmissionRecord[]` 的河南、本科批、科类、国家专项资格过滤，以及按位次粗分“冲/稳/保”。
-- `/api/chat` 已将用户消息提取出的画像、`admission_records` 查询结果和规则层候选组装为 summary，右侧候选、来源和核验事项不再依赖固定 demo 候选。
+- `/api/chat` 已将用户消息提取出的画像、`admission_records` / `enrollment_plans` 查询结果和规则层候选组装为 summary，右侧候选、来源和核验事项不再依赖固定 demo 候选。
+- OpenAI-compatible Provider 已接收服务端结构化 summary、候选、来源和核验项；LLM 输出出现未授权候选学校时会回退到安全文案。
 - 本地 Postgres 已验证迁移和样例 CSV 导入，当前样例 `admission_records` 入库 12 条。
-- 当前仍未结合 `enrollment_plans` 和 `school_documents` 做完整风险分析，缺少当年招生计划时统一标记为待核验/缺少当年招生计划。
+- 当前已用 `enrollment_plans` 初步匹配当年计划并标记计划减少风险；仍未结合 `score_segments`、`school_documents` 和 RAG 做完整风险分析，缺少当年招生计划或章程时仍需标记待核验。
 
 ### 1. 画像校验
 

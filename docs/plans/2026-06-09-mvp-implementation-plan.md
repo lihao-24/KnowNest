@@ -1,6 +1,6 @@
 # MVP 实施计划
 
-> 当前状态（2026-06-10）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、Postgres 迁移和样例导入均已验证。后续优先做真实账号浏览器 smoke、真实河南招生数据和真实 LLM Provider。
+> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。后续优先做 browser smoke/e2e、志愿篮保存、真实河南招生数据和 `score_segments` / `school_documents` / RAG。
 
 ## 目标
 
@@ -133,7 +133,7 @@ scripts/
 
 ## 阶段 2：业务数据库和 schema
 
-状态：部分完成。
+状态：部分完成，服务端多会话闭环初稿完成。
 
 已完成：
 
@@ -141,13 +141,15 @@ scripts/
 - 初始迁移 `001_initial.sql`。
 - 用户私有表和公共招生数据表初稿。
 - `chat_sessions` / `chat_messages` repository 初稿，查询和写入按 `user_id` 过滤。
+- `POST /api/chat/sessions` 和 `GET /api/chat/sessions/[sessionId]` 初稿。
+- 支持新建会话、按 session 读取消息历史、按 session 读取/保存 candidate profile。
+- `/api/chat` 支持传入 `sessionId`，续聊时优先读取当前 session 画像，避免不同会话画像串线。
 - `pnpm db:migrate` 脚本入口。
 
 待完成：
 
-- 启动真实 Postgres 并执行迁移。
-- 验证创建会话、保存消息、保存画像。
-- 写用户隔离端到端用例。
+- 用浏览器/API smoke 验证真实 Postgres 下创建会话、切换会话、保存消息、保存画像和用户隔离。
+- 增加更完整的用户隔离端到端用例。
 
 任务：
 
@@ -201,13 +203,14 @@ document_chunks
 已完成：
 
 - `admission_records` CSV parser 和字段校验。
+- `enrollment_plans` CSV parser、样例 fixture、数据库导入 helper 和 `pnpm import:enrollment-plans <csv>` 脚本入口。
 - 导入错误包含行号和字段。
 - `pnpm import:admissions <csv>` 脚本入口。
 
 待完成：
 
-- `score_segments`、`enrollment_plans`、`school_documents` 导入脚本。
-- 准备一小份样例 CSV 并验证入库。
+- `score_segments`、`school_documents` 导入脚本。
+- 真实河南招生数据准备和入库。
 - 增加重复记录校验和导入报告细化。
 
 任务：
@@ -256,7 +259,6 @@ document_chunks
 
 - 用户手动修正画像。
 - 软字段的 LLM 辅助结构化和用户确认流程。
-- 画像持久化到数据库。
 
 任务：
 
@@ -286,12 +288,13 @@ document_chunks
 - 河南、本科批、科类、国家专项资格过滤。
 - 位次粗分“冲/稳/保”。
 - 缺少招生计划时标记风险和 missing source。
+- 数据库优先查询 `admission_records`。
+- 接入 `enrollment_plans` 初步判断当年计划变化，缺少当年计划时标记风险。
 
 待完成：
 
-- 从数据库查询候选。
-- 接入 `enrollment_plans` 判断当年计划变化。
 - 更完整的风险标签和可配置阈值。
+- 接入 `score_segments` 和 `school_documents` 后补充分段、章程限制和文档来源风险。
 
 任务：
 
@@ -331,20 +334,22 @@ missing_sources
 
 ## 阶段 6：LLM 问答编排
 
-状态：部分完成。
+状态：部分完成，真实 Provider 服务端接入已完成。
 
 已完成：
 
 - demo AI provider 边界。
 - `/api/chat` 只接收用户消息，服务端获取 user id。
 - 信息不足时生成追问式 demo 回复。
+- OpenAI-compatible Provider 调用 Chat Completions。
+- Provider prompt 接收服务端结构化 summary、候选、来源和核验项。
+- 模型输出出现未授权候选学校时回退到安全文案。
 
 待完成：
 
-- 接入真实 OpenAI-compatible Provider。
-- 建立 system prompt。
-- 将结构化候选、画像、来源和方法论资料传给 LLM。
-- 输出可关联 evidence/source 的回答。
+- 用真实 key 做门控浏览器/API smoke。
+- 接入方法论资料和 school_documents RAG。
+- 强化输出结构化校验和 evidence/source 引用质量。
 
 任务：
 
@@ -378,6 +383,8 @@ missing_sources
 - 右侧展示画像、缺失信息、候选、来源和待核验事项。
 - 状态标签已覆盖 `数据未导入`、`资料未全`、`待确认`、`待核验`、`可用`。
 - 候选、来源和核验事项已接入样例/数据库 `admission_records` 驱动的 summary。
+- 左侧会话支持新建、切换、恢复消息历史。
+- 聊天发送按当前 session 续聊。
 
 待完成：
 
@@ -460,6 +467,8 @@ git diff --check
 ```bash
 pnpm e2e
 ```
+
+当前尚未新增 `pnpm e2e` 或 browser smoke 脚本。
 
 ## 风险和取舍
 
