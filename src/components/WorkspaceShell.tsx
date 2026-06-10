@@ -7,13 +7,15 @@ import type {
   AuthenticatedUser,
   ChatMessage,
   ChatSession,
-  ChatSummary
+  ChatSummary,
+  SavedChoice
 } from "@/components/workspace-types";
 
 type WorkspaceShellProps = {
   user: AuthenticatedUser;
   initialSessions: ChatSession[];
   initialSummary: ChatSummary;
+  initialSavedChoices: SavedChoice[];
 };
 
 const starterMessages: ChatMessage[] = [
@@ -33,12 +35,17 @@ let transientMessageId = 0;
 export function WorkspaceShell({
   user,
   initialSessions,
-  initialSummary
+  initialSummary,
+  initialSavedChoices
 }: WorkspaceShellProps) {
   const [sessions, setSessions] = useState(initialSessions);
   const [activeSessionId, setActiveSessionId] = useState(initialSessions[0]?.id ?? null);
   const [summary, setSummary] = useState(initialSummary);
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
+  const [savedChoiceIds, setSavedChoiceIds] = useState(
+    () => new Set(initialSavedChoices.map((choice) => choice.candidateId))
+  );
+  const [savingCandidateId, setSavingCandidateId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
@@ -167,6 +174,65 @@ export function WorkspaceShell({
       ]);
     } finally {
       setIsLoadingSession(false);
+    }
+  }
+
+  async function handleToggleCandidate(candidate: ChatSummary["candidates"][number]) {
+    if (savingCandidateId) {
+      return;
+    }
+
+    const isSaved = savedChoiceIds.has(candidate.id);
+    setSavingCandidateId(candidate.id);
+
+    try {
+      const response = await fetch(
+        isSaved ? `/api/saved-choices/${encodeURIComponent(candidate.id)}` : "/api/saved-choices",
+        {
+          method: isSaved ? "DELETE" : "POST",
+          headers: isSaved
+            ? undefined
+            : {
+                "Content-Type": "application/json"
+              },
+          body: isSaved
+            ? undefined
+            : JSON.stringify({
+                sessionId: activeSessionId,
+                candidateId: candidate.id,
+                schoolName: candidate.schoolName,
+                majorName: candidate.majorName,
+                batch: "本科批",
+                planType: candidate.planType,
+                bucket: candidate.bucket,
+                rationale: candidate.evidence,
+                riskTags: candidate.riskTags,
+                sources: summary.sources
+              })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("save choice request failed");
+      }
+
+      setSavedChoiceIds((current) => {
+        const next = new Set(current);
+        if (isSaved) {
+          next.delete(candidate.id);
+        } else {
+          next.add(candidate.id);
+        }
+
+        return next;
+      });
+    } catch {
+      setMessages((current) => [
+        ...current,
+        createTransientAssistantMessage("志愿篮保存状态更新失败。请稍后重试，或先检查本地 API 和登录状态。")
+      ]);
+    } finally {
+      setSavingCandidateId(null);
     }
   }
 
@@ -325,13 +391,28 @@ export function WorkspaceShell({
             <div className="candidateList">
               {summary.candidates.map((candidate) => (
                 <article className="candidateCard" data-testid="candidate-card" key={candidate.id}>
-                  <div>
-                    <strong>
-                      {candidate.bucket} · {candidate.schoolName}
-                    </strong>
-                    <span>
-                      {candidate.majorName} · {candidate.city}
-                    </span>
+                  <div className="candidateHeader">
+                    <div>
+                      <strong>
+                        {candidate.bucket} · {candidate.schoolName}
+                      </strong>
+                      <span>
+                        {candidate.majorName} · {candidate.city}
+                      </span>
+                    </div>
+                    <button
+                      className="saveChoiceButton"
+                      data-testid={`save-choice-${candidate.id}`}
+                      type="button"
+                      onClick={() => handleToggleCandidate(candidate)}
+                      disabled={savingCandidateId !== null}
+                    >
+                      {savingCandidateId === candidate.id
+                        ? "处理中"
+                        : savedChoiceIds.has(candidate.id)
+                          ? "已保存"
+                          : "保存"}
+                    </button>
                   </div>
                   <StatusPill status={candidate.status} />
                   <p>{candidate.evidence}</p>

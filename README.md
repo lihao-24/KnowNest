@@ -18,7 +18,8 @@
 
 - 已安装依赖并提交 `pnpm-lock.yaml`。
 - 本地开发服务已能启动并打开查看。
-- 已新增 browser smoke 脚本：默认 `pnpm smoke:demo` 使用 demo auth + `DATABASE_URL=disabled` 覆盖工作台、问答、右栏联动和新建/切换会话；真实 Supabase 登录和真实 Provider smoke 均为环境变量门控，缺失时跳过。
+- 已新增 browser smoke 脚本：默认 `pnpm smoke:demo` 使用 demo auth + `DATABASE_URL=disabled` 覆盖工作台、问答、右栏联动、志愿篮保存/取消保存和新建/切换会话；真实 Supabase 登录和真实 Provider smoke 均为环境变量门控，缺失时跳过。
+- 志愿篮最小闭环已完成：候选卡可保存/取消保存，服务端通过 `saved_choices` repository 和 API 按当前认证用户隔离。
 - 已新增 `fixtures/admissions/sample-admission-records.csv`，这是虚构样例数据，只用于端到端开发验证。
 - 已新增 `fixtures/admissions/sample-enrollment-plans.csv`，这是虚构当年招生计划样例，只用于计划变化风险验证。
 - `/api/chat` 已从 demo 候选改为服务端画像提取、读取 `admission_records`、规则层生成候选、右侧 summary 展示候选的闭环。
@@ -173,9 +174,8 @@ pnpm smoke:provider
 1. 验证真实 Supabase 登录流程、未登录跳转和登录后服务端 user id。
 3. 启动 Postgres，执行 `pnpm db:migrate`，验证会话、消息、画像和多会话切换按 `user_id` 隔离写入。
 4. 通过 `pnpm import:admissions fixtures/admissions/sample-admission-records.csv` 和 `pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv` 验证样例导入报告和入库。
-5. 实现志愿篮最小保存/取消保存闭环。
-6. 接入 `score_segments`、`school_documents` 和 RAG 链路，继续细化计划变化、章程限制和风险来源。
-7. 用真实 OpenAI-compatible key 做一次门控 smoke，确认模型只解释服务端候选、不新增学校清单。
+5. 接入 `score_segments`、`school_documents` 和 RAG 链路，继续细化计划变化、章程限制和风险来源。
+6. 用真实 OpenAI-compatible key 做一次门控 smoke，确认模型只解释服务端候选、不新增学校清单。
 
 ## Git 状态
 

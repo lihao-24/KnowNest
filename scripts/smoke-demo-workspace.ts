@@ -32,6 +32,12 @@ async function main() {
       await page.getByTestId("candidate-card").first().waitFor();
       await page.getByText("样例数据，不用于真实填报").first().waitFor();
 
+      const firstSaveButton = page.getByTestId(/^save-choice-/).first();
+      await firstSaveButton.click();
+      await firstSaveButton.filter({ hasText: "已保存" }).waitFor();
+      await firstSaveButton.click();
+      await firstSaveButton.filter({ hasText: "保存" }).waitFor();
+
       await page.getByTestId("new-session-button").click();
       await page.getByTestId("chat-input").waitFor();
       await page.waitForFunction(

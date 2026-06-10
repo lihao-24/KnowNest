@@ -712,6 +712,33 @@ button:disabled {
   line-height: 1.5;
 }
 
+.candidateHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.candidateHeader > div {
+  min-width: 0;
+}
+
+.saveChoiceButton {
+  flex: 0 0 auto;
+  border: 1px solid #c8d9d1;
+  border-radius: 6px;
+  background: #edf6f2;
+  padding: 5px 8px;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.saveChoiceButton:hover {
+  border-color: #a9c2b7;
+  background: #e4f1eb;
+}
+
 .sourceList article > div {
   display: flex;
   align-items: center;

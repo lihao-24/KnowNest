@@ -6,12 +6,14 @@ import {
   getLatestCandidateProfileForUser,
   listChatSessionsForUser
 } from "@/lib/db/chat-repository";
+import { listSavedChoicesForUser } from "@/lib/db/saved-choice-repository";
 
 export default async function WorkspacePage() {
   const user = await requireAuthenticatedUser();
-  const [sessions, latestProfile] = await Promise.all([
+  const [sessions, latestProfile, savedChoices] = await Promise.all([
     listChatSessionsForUser(user.id),
-    getLatestCandidateProfileForUser(user.id)
+    getLatestCandidateProfileForUser(user.id),
+    listSavedChoicesForUser(user.id)
   ]);
 
   return (
@@ -19,6 +21,7 @@ export default async function WorkspacePage() {
       user={user}
       initialSessions={sessions}
       initialSummary={latestProfile ? createRestoredProfileSummary(latestProfile) : createSummary(emptyProfile)}
+      initialSavedChoices={savedChoices}
     />
   );
 }

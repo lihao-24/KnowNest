@@ -1,6 +1,6 @@
 # MVP 实施计划
 
-> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。已新增默认 browser smoke/e2e，覆盖 demo auth + `DATABASE_URL=disabled` 的工作台、问答、右栏联动、新建/切换会话。后续优先做志愿篮保存、真实河南招生数据和 `score_segments` / `school_documents` / RAG。
+> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。已新增默认 browser smoke/e2e，覆盖 demo auth + `DATABASE_URL=disabled` 的工作台、问答、右栏联动、志愿篮保存/取消保存、新建/切换会话。后续优先做画像手动修正、真实河南招生数据和 `score_segments` / `school_documents` / RAG。
 
 ## 目标
 
@@ -144,6 +144,7 @@ scripts/
 - 支持新建会话、按 session 读取消息历史、按 session 读取/保存 candidate profile。
 - `/api/chat` 支持传入 `sessionId`，续聊时优先读取当前 session 画像，避免不同会话画像串线。
 - `pnpm db:migrate` 脚本入口。
+- `saved_choices` repository/API 已实现最小保存和取消保存闭环；新增迁移只补 `candidate_id` 和 `(user_id, candidate_id)` 唯一索引，未执行真实数据库 migration。
 
 待完成：
 
@@ -245,7 +246,7 @@ document_chunks
 
 ## 阶段 4：考生画像提取
 
-状态：部分完成。
+状态：部分完成，手动修正画像待做；志愿篮保存/取消保存已先行完成。
 
 已完成：
 

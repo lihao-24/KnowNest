@@ -33,6 +33,7 @@ create table if not exists saved_choices (
   id uuid primary key default gen_random_uuid(),
   user_id text not null,
   session_id uuid references chat_sessions(id) on delete set null,
+  candidate_id text not null,
   school_name text not null,
   major_name text,
   batch text not null,
@@ -140,5 +141,6 @@ create table if not exists document_chunks (
 
 create index if not exists chat_sessions_user_id_idx on chat_sessions(user_id);
 create index if not exists chat_messages_session_user_idx on chat_messages(session_id, user_id);
+create unique index if not exists saved_choices_user_candidate_idx on saved_choices(user_id, candidate_id);
 create index if not exists admission_records_lookup_idx on admission_records(province, batch, plan_type, subject_type, min_rank);
 create index if not exists enrollment_plans_lookup_idx on enrollment_plans(province, batch, plan_type, subject_type, school_code, major_code);
