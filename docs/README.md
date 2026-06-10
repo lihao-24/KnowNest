@@ -10,6 +10,7 @@
 - `specs/initial-product-scope.md`：第一阶段产品范围
 - `specs/mvp-product-design.md`：MVP 产品与交互设计
 - `plans/2026-06-09-mvp-implementation-plan.md`：MVP 开发实施计划
+- `reports/2026-06-10-project-audit-report.md`：基于设计文档与当前代码实现的阶段性项目审查报告
 - `reference/architecture.md`：双层 RAG、规则筛选和模块边界
 - `reference/auth-and-storage.md`：统一 Supabase Auth 和独立业务库边界
 - `reference/data-and-recommendation.md`：河南本科批/国家专项数据模型和推荐流程
@@ -31,7 +32,7 @@
 - 阶段 7 工作台 UI：桌面三栏初稿完成，右侧总结区已区分数据未导入、资料未全、待确认、待核验、可用；窄屏抽屉交互待完善。
 - 阶段 8 Docker：Dockerfile / Compose 初稿完成，`POSTGRES_PORT` 可配置；当前默认 5432 被本机 Supabase pooler 占用，改端口启动因 Docker socket 提权审批 503 未完成实跑。
 
-最近验证：`pnpm test`、`pnpm typecheck`、`pnpm lint`、`pnpm build`、`git diff --check` 均已通过；`pnpm test` 当前为 7 个测试文件、24 个测试。当前 `pnpm build` 使用 webpack 构建。
+最近验证：`pnpm test`、`pnpm typecheck`、`pnpm lint`、`pnpm build`、`git diff --check` 均已通过；`pnpm test` 当前为 8 个测试文件、28 个测试。当前 `pnpm build` 使用 webpack 构建。
 
 ## 目录说明
 
@@ -40,7 +41,8 @@ docs/
 ├── README.md
 ├── reference/   # 长期有效的系统事实、原则和上游参考资料
 ├── specs/       # 阶段性产品规格
-└── plans/       # 阶段性实施计划，完成后作为历史记录保留
+├── plans/       # 阶段性实施计划，完成后作为历史记录保留
+└── reports/     # 阶段性审查、验证、上线或事故记录
 ```
 
 仓库根目录的 `designs/` 保存可直接指导实现的设计文件。当前只有 `designs/mvp-ui.pen`，后续 UI 改版时优先更新该文件或新增明确版本。
@@ -49,6 +51,6 @@ docs/
 
 - `docs/reference/external-services.md`：AI Provider、官方数据来源和域名暴露方式
 - `docs/reference/verification.md`：测试、构建、数据校验和上线检查
-- `docs/reports/`：调研、验证、上线或事故记录
+- `docs/reports/`：继续沉淀调研、验证、上线或事故记录
 
 不要创建空文档占位；只有当内容已经稳定、有复用价值时再新增。
