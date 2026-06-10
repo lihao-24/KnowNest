@@ -1,0 +1,5 @@
+year,province,batch,plan_type,subject_type,school_code,school_name,major_group_code,major_group_name,major_code,major_name,plan_count,tuition,duration,campus,requirements,source_name,source_url,source_published_at,trust_level,notes
+2026,河南,本科批,普通本科批,物理类,S001,中原样例大学,,,080901,计算机类,90,5000,4年,主校区,,河南招生样例数据（非真实）,https://example.invalid/henan-plan-sample,2026-06-25,T5,虚构样例；用于测试计划减少
+2026,河南,本科批,普通本科批,物理类,S002,黄河样例学院,,,080601,电气工程及其自动化,60,5000,4年,主校区,,河南招生样例数据（非真实）,https://example.invalid/henan-plan-sample,2026-06-25,T5,虚构样例；用于测试计划减少
+2026,河南,本科批,普通本科批,物理类,S003,嵩山样例大学,,,120203,会计学,70,4400,4年,东校区,,河南招生样例数据（非真实）,https://example.invalid/henan-plan-sample,2026-06-25,T5,虚构样例；用于测试计划增加
+2026,河南,本科批,普通本科批,历史类,S102,太行样例学院,,,030101,法学,85,4400,4年,主校区,不限语种,河南招生样例数据（非真实）,https://example.invalid/henan-plan-sample,2026-06-25,T5,虚构样例；用于历史类计划测试

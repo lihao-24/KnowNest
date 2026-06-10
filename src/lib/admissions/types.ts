@@ -66,3 +66,8 @@ export type AdmissionImportResult = {
   records: AdmissionRecord[];
   errors: AdmissionImportError[];
 };
+
+export type EnrollmentPlanImportResult = {
+  plans: EnrollmentPlan[];
+  errors: AdmissionImportError[];
+};

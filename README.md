@@ -18,6 +18,7 @@
 - 已安装依赖并提交 `pnpm-lock.yaml`。
 - 本地开发服务已能启动并打开查看。
 - 已新增 `fixtures/admissions/sample-admission-records.csv`，这是虚构样例数据，只用于端到端开发验证。
+- 已新增 `fixtures/admissions/sample-enrollment-plans.csv`，这是虚构当年招生计划样例，只用于计划变化风险验证。
 - `/api/chat` 已从 demo 候选改为服务端画像提取、读取 `admission_records`、规则层生成候选、右侧 summary 展示候选的闭环。
 - `DATABASE_URL=disabled` 时使用样例 CSV；配置数据库时优先查询 `admission_records`。
 - 会话消息和提取出的 candidate profile 已可在数据库可用时按服务端 `user_id` 持久化。
@@ -118,9 +119,10 @@ DATABASE_URL=postgres://henan_gaokao:henan_gaokao@localhost:55432/henan_gaokao
 ```bash
 pnpm db:migrate
 pnpm import:admissions fixtures/admissions/sample-admission-records.csv
+pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv
 ```
 
-`fixtures/admissions/sample-admission-records.csv` 是虚构样例数据，只用于端到端开发验证，不用于真实填报。
+`fixtures/admissions/sample-admission-records.csv` 和 `fixtures/admissions/sample-enrollment-plans.csv` 是虚构样例数据，只用于端到端开发验证，不用于真实填报。
 
 常用验证：
 
@@ -139,7 +141,7 @@ git diff --check
 1. 接入真实 Supabase 登录流程，验证未登录跳转和登录后服务端 user id。
 2. 启动 Postgres，执行 `pnpm db:migrate`，验证会话、消息和画像按 `user_id` 隔离写入。
 3. 通过 `pnpm import:admissions fixtures/admissions/sample-admission-records.csv` 验证样例导入报告和入库。
-4. 把推荐规则继续扩展到查询 `enrollment_plans`，补当年计划变化风险。
+4. 通过 `pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv` 验证当年招生计划样例导入，并继续细化计划变化风险。
 5. 接入 OpenAI-compatible Provider，保持 LLM 只解释规则层候选、不直接决定候选。
 6. 做一次浏览器/窄屏 UI smoke，确认三栏、长回答和右侧总结区不遮挡。
 

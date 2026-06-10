@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "tsx scripts/migrate.ts",
-    "import:admissions": "tsx scripts/import-admissions.ts"
+    "import:admissions": "tsx scripts/import-admissions.ts",
+    "import:enrollment-plans": "tsx scripts/import-enrollment-plans.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

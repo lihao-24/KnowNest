@@ -3,6 +3,8 @@ import type {
   AdmissionImportResult,
   AdmissionRecord,
   Batch,
+  EnrollmentPlan,
+  EnrollmentPlanImportResult,
   PlanType,
   TrustLevel
 } from "./types";
@@ -22,6 +24,20 @@ const requiredHeaders = [
 ];
 
 const requiredValueFields = requiredHeaders;
+
+const enrollmentPlanRequiredHeaders = [
+  "year",
+  "province",
+  "batch",
+  "plan_type",
+  "subject_type",
+  "school_code",
+  "school_name",
+  "major_code",
+  "major_name",
+  "plan_count",
+  "source_name"
+];
 
 const optionalHeaders = ["plan_count"];
 
@@ -87,6 +103,54 @@ export function parseAdmissionRecordsCsv(csv: string): AdmissionImportResult {
   return { records, errors };
 }
 
+export function parseEnrollmentPlansCsv(csv: string): EnrollmentPlanImportResult {
+  const rows = parseCsv(csv.trim());
+  const errors: AdmissionImportError[] = [];
+
+  if (rows.length === 0) {
+    return {
+      plans: [],
+      errors: [{ row: 1, field: "header", message: "CSV 内容为空" }]
+    };
+  }
+
+  const headers = rows[0].map((header) => header.trim());
+  const headerSet = new Set(headers);
+
+  for (const header of enrollmentPlanRequiredHeaders) {
+    if (!headerSet.has(header)) {
+      errors.push({ row: 1, field: header, message: `缺少必填字段 ${header}` });
+    }
+  }
+
+  if (errors.length > 0) {
+    return { plans: [], errors };
+  }
+
+  const plans: EnrollmentPlan[] = [];
+
+  for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
+    const rowNumber = rowIndex + 1;
+    const values = rows[rowIndex];
+
+    if (values.every((value) => value.trim() === "")) {
+      continue;
+    }
+
+    const row = Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? ""]));
+    const rowErrors = validateEnrollmentPlanRow(row, rowNumber);
+
+    if (rowErrors.length > 0) {
+      errors.push(...rowErrors);
+      continue;
+    }
+
+    plans.push(toEnrollmentPlan(row));
+  }
+
+  return { plans, errors };
+}
+
 function validateAdmissionRow(row: Record<string, string>, rowNumber: number): AdmissionImportError[] {
   const errors: AdmissionImportError[] = [];
 
@@ -97,6 +161,43 @@ function validateAdmissionRow(row: Record<string, string>, rowNumber: number): A
   }
 
   for (const field of numericFields) {
+    if (row[field] && !isPlainNumber(row[field])) {
+      errors.push({ row: rowNumber, field, message: "字段必须是数字" });
+    }
+  }
+
+  if (row.batch && !validBatches.has(row.batch as Batch)) {
+    errors.push({ row: rowNumber, field: "batch", message: "批次必须为本科批" });
+  }
+
+  if (row.plan_type && !validPlanTypes.has(row.plan_type as PlanType)) {
+    errors.push({ row: rowNumber, field: "plan_type", message: "计划类型不支持" });
+  }
+
+  if (row.subject_type && !validSubjectTypes.has(row.subject_type as SubjectType)) {
+    errors.push({ row: rowNumber, field: "subject_type", message: "科类必须为物理类或历史类" });
+  }
+
+  if (row.trust_level && !validTrustLevels.has(row.trust_level as TrustLevel)) {
+    errors.push({ row: rowNumber, field: "trust_level", message: "可信等级不支持" });
+  }
+
+  return errors;
+}
+
+function validateEnrollmentPlanRow(
+  row: Record<string, string>,
+  rowNumber: number
+): AdmissionImportError[] {
+  const errors: AdmissionImportError[] = [];
+
+  for (const field of enrollmentPlanRequiredHeaders) {
+    if (!row[field]) {
+      errors.push({ row: rowNumber, field, message: "字段不能为空" });
+    }
+  }
+
+  for (const field of ["year", "plan_count"]) {
     if (row[field] && !isPlainNumber(row[field])) {
       errors.push({ row: rowNumber, field, message: "字段必须是数字" });
     }
@@ -143,6 +244,32 @@ function toAdmissionRecord(row: Record<string, string>): AdmissionRecord {
     sourceUrl: optionalString(row.source_url),
     sourcePublishedAt: optionalString(row.source_published_at),
     trustLevel: (row.trust_level || "T1") as TrustLevel,
+    notes: optionalString(row.notes)
+  };
+}
+
+function toEnrollmentPlan(row: Record<string, string>): EnrollmentPlan {
+  return {
+    year: Number(row.year),
+    province: row.province,
+    batch: row.batch as Batch,
+    planType: row.plan_type as PlanType,
+    subjectType: row.subject_type as SubjectType,
+    schoolCode: row.school_code,
+    schoolName: row.school_name,
+    majorGroupCode: optionalString(row.major_group_code),
+    majorGroupName: optionalString(row.major_group_name),
+    majorCode: row.major_code,
+    majorName: row.major_name,
+    planCount: Number(row.plan_count),
+    tuition: optionalString(row.tuition),
+    duration: optionalString(row.duration),
+    campus: optionalString(row.campus),
+    requirements: optionalString(row.requirements),
+    sourceName: row.source_name,
+    sourceUrl: optionalString(row.source_url),
+    sourcePublishedAt: optionalString(row.source_published_at),
+    trustLevel: (row.trust_level || "T2") as TrustLevel,
     notes: optionalString(row.notes)
   };
 }
