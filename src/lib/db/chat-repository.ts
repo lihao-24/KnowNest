@@ -3,6 +3,14 @@ import type { ChatMessage, ChatSession, StatusKind } from "@/lib/chat/types";
 import type { CandidateProfile } from "@/lib/profile/types";
 import { getDbPool, hasDatabaseConnection } from "./client";
 
+type FallbackSessionRecord = {
+  session: ChatSession;
+  messages: ChatMessage[];
+  profile: CandidateProfile | null;
+};
+
+const fallbackStores = new Map<string, FallbackSessionRecord[]>();
+
 export type PersistChatTurnInput = {
   userId: string;
   sessionId?: string;
@@ -13,7 +21,13 @@ export type PersistChatTurnInput = {
 
 export async function createChatSessionForUser(userId: string): Promise<ChatSession> {
   if (!hasDatabaseConnection()) {
-    return createFallbackSession();
+    const session = createFallbackSession();
+    getFallbackStoreForUser(userId).unshift({
+      session,
+      messages: [],
+      profile: null
+    });
+    return session;
   }
 
   const pool = getDbPool();
@@ -39,7 +53,7 @@ export async function createChatSessionForUser(userId: string): Promise<ChatSess
 
 export async function listChatSessionsForUser(userId: string): Promise<ChatSession[]> {
   if (!hasDatabaseConnection()) {
-    return demoSessions;
+    return getFallbackStoreForUser(userId).map((record) => record.session);
   }
 
   const pool = getDbPool();
@@ -82,7 +96,7 @@ export async function listChatMessagesForSession(
   sessionId: string
 ): Promise<ChatMessage[]> {
   if (!hasDatabaseConnection()) {
-    return [];
+    return getFallbackSessionForUser(userId, sessionId)?.messages ?? [];
   }
 
   const pool = getDbPool();
@@ -109,6 +123,7 @@ export async function listChatMessagesForSession(
 
 export async function persistChatTurn(input: PersistChatTurnInput): Promise<void> {
   if (!hasDatabaseConnection()) {
+    persistFallbackChatTurn(input);
     return;
   }
 
@@ -169,7 +184,7 @@ export async function getCandidateProfileForSession(
   sessionId: string
 ): Promise<CandidateProfile | null> {
   if (!hasDatabaseConnection()) {
-    return null;
+    return getFallbackSessionForUser(userId, sessionId)?.profile ?? null;
   }
 
   const pool = getDbPool();
@@ -196,7 +211,7 @@ export async function getCandidateProfileForSession(
 
 export async function getLatestCandidateProfileForUser(userId: string): Promise<CandidateProfile | null> {
   if (!hasDatabaseConnection()) {
-    return null;
+    return getFallbackStoreForUser(userId).find((record) => record.profile)?.profile ?? null;
   }
 
   const pool = getDbPool();
@@ -358,6 +373,66 @@ function createFallbackSession(): ChatSession {
     updatedAt: new Date().toISOString(),
     preview: "尚未开始对话。"
   };
+}
+
+function getFallbackStoreForUser(userId: string): FallbackSessionRecord[] {
+  const existingStore = fallbackStores.get(userId);
+  if (existingStore) {
+    return existingStore;
+  }
+
+  const seededStore = demoSessions.map((session) => ({
+    session,
+    messages: [],
+    profile: null
+  }));
+  fallbackStores.set(userId, seededStore);
+  return seededStore;
+}
+
+function getFallbackSessionForUser(
+  userId: string,
+  sessionId: string | undefined
+): FallbackSessionRecord | null {
+  if (!sessionId) {
+    return getFallbackStoreForUser(userId)[0] ?? null;
+  }
+
+  return getFallbackStoreForUser(userId).find((record) => record.session.id === sessionId) ?? null;
+}
+
+function persistFallbackChatTurn(input: PersistChatTurnInput): void {
+  const store = getFallbackStoreForUser(input.userId);
+  const record =
+    getFallbackSessionForUser(input.userId, input.sessionId) ??
+    (() => {
+      const session = createFallbackSession();
+      const nextRecord = { session, messages: [], profile: null };
+      store.unshift(nextRecord);
+      return nextRecord;
+    })();
+
+  const userMessage: ChatMessage = {
+    id: `user-${crypto.randomUUID()}`,
+    role: "user",
+    content: input.userMessage,
+    createdAt: input.assistantMessage.createdAt
+  };
+
+  record.messages.push(userMessage, input.assistantMessage);
+  record.profile = input.profile ?? record.profile;
+  record.session = {
+    ...record.session,
+    updatedAt: input.assistantMessage.createdAt,
+    status: input.profile ? "待核验" : record.session.status,
+    preview: input.assistantMessage.content
+  };
+
+  const recordIndex = store.indexOf(record);
+  if (recordIndex > 0) {
+    store.splice(recordIndex, 1);
+    store.unshift(record);
+  }
 }
 
 function formatTimestamp(value: unknown): string {

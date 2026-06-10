@@ -180,6 +180,7 @@ export function WorkspaceShell({
 
         <button
           className="newChatButton"
+          data-testid="new-session-button"
           type="button"
           onClick={handleCreateSession}
           disabled={isLoadingSession}
@@ -189,11 +190,13 @@ export function WorkspaceShell({
 
         <p className="sidebarLabel">最近会话</p>
         <nav className="conversationList">
-          {sessions.map((session) => (
+          {sessions.map((session, index) => (
             <button
               className={`conversationItem ${
                 session.id === activeSessionId ? "conversationItem--active" : ""
               }`}
+              data-session-id={session.id}
+              data-testid={`session-item-${index}`}
               type="button"
               key={session.id}
               onClick={() => handleSelectSession(session.id)}
@@ -244,6 +247,7 @@ export function WorkspaceShell({
           {messages.map((chatMessage) => (
             <article
               className={`messageBubble messageBubble--${chatMessage.role}`}
+              data-testid={`message-${chatMessage.role}`}
               key={chatMessage.id}
             >
               <span>{chatMessage.role === "assistant" ? "助手" : "你"}</span>
@@ -267,12 +271,13 @@ export function WorkspaceShell({
           </div>
           <div className="composer">
             <textarea
+              data-testid="chat-input"
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               placeholder="例如：河南理科 580 分，位次 3 万，想省内稳一点"
               rows={3}
             />
-            <button className="sendButton" type="submit" disabled={!canSend}>
+            <button className="sendButton" data-testid="send-button" type="submit" disabled={!canSend}>
               {isSending ? "处理中" : "发送"}
             </button>
           </div>
@@ -289,7 +294,7 @@ export function WorkspaceShell({
           </div>
         </header>
 
-        <SummarySection title="考生画像">
+        <SummarySection title="考生画像" testId="profile-summary">
           <InfoGrid
             rows={[
               ["省份", summary.profile.province],
@@ -319,7 +324,7 @@ export function WorkspaceShell({
           ) : (
             <div className="candidateList">
               {summary.candidates.map((candidate) => (
-                <article className="candidateCard" key={candidate.id}>
+                <article className="candidateCard" data-testid="candidate-card" key={candidate.id}>
                   <div>
                     <strong>
                       {candidate.bucket} · {candidate.schoolName}
@@ -409,13 +414,15 @@ function getEmptyCandidateText(status: ChatSummary["status"]): string {
 
 function SummarySection({
   title,
-  children
+  children,
+  testId
 }: {
   title: string;
   children: ReactNode;
+  testId?: string;
 }) {
   return (
-    <section className="summarySection">
+    <section className="summarySection" data-testid={testId}>
       <h3>{title}</h3>
       {children}
     </section>

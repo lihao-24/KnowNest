@@ -44,6 +44,9 @@ describe("runChatOrchestrator", () => {
   beforeEach(() => {
     process.env.DATABASE_URL = "disabled";
     vi.clearAllMocks();
+    mockedGetCandidateProfileForSession.mockResolvedValue(null);
+    mockedGetLatestCandidateProfileForUser.mockResolvedValue(null);
+    mockedPersistChatTurn.mockResolvedValue(undefined);
   });
 
   it("normalizes colloquial subject type and asks for missing rank", async () => {

@@ -33,7 +33,7 @@ export function LoginPageShell({
       </section>
 
       <section className="loginPanel" aria-label="登录入口">
-        <form className="loginCard" action="/auth/sign-in" method="post">
+        <form className="loginCard" action="/auth/sign-in" method="post" data-testid="login-form">
           <input name="redirectTo" type="hidden" value={redirectTo} />
           <div>
             <p className="eyebrow">SIGN IN</p>
@@ -48,6 +48,7 @@ export function LoginPageShell({
               <span>邮箱</span>
               <input
                 autoComplete="email"
+                data-testid="login-email"
                 name="email"
                 placeholder="you@example.com"
                 required
@@ -59,6 +60,7 @@ export function LoginPageShell({
               <span>密码</span>
               <input
                 autoComplete="current-password"
+                data-testid="login-password"
                 name="password"
                 required
                 type="password"
@@ -68,7 +70,7 @@ export function LoginPageShell({
 
           {error ? <p className="formError">{error}</p> : null}
 
-          <button className="primaryButton" type="submit">
+          <button className="primaryButton" type="submit" data-testid="login-submit">
             登录
           </button>
 

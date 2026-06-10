@@ -1,6 +1,6 @@
 # MVP 实施计划
 
-> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。后续优先做 browser smoke/e2e、志愿篮保存、真实河南招生数据和 `score_segments` / `school_documents` / RAG。
+> 当前状态（2026-06-11）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、多会话新建/切换、OpenAI-compatible Provider 服务端接入、Postgres 迁移和样例导入均已验证。已新增默认 browser smoke/e2e，覆盖 demo auth + `DATABASE_URL=disabled` 的工作台、问答、右栏联动、新建/切换会话。后续优先做志愿篮保存、真实河南招生数据和 `score_segments` / `school_documents` / RAG。
 
 ## 目标
 
@@ -93,7 +93,7 @@ scripts/
 
 ## 阶段 1：统一登录
 
-状态：基本完成，真实账号浏览器 smoke 待验证。
+状态：基本完成，默认 browser smoke 已覆盖 demo auth 工作台主路径；真实账号浏览器 smoke 仍为门控待验证。
 
 已完成：
 
@@ -107,8 +107,7 @@ scripts/
 
 待完成：
 
-- 验证未登录访问工作台跳转登录。
-- 验证登录后服务端能拿到真实 Supabase user id。
+- 在提供临时真实 Supabase 测试账号后，运行 `pnpm smoke:supabase` 验证 `/login -> /workspace -> /api/auth/me`。
 
 任务：
 
@@ -133,7 +132,7 @@ scripts/
 
 ## 阶段 2：业务数据库和 schema
 
-状态：部分完成，服务端多会话闭环初稿完成。
+状态：部分完成，服务端多会话闭环初稿完成；demo auth + `DATABASE_URL=disabled` 的 browser smoke 已覆盖新建、切换和消息恢复。
 
 已完成：
 

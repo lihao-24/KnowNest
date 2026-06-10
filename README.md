@@ -18,6 +18,7 @@
 
 - 已安装依赖并提交 `pnpm-lock.yaml`。
 - 本地开发服务已能启动并打开查看。
+- 已新增 browser smoke 脚本：默认 `pnpm smoke:demo` 使用 demo auth + `DATABASE_URL=disabled` 覆盖工作台、问答、右栏联动和新建/切换会话；真实 Supabase 登录和真实 Provider smoke 均为环境变量门控，缺失时跳过。
 - 已新增 `fixtures/admissions/sample-admission-records.csv`，这是虚构样例数据，只用于端到端开发验证。
 - 已新增 `fixtures/admissions/sample-enrollment-plans.csv`，这是虚构当年招生计划样例，只用于计划变化风险验证。
 - `/api/chat` 已从 demo 候选改为服务端画像提取、读取 `admission_records`、规则层生成候选、右侧 summary 展示候选的闭环。
@@ -152,15 +153,24 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm smoke:demo
 git diff --check
 ```
+
+门控 smoke：
+
+```bash
+pnpm smoke:supabase
+pnpm smoke:provider
+```
+
+`pnpm smoke:supabase` 仅在 `E2E_SUPABASE_EMAIL`、`E2E_SUPABASE_PASSWORD`、`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY` 都存在时执行真实登录路径，否则跳过。`pnpm smoke:provider` 仅在 OpenAI-compatible Provider 环境变量齐全且 `AI_DEFAULT_PROVIDER=openai-compatible` 时执行，否则跳过。真实账号和密钥只从环境变量读取，不写入代码或日志。
 
 当前仓库不提交 `data-prep/`，该目录由数据整理阶段单独放出。
 
 ## 后续接手重点
 
-1. 建立 browser smoke/e2e，覆盖 demo auth 进入工作台、发起问答、右栏联动、新建/切换会话。
-2. 验证真实 Supabase 登录流程、未登录跳转和登录后服务端 user id。
+1. 验证真实 Supabase 登录流程、未登录跳转和登录后服务端 user id。
 3. 启动 Postgres，执行 `pnpm db:migrate`，验证会话、消息、画像和多会话切换按 `user_id` 隔离写入。
 4. 通过 `pnpm import:admissions fixtures/admissions/sample-admission-records.csv` 和 `pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv` 验证样例导入报告和入库。
 5. 实现志愿篮最小保存/取消保存闭环。

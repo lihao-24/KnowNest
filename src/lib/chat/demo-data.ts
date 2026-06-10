@@ -20,21 +20,21 @@ export const emptyProfile: CandidateProfile = {
 
 export const demoSessions: ChatSession[] = [
   {
-    id: "demo-current",
+    id: "00000000-0000-4000-8000-000000000001",
     title: "河南物理类 580 分咨询",
     updatedAt: "刚刚",
     status: "资料未全",
     preview: "缺位次和国家专项资格，先补硬信息。"
   },
   {
-    id: "demo-stable",
+    id: "00000000-0000-4000-8000-000000000002",
     title: "省内稳妥方案",
     updatedAt: "昨天",
     status: "待核验",
     preview: "候选需要回查招生章程和当年计划。"
   },
   {
-    id: "demo-compare",
+    id: "00000000-0000-4000-8000-000000000003",
     title: "计算机 vs 电气",
     updatedAt: "6 月 8 日",
     status: "待确认",

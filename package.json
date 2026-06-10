@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "smoke:demo": "tsx scripts/smoke-demo-workspace.ts",
+    "smoke:supabase": "tsx scripts/smoke-supabase-login.ts",
+    "smoke:provider": "tsx scripts/smoke-provider.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "import:admissions": "tsx scripts/import-admissions.ts",
     "import:enrollment-plans": "tsx scripts/import-enrollment-plans.ts"
@@ -31,9 +34,10 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.7",
+    "playwright": "^1.60.0",
     "tailwindcss": "^4.1.17",
-    "typescript": "^5.9.3",
     "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.14"
   },
   "packageManager": "pnpm@10.32.1"
