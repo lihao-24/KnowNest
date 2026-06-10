@@ -184,9 +184,46 @@ a {
   line-height: 1.25;
 }
 
-.loginActions {
+.loginActions,
+.loginFields {
   display: grid;
   gap: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field input {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 0 12px;
+  color: var(--text);
+  outline: none;
+}
+
+.field input:focus {
+  border-color: #97afa5;
+  box-shadow: 0 0 0 3px rgb(47 93 80 / 12%);
+}
+
+.formError {
+  margin: 0;
+  border: 1px solid #ead2b0;
+  border-radius: 6px;
+  background: #fff6e8;
+  padding: 9px 10px;
+  color: var(--warning);
+  font-size: 13px;
 }
 
 .primaryButton,
@@ -366,7 +403,7 @@ button:disabled {
 
 .accountBox {
   display: grid;
-  grid-template-columns: 32px 1fr;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   border-top: 1px solid var(--border);
@@ -389,6 +426,22 @@ button:disabled {
   color: var(--muted);
   font-size: 12px;
   text-overflow: ellipsis;
+}
+
+.logoutButton {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 7px 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.logoutButton:hover {
+  border-color: #c9c2b5;
+  background: #f8f5ee;
+  color: var(--text);
 }
 
 .chatColumn {
@@ -1036,7 +1089,8 @@ button:disabled {
 }
 
 .accountBox {
-  display: flex;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
   margin-top: auto;
@@ -1068,11 +1122,26 @@ button:disabled {
 
 .accountBox span {
   overflow: hidden;
-  max-width: 174px;
   color: var(--muted);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.logoutButton {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 7px 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.logoutButton:hover {
+  border-color: #c9c2b5;
+  background: #f8f5ee;
+  color: var(--text);
 }
 
 .chatColumn {

@@ -94,7 +94,7 @@ export function WorkspaceShell({
         {
           id: `assistant-error-${Date.now()}`,
           role: "assistant",
-          content: "这轮服务端调用失败了。请稍后重试，或先检查本地 API 和 demo auth 配置。",
+          content: "这轮服务端调用失败了。请稍后重试，或先检查本地 API 和登录状态。",
           createdAt: new Date().toISOString()
         }
       ]);
@@ -133,12 +133,17 @@ export function WorkspaceShell({
 
         <div className="accountBox">
           <div className="avatar" aria-hidden="true">
-            {user.isDemo ? "D" : "U"}
+            {user.email?.slice(0, 1).toUpperCase() ?? "U"}
           </div>
           <div>
-            <strong>{user.isDemo ? "本地演示用户" : "已登录用户"}</strong>
+            <strong>已登录用户</strong>
             <span>{user.email ?? user.id}</span>
           </div>
+          <form action="/auth/logout" method="post">
+            <button className="logoutButton" type="submit">
+              退出
+            </button>
+          </form>
         </div>
       </aside>
 

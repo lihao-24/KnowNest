@@ -1,6 +1,6 @@
 # MVP 实施计划
 
-> 当前状态（2026-06-10）：本计划已进入执行阶段。已完成 demo auth + 样例数据驱动竖切：样例 `admission_records` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、Postgres 迁移和样例导入均已验证。后续优先接入真实 Supabase 登录、`enrollment_plans` 风险分析、真实河南招生数据和真实 LLM Provider。
+> 当前状态（2026-06-10）：本计划已进入执行阶段。已完成 Supabase Auth 登录表单 + 样例数据驱动竖切：样例 `admission_records` / `enrollment_plans` CSV、数据库优先查询、规则层候选 summary、右侧状态展示、Postgres 迁移和样例导入均已验证。后续优先做真实账号浏览器 smoke、真实河南招生数据和真实 LLM Provider。
 
 ## 目标
 
@@ -93,20 +93,20 @@ scripts/
 
 ## 阶段 1：统一登录
 
-状态：部分完成。
+状态：基本完成，真实账号浏览器 smoke 待验证。
 
 已完成：
 
-- 登录页初版。
+- 登录页已改为真实 Supabase 邮箱密码登录表单。
 - 服务端 auth helper。
 - `requireAuthenticatedUser()`。
 - `/workspace` 受保护页面。
 - `/api/auth/me`。
-- 本地 demo auth 入口。
+- `/auth/sign-in` 和 `/auth/logout` 服务端路由。
+- Supabase 已配置时不再回落到 demo user。
 
 待完成：
 
-- 接入真实 Supabase 登录 UI/流程。
 - 验证未登录访问工作台跳转登录。
 - 验证登录后服务端能拿到真实 Supabase user id。
 

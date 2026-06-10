@@ -13,7 +13,11 @@
 - 已有 `src/lib/auth/server.ts`：
   - `getCurrentUser()`：优先用 Supabase server client 读取 cookie session。
   - `requireAuthenticatedUser()`：未认证时跳转 `/login`。
-  - `DEMO_AUTH_ENABLED=true` 且 Supabase 配置缺失时，返回本地 demo user，方便 MVP UI 本地查看。
+  - Supabase 已配置时不再回落到 demo user；`DEMO_AUTH_ENABLED=true` 只在 Supabase 配置缺失时作为本地兜底。
+- 已有真实登录/退出入口：
+  - `/login`：邮箱密码登录表单，不再展示本地演示入口。
+  - `/auth/sign-in`：服务端调用 Supabase Auth 登录并写入 cookie session。
+  - `/auth/logout`：服务端退出登录。
 - 已有 `/api/auth/me`，返回服务端认证得到的用户，不接受客户端传入 `user_id`。
 - 已有 `/api/chat`，只接收 `message`，`userId` 来自服务端认证结果。
 - 已有 `src/lib/db/client.ts`，`DATABASE_URL=disabled` 时不连接数据库并使用 demo fallback。
@@ -24,7 +28,7 @@
 
 待验证/待完成：
 
-- 真实 Supabase 登录 UI 和回调流程尚未打通。
+- 真实 Supabase 账号在浏览器中的登录、未登录跳转和退出 smoke 尚待实跑。
 - 从浏览器/API 发起真实请求后，聊天消息和画像写入数据库的端到端 smoke 尚未执行。
 - `saved_choices` repository 尚未实现。
 - 管理员/维护者权限尚未实现，公共招生数据导入仍默认走本地脚本。

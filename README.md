@@ -8,7 +8,7 @@
 
 - Next.js App Router + TypeScript 应用骨架。
 - 登录页和受保护三栏工作台 UI。
-- Supabase Auth 服务端 helper，并提供本地 demo auth 方便开发。
+- Supabase Auth 服务端登录、退出和受保护页面 helper。
 - `/api/auth/me` 和 `/api/chat` 服务端接口边界。
 - 考生画像提取、招生 CSV 校验导入、冲稳保推荐规则的第一版核心模块和测试。
 - 独立 Postgres schema 初稿、Dockerfile 和 Docker Compose 初稿。
@@ -24,7 +24,7 @@
 - 会话消息和提取出的 candidate profile 已可在数据库可用时按服务端 `user_id` 持久化。
 - `pnpm test`、`pnpm typecheck`、`pnpm lint`、`pnpm build`、`git diff --check` 已通过。
 - `pnpm build` 当前显式使用 `next build --webpack`，原因是 Next 16 默认 Turbopack 在当前沙箱环境中会触发端口绑定限制。
-- 当前可用体验仍是 demo auth + 样例数据竖切；还不是完整真实数据驱动 MVP。
+- 当前可用体验是 Supabase Auth + 样例数据竖切；还不是完整真实数据驱动 MVP。
 
 当前已确定的边界：
 
@@ -82,13 +82,21 @@ pnpm install
 cp .env.example .env.local
 ```
 
-本地开发默认可使用 `DEMO_AUTH_ENABLED=true` 进入工作台：
+在 `.env.local` 中填写统一 Supabase Auth 配置：
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+DEMO_AUTH_ENABLED=false
+```
+
+启动本地开发服务：
 
 ```bash
 pnpm dev
 ```
 
-浏览器打开 `http://localhost:3000`。
+浏览器打开 `http://localhost:3000/login`，使用 Supabase Auth 中已有账号登录。
 
 Docker 本地启动：
 
@@ -138,7 +146,7 @@ git diff --check
 
 ## 后续接手重点
 
-1. 接入真实 Supabase 登录流程，验证未登录跳转和登录后服务端 user id。
+1. 验证真实 Supabase 登录流程、未登录跳转和登录后服务端 user id。
 2. 启动 Postgres，执行 `pnpm db:migrate`，验证会话、消息和画像按 `user_id` 隔离写入。
 3. 通过 `pnpm import:admissions fixtures/admissions/sample-admission-records.csv` 验证样例导入报告和入库。
 4. 通过 `pnpm import:enrollment-plans fixtures/admissions/sample-enrollment-plans.csv` 验证当年招生计划样例导入，并继续细化计划变化风险。

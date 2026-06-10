@@ -9,6 +9,12 @@ export type AuthenticatedUser = {
   isDemo: boolean;
 };
 
+export type AuthResolutionInput = {
+  supabaseConfigured: boolean;
+  demoEnabled: boolean;
+  supabaseUser: User | null;
+};
+
 const demoUser: AuthenticatedUser = {
   id: "demo-user",
   email: "demo@henan-gaokao.local",
@@ -24,12 +30,32 @@ export function hasSupabaseConfig(): boolean {
 }
 
 export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
-  if (!hasSupabaseConfig()) {
-    return isDemoAuthEnabled() ? demoUser : null;
+  const supabaseConfigured = hasSupabaseConfig();
+
+  if (!supabaseConfigured) {
+    return resolveAuthenticatedUser({
+      supabaseConfigured,
+      demoEnabled: isDemoAuthEnabled(),
+      supabaseUser: null
+    });
   }
 
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  return resolveAuthenticatedUser({
+    supabaseConfigured,
+    demoEnabled: isDemoAuthEnabled(),
+    supabaseUser: user
+  });
+}
+
+export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
-  const supabase = createServerClient(
+
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL as string,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
     {
@@ -49,15 +75,6 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
       }
     }
   );
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return mapSupabaseUser(user);
-  }
-
-  return isDemoAuthEnabled() ? demoUser : null;
 }
 
 export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
@@ -76,4 +93,28 @@ function mapSupabaseUser(user: User): AuthenticatedUser {
     email: user.email ?? null,
     isDemo: false
   };
+}
+
+export function resolveAuthenticatedUser({
+  supabaseConfigured,
+  demoEnabled,
+  supabaseUser
+}: AuthResolutionInput): AuthenticatedUser | null {
+  if (supabaseUser) {
+    return mapSupabaseUser(supabaseUser);
+  }
+
+  if (!supabaseConfigured && demoEnabled) {
+    return demoUser;
+  }
+
+  return null;
+}
+
+export function sanitizeRedirectPath(value: FormDataEntryValue | string | null): string {
+  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) {
+    return "/workspace";
+  }
+
+  return value;
 }

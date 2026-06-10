@@ -73,7 +73,7 @@
 
 - Next.js App Router + React + TypeScript。
 - 登录页和 `/workspace` 三栏工作台。
-- demo auth + Supabase Auth server helper。
+- Supabase Auth server helper、真实邮箱密码登录表单和服务端登录/退出路由。
 - `/api/auth/me` 和 `/api/chat`。
 - `src/lib/profile`、`src/lib/admissions`、`src/lib/recommendation` 的第一版核心规则与测试。
 - `src/lib/admissions/repository.ts` 支持数据库优先、`DATABASE_URL=disabled` 时读取样例 CSV。
@@ -82,7 +82,7 @@
 - `fixtures/admissions/sample-admission-records.csv`，仅为虚构样例数据，不用于真实填报。
 - `Dockerfile` 和 `docker-compose.yml` 初稿。
 
-当前仍是 demo auth + 样例数据竖切，未完成真实 Supabase 登录、真实 Postgres 端到端验证、真实河南招生数据入库、`enrollment_plans` 驱动风险分析和真实 LLM Provider 调用。
+当前仍是 Supabase Auth + 样例数据竖切，未完成真实账号浏览器端到端 smoke、真实河南招生数据入库、完整 `enrollment_plans` 风险分析和真实 LLM Provider 调用。
 
 ## UI 实现基准
 
