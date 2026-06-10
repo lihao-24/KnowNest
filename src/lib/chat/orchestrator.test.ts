@@ -35,8 +35,9 @@ describe("runChatOrchestrator", () => {
     expect(result.summary.profile.score).toBe(580);
     expect(result.summary.missingInfo).toContain("全省位次");
     expect(result.summary.status).toBe("资料未全");
-    expect(result.assistantMessage.content).toContain("不会编具体录取线或计划数");
+    expect(result.assistantMessage.content).toContain("现在还不能直接给冲稳保方案");
     expect(result.assistantMessage.content).toContain("全省位次");
+    expect(result.assistantMessage.content).not.toMatch(/MVP|服务端边界|规则层|admission_records/);
   });
 
   it("asks for official subject type when subject type is missing", async () => {
@@ -67,8 +68,9 @@ describe("runChatOrchestrator", () => {
       "国家专项计划"
     );
     expect(result.summary.sources[0].detail).toContain("样例数据，不用于真实填报");
-    expect(result.assistantMessage.content).toContain("样例数据，不用于真实填报");
-    expect(result.assistantMessage.content).not.toContain("结构化招生数据还没有导入");
+    expect(result.assistantMessage.content).toContain("初筛方向");
+    expect(result.assistantMessage.content).toContain("不是最终填报结论");
+    expect(result.assistantMessage.content).not.toMatch(/MVP|服务端边界|规则层|admission_records/);
   });
 
   it("does not fabricate candidates when no admissions data is available", async () => {
@@ -81,8 +83,36 @@ describe("runChatOrchestrator", () => {
     expect(result.summary.candidates).toEqual([]);
     expect(result.summary.status).toBe("数据未导入");
     expect(result.summary.sources[0].detail).toContain("数据未导入");
-    expect(result.assistantMessage.content).toContain("数据未导入");
-    expect(result.assistantMessage.content).toContain("先导入 admission_records");
+    expect(result.assistantMessage.content).toContain("不能生成真实冲稳保候选");
+    expect(result.assistantMessage.content).toContain("结构化招生数据还没有导入");
+    expect(result.assistantMessage.content).not.toMatch(/MVP|服务端边界|规则层|admission_records/);
+  });
+
+  it("merges the latest message into the existing profile before judging missing fields", async () => {
+    const result = await runChatOrchestrator({
+      message: "位次2万，稳妥，想从事计算机行业，希望考研",
+      userId: "demo-user",
+      admissionRecords: [],
+      existingProfile: {
+        province: "河南",
+        score: 580,
+        subjectType: "物理类",
+        preferredRegions: [],
+        excludedRegions: [],
+        interestedMajors: [],
+        excludedMajors: []
+      }
+    });
+
+    expect(result.summary.profile.score).toBe(580);
+    expect(result.summary.profile.subjectType).toBe("物理类");
+    expect(result.summary.profile.rank).toBe(20000);
+    expect(result.summary.profile.interestedMajors).toContain("计算机");
+    expect(result.summary.profile.primaryGoal).toBe("稳定");
+    expect(result.summary.missingInfo).toEqual(["结构化招生数据"]);
+    expect(result.assistantMessage.content).toContain("计算机");
+    expect(result.assistantMessage.content).toContain("考研");
+    expect(result.assistantMessage.content).not.toMatch(/高考分数|科类：物理类或历史类/);
   });
 
   it("uses enrollment plans to reduce missing source warnings in recommendation summary", async () => {

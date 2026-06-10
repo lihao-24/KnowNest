@@ -4,6 +4,7 @@ import type { ChatMessage } from "@/lib/chat/types";
 import { getDbPool, hasDatabaseConnection } from "./client";
 import {
   getCandidateProfileForSession,
+  getLatestCandidateProfileForUser,
   listChatSessionsForUser,
   persistChatTurn
 } from "./chat-repository";
@@ -182,6 +183,45 @@ describe("chat repository", () => {
       score: 580,
       rank: 30000,
       subjectType: "物理类"
+    });
+  });
+
+  it("loads the latest candidate profile for the authenticated user", async () => {
+    mockedHasDatabaseConnection.mockReturnValue(true);
+    const query = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          profile: {
+            province: "河南",
+            score: 580,
+            rank: 20000,
+            subjectType: "物理类",
+            preferredRegions: ["河南"],
+            excludedRegions: [],
+            interestedMajors: ["计算机"],
+            excludedMajors: [],
+            primaryGoal: "考研"
+          }
+        }
+      ]
+    });
+    mockedGetDbPool.mockReturnValue({ query } as never);
+
+    const profile = await getLatestCandidateProfileForUser("user-1");
+
+    expect(query).toHaveBeenCalledWith(expect.stringContaining("where cp.user_id = $1"), [
+      "user-1"
+    ]);
+    expect(query).toHaveBeenCalledWith(expect.stringContaining("order by s.updated_at desc"), [
+      "user-1"
+    ]);
+    expect(profile).toMatchObject({
+      province: "河南",
+      score: 580,
+      rank: 20000,
+      subjectType: "物理类",
+      interestedMajors: ["计算机"],
+      primaryGoal: "考研"
     });
   });
 });

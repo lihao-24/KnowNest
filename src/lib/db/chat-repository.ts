@@ -141,6 +141,37 @@ export async function getCandidateProfileForSession(
   }
 }
 
+export async function getLatestCandidateProfileForUser(userId: string): Promise<CandidateProfile | null> {
+  if (!hasDatabaseConnection()) {
+    return null;
+  }
+
+  const pool = getDbPool();
+  if (!pool) {
+    return null;
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        select cp.profile
+        from candidate_profiles cp
+        join chat_sessions s
+          on s.id = cp.session_id
+          and s.user_id = cp.user_id
+        where cp.user_id = $1
+        order by s.updated_at desc, cp.updated_at desc
+        limit 1
+      `,
+      [userId]
+    );
+
+    return normalizeCandidateProfile(result.rows[0]?.profile);
+  } catch {
+    return null;
+  }
+}
+
 type PersistCandidateProfileInput = {
   sessionId: string;
   userId: string;

@@ -72,7 +72,10 @@ export function WorkspaceShell({
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ message: userMessage.content })
+        body: JSON.stringify({
+          message: userMessage.content,
+          profile: summary.profile
+        })
       });
 
       if (!response.ok) {

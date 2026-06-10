@@ -1,4 +1,5 @@
 import type { AdmissionRecord, EnrollmentPlan } from "@/lib/admissions/types";
+import type { CandidateProfile as ExtractedProfile } from "@/lib/profile/types";
 
 export type SubjectType = "物理类" | "历史类";
 
@@ -67,6 +68,7 @@ export type ChatOrchestratorInput = {
   userId: string;
   admissionRecords?: AdmissionRecord[];
   enrollmentPlans?: EnrollmentPlan[];
+  existingProfile?: ExtractedProfile | null;
 };
 
 export type ChatOrchestratorResult = {

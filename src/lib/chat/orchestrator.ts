@@ -4,7 +4,11 @@ import {
   listEnrollmentPlansForProfile
 } from "@/lib/admissions/repository";
 import type { AdmissionRecord, EnrollmentPlan } from "@/lib/admissions/types";
-import { listChatSessionsForUser, persistChatTurn } from "@/lib/db/chat-repository";
+import {
+  getLatestCandidateProfileForUser,
+  listChatSessionsForUser,
+  persistChatTurn
+} from "@/lib/db/chat-repository";
 import { buildRecommendations } from "@/lib/recommendation";
 import type { RecommendationCandidate } from "@/lib/recommendation/types";
 import { extractProfileFromMessage, getMissingProfileFields } from "@/lib/profile";
@@ -22,9 +26,14 @@ export async function runChatOrchestrator({
   message,
   userId,
   admissionRecords,
-  enrollmentPlans
+  enrollmentPlans,
+  existingProfile
 }: ChatOrchestratorInput): Promise<ChatOrchestratorResult> {
-  const profile = extractProfileFromMessage(message);
+  const extractedProfile = extractProfileFromMessage(message);
+  const profile = mergeCandidateProfiles(
+    existingProfile ?? (await getLatestCandidateProfileForUser(userId)),
+    extractedProfile
+  );
   const missingFields = getMissingProfileFields(profile);
   const admissionsLookup =
     admissionRecords !== undefined
@@ -67,6 +76,43 @@ export async function runChatOrchestrator({
     summary,
     sessions: await listChatSessionsForUser(userId)
   };
+}
+
+function mergeCandidateProfiles(
+  previousProfile: ExtractedProfile | null | undefined,
+  nextProfile: ExtractedProfile
+): ExtractedProfile {
+  if (!previousProfile) {
+    return nextProfile;
+  }
+
+  return {
+    province: "河南",
+    score: nextProfile.score ?? previousProfile.score,
+    rank: nextProfile.rank ?? previousProfile.rank,
+    subjectType: nextProfile.subjectType ?? previousProfile.subjectType,
+    eligibleNationalSpecialPlan:
+      nextProfile.eligibleNationalSpecialPlan ?? previousProfile.eligibleNationalSpecialPlan,
+    preferredRegions: mergeStringLists(previousProfile.preferredRegions, nextProfile.preferredRegions),
+    excludedRegions: mergeStringLists(previousProfile.excludedRegions, nextProfile.excludedRegions),
+    interestedMajors: mergeStringLists(previousProfile.interestedMajors, nextProfile.interestedMajors),
+    excludedMajors: mergeStringLists(previousProfile.excludedMajors, nextProfile.excludedMajors),
+    familyResources: mergeOptionalStringLists(previousProfile.familyResources, nextProfile.familyResources),
+    budgetConstraints: mergeOptionalStringLists(previousProfile.budgetConstraints, nextProfile.budgetConstraints),
+    primaryGoal: nextProfile.primaryGoal ?? previousProfile.primaryGoal
+  };
+}
+
+function mergeStringLists(previousValues: string[], nextValues: string[]): string[] {
+  return [...new Set([...previousValues, ...nextValues])];
+}
+
+function mergeOptionalStringLists(
+  previousValues: string[] | undefined,
+  nextValues: string[] | undefined
+): string[] | undefined {
+  const merged = mergeStringLists(previousValues ?? [], nextValues ?? []);
+  return merged.length > 0 ? merged : undefined;
 }
 
 type AdmissionsLookup = {
