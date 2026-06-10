@@ -377,6 +377,11 @@ button:disabled {
   background: #f0ede6;
 }
 
+.conversationItem--active {
+  background: #e8eee9;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
 .conversationItem strong,
 .conversationItem small,
 .accountBox strong,
@@ -476,6 +481,13 @@ button:disabled {
   overflow-y: auto;
   background: var(--surface-muted);
   padding: 24px 24px 16px;
+}
+
+.loadingText {
+  align-self: center;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .messageBubble {

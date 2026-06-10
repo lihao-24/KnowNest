@@ -11,6 +11,32 @@ export type PersistChatTurnInput = {
   profile?: CandidateProfile;
 };
 
+export async function createChatSessionForUser(userId: string): Promise<ChatSession> {
+  if (!hasDatabaseConnection()) {
+    return createFallbackSession();
+  }
+
+  const pool = getDbPool();
+  if (!pool) {
+    return createFallbackSession();
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        insert into chat_sessions (user_id, title, status)
+        values ($1, $2, $3)
+        returning id, title, status, updated_at, '尚未开始对话。' as preview
+      `,
+      [userId, "新的河南志愿咨询", "资料未全"]
+    );
+
+    return toChatSession(result.rows[0]);
+  } catch {
+    return createFallbackSession();
+  }
+}
+
 export async function listChatSessionsForUser(userId: string): Promise<ChatSession[]> {
   if (!hasDatabaseConnection()) {
     return demoSessions;
@@ -45,15 +71,39 @@ export async function listChatSessionsForUser(userId: string): Promise<ChatSessi
       [userId]
     );
 
-    return result.rows.map((row) => ({
-      id: String(row.id),
-      title: String(row.title),
-      status: normalizeStatus(row.status),
-      updatedAt: formatTimestamp(row.updated_at),
-      preview: String(row.preview)
-    }));
+    return result.rows.map(toChatSession);
   } catch {
     return demoSessions;
+  }
+}
+
+export async function listChatMessagesForSession(
+  userId: string,
+  sessionId: string
+): Promise<ChatMessage[]> {
+  if (!hasDatabaseConnection()) {
+    return [];
+  }
+
+  const pool = getDbPool();
+  if (!pool) {
+    return [];
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        select id, role, content, created_at
+        from chat_messages
+        where session_id = $1 and user_id = $2
+        order by created_at asc
+      `,
+      [sessionId, userId]
+    );
+
+    return result.rows.map(toChatMessage);
+  } catch {
+    return [];
   }
 }
 
@@ -277,6 +327,37 @@ function normalizeStatus(status: unknown): StatusKind {
   }
 
   return "资料未全";
+}
+
+function toChatSession(row: Record<string, unknown>): ChatSession {
+  return {
+    id: String(row.id),
+    title: String(row.title),
+    status: normalizeStatus(row.status),
+    updatedAt: formatTimestamp(row.updated_at),
+    preview: String(row.preview ?? "尚未开始对话。")
+  };
+}
+
+function toChatMessage(row: Record<string, unknown>): ChatMessage {
+  const role = row.role === "assistant" || row.role === "user" ? row.role : "assistant";
+
+  return {
+    id: String(row.id),
+    role,
+    content: String(row.content),
+    createdAt: formatTimestamp(row.created_at)
+  };
+}
+
+function createFallbackSession(): ChatSession {
+  return {
+    id: crypto.randomUUID(),
+    title: "新的河南志愿咨询",
+    status: "资料未全",
+    updatedAt: new Date().toISOString(),
+    preview: "尚未开始对话。"
+  };
 }
 
 function formatTimestamp(value: unknown): string {

@@ -28,17 +28,21 @@ const starterMessages: ChatMessage[] = [
 
 const quickPrompts = ["生成冲稳保方案", "解释国家专项风险", "对比省内稳妥选择"];
 
+let transientMessageId = 0;
+
 export function WorkspaceShell({
   user,
   initialSessions,
   initialSummary
 }: WorkspaceShellProps) {
   const [sessions, setSessions] = useState(initialSessions);
+  const [activeSessionId, setActiveSessionId] = useState(initialSessions[0]?.id ?? null);
   const [summary, setSummary] = useState(initialSummary);
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const canSend = message.trim().length > 0 && !isSending;
+  const [isLoadingSession, setIsLoadingSession] = useState(false);
+  const canSend = message.trim().length > 0 && !isSending && !isLoadingSession;
   const knownProfileCount = useMemo(
     () =>
       [
@@ -74,6 +78,7 @@ export function WorkspaceShell({
         },
         body: JSON.stringify({
           message: userMessage.content,
+          sessionId: activeSessionId ?? undefined,
           profile: summary.profile
         })
       });
@@ -91,18 +96,77 @@ export function WorkspaceShell({
       setMessages((current) => [...current, result.assistantMessage]);
       setSummary(result.summary);
       setSessions(result.sessions);
+      setActiveSessionId(result.sessions[0]?.id ?? activeSessionId);
     } catch {
       setMessages((current) => [
         ...current,
-        {
-          id: `assistant-error-${Date.now()}`,
-          role: "assistant",
-          content: "这轮服务端调用失败了。请稍后重试，或先检查本地 API 和登录状态。",
-          createdAt: new Date().toISOString()
-        }
+        createTransientAssistantMessage("这轮服务端调用失败了。请稍后重试，或先检查本地 API 和登录状态。")
       ]);
     } finally {
       setIsSending(false);
+    }
+  }
+
+  async function handleCreateSession() {
+    setIsLoadingSession(true);
+
+    try {
+      const response = await fetch("/api/chat/sessions", {
+        method: "POST"
+      });
+
+      if (!response.ok) {
+        throw new Error("create session failed");
+      }
+
+      const result = (await response.json()) as {
+        session: ChatSession;
+        sessions: ChatSession[];
+      };
+
+      setSessions(result.sessions);
+      setActiveSessionId(result.session.id);
+      setSummary(initialSummary);
+      setMessages(starterMessages);
+      setMessage("");
+    } catch {
+      setMessages([
+        createTransientAssistantMessage("新建会话失败了。请稍后重试，或先检查本地数据库连接。")
+      ]);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  }
+
+  async function handleSelectSession(sessionId: string) {
+    if (sessionId === activeSessionId || isLoadingSession) {
+      return;
+    }
+
+    setIsLoadingSession(true);
+
+    try {
+      const response = await fetch(`/api/chat/sessions/${sessionId}`);
+
+      if (!response.ok) {
+        throw new Error("load session failed");
+      }
+
+      const result = (await response.json()) as {
+        messages: ChatMessage[];
+        summary: ChatSummary;
+      };
+
+      setActiveSessionId(sessionId);
+      setSummary(result.summary);
+      setMessages(result.messages.length > 0 ? result.messages : starterMessages);
+      setMessage("");
+    } catch {
+      setMessages([
+        createTransientAssistantMessage("加载会话失败了。请稍后重试，或先检查本地 API 和登录状态。")
+      ]);
+    } finally {
+      setIsLoadingSession(false);
     }
   }
 
@@ -114,14 +178,27 @@ export function WorkspaceShell({
           <h1>志愿问答</h1>
         </div>
 
-        <button className="newChatButton" type="button">
-          新建会话
+        <button
+          className="newChatButton"
+          type="button"
+          onClick={handleCreateSession}
+          disabled={isLoadingSession}
+        >
+          {isLoadingSession ? "处理中" : "新建会话"}
         </button>
 
         <p className="sidebarLabel">最近会话</p>
         <nav className="conversationList">
           {sessions.map((session) => (
-            <button className="conversationItem" type="button" key={session.id}>
+            <button
+              className={`conversationItem ${
+                session.id === activeSessionId ? "conversationItem--active" : ""
+              }`}
+              type="button"
+              key={session.id}
+              onClick={() => handleSelectSession(session.id)}
+              disabled={isLoadingSession}
+            >
               <span>
                 <strong>{session.title}</strong>
                 <small>{session.preview}</small>
@@ -163,6 +240,7 @@ export function WorkspaceShell({
         </header>
 
         <div className="messageList">
+          {isLoadingSession ? <p className="loadingText">正在加载会话...</p> : null}
           {messages.map((chatMessage) => (
             <article
               className={`messageBubble messageBubble--${chatMessage.role}`}
@@ -284,6 +362,17 @@ export function WorkspaceShell({
       </aside>
     </main>
   );
+}
+
+function createTransientAssistantMessage(content: string): ChatMessage {
+  transientMessageId += 1;
+
+  return {
+    id: `assistant-transient-${transientMessageId}`,
+    role: "assistant",
+    content,
+    createdAt: new Date().toISOString()
+  };
 }
 
 function getSummaryStatusDetail(summary: ChatSummary): string {

@@ -3,8 +3,10 @@ import { demoSessions } from "@/lib/chat/demo-data";
 import type { ChatMessage } from "@/lib/chat/types";
 import { getDbPool, hasDatabaseConnection } from "./client";
 import {
+  createChatSessionForUser,
   getCandidateProfileForSession,
   getLatestCandidateProfileForUser,
+  listChatMessagesForSession,
   listChatSessionsForUser,
   persistChatTurn
 } from "./chat-repository";
@@ -58,6 +60,82 @@ describe("chat repository", () => {
     } as never);
 
     await expect(listChatSessionsForUser("user-1")).resolves.toEqual(demoSessions);
+  });
+
+  it("creates a new chat session for the authenticated user", async () => {
+    mockedHasDatabaseConnection.mockReturnValue(true);
+    const query = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          id: "session-new",
+          title: "新的河南志愿咨询",
+          status: "资料未全",
+          updated_at: new Date("2026-06-09T08:30:00.000Z"),
+          preview: "尚未开始对话。"
+        }
+      ]
+    });
+    mockedGetDbPool.mockReturnValue({ query } as never);
+
+    const session = await createChatSessionForUser("user-1");
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining("insert into chat_sessions (user_id, title, status)"),
+      ["user-1", "新的河南志愿咨询", "资料未全"]
+    );
+    expect(session).toEqual({
+      id: "session-new",
+      title: "新的河南志愿咨询",
+      status: "资料未全",
+      updatedAt: "2026-06-09T08:30:00.000Z",
+      preview: "尚未开始对话。"
+    });
+  });
+
+  it("lists chat messages for a requested session and authenticated user in chronological order", async () => {
+    mockedHasDatabaseConnection.mockReturnValue(true);
+    const query = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          id: "message-1",
+          role: "user",
+          content: "河南物理类 580 分",
+          created_at: new Date("2026-06-09T08:30:00.000Z")
+        },
+        {
+          id: "message-2",
+          role: "assistant",
+          content: "请补充全省位次。",
+          created_at: new Date("2026-06-09T08:31:00.000Z")
+        }
+      ]
+    });
+    mockedGetDbPool.mockReturnValue({ query } as never);
+
+    const messages = await listChatMessagesForSession("user-1", "session-1");
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining("where session_id = $1 and user_id = $2"),
+      ["session-1", "user-1"]
+    );
+    expect(query).toHaveBeenCalledWith(expect.stringContaining("order by created_at asc"), [
+      "session-1",
+      "user-1"
+    ]);
+    expect(messages).toEqual([
+      {
+        id: "message-1",
+        role: "user",
+        content: "河南物理类 580 分",
+        createdAt: "2026-06-09T08:30:00.000Z"
+      },
+      {
+        id: "message-2",
+        role: "assistant",
+        content: "请补充全省位次。",
+        createdAt: "2026-06-09T08:31:00.000Z"
+      }
+    ]);
   });
 
   it("persists user and assistant messages with the authenticated user id", async () => {
