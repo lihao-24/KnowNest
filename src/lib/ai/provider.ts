@@ -1,6 +1,9 @@
+import type { ChatSummary } from "@/lib/chat/types";
+
 export type AiGenerationInput = {
   userMessage: string;
   systemContext: string;
+  grounding?: AiGroundingContext;
 };
 
 export type AiGenerationResult = {
@@ -8,27 +11,218 @@ export type AiGenerationResult = {
   provider: "demo" | "openai-compatible";
 };
 
+export type AiGroundingContext = {
+  dataMode: "database" | "sample" | "empty";
+  summary: ChatSummary;
+};
+
+type ChatCompletionResponse = {
+  choices?: Array<{
+    message?: {
+      content?: unknown;
+    };
+  }>;
+};
+
 export async function generateAssistantText({
   userMessage,
-  systemContext
+  systemContext,
+  grounding
 }: AiGenerationInput): Promise<AiGenerationResult> {
-  const hasProviderConfig =
-    process.env.AI_DEFAULT_PROVIDER === "openai-compatible" &&
-    Boolean(process.env.AI_PROVIDER_BASE_URL) &&
-    Boolean(process.env.AI_PROVIDER_API_KEY) &&
-    Boolean(process.env.AI_PROVIDER_MODEL);
+  const providerConfig = getOpenAiCompatibleConfig();
 
-  if (!hasProviderConfig) {
+  if (!providerConfig || !grounding) {
     return {
       provider: "demo",
       content: buildDemoAssistantText(userMessage, systemContext)
     };
   }
 
+  try {
+    const content = await callOpenAiCompatibleProvider(providerConfig, {
+      userMessage,
+      systemContext,
+      grounding
+    });
+
+    if (!content || violatesGrounding(content, grounding.summary)) {
+      return {
+        provider: "demo",
+        content: buildGroundingViolationReply(grounding)
+      };
+    }
+
+    return {
+      provider: "openai-compatible",
+      content
+    };
+  } catch {
+    return {
+      provider: "demo",
+      content: buildDemoAssistantText(userMessage, systemContext)
+    };
+  }
+}
+
+function buildGroundingViolationReply(grounding: AiGroundingContext): string {
+  if (grounding.summary.candidates.length === 0) {
+    return [
+      "这轮暂时不能生成候选清单。",
+      "",
+      "当前没有服务端结构化候选，我不会凭感觉编学校。请先补齐缺失信息或导入可追溯招生数据，再继续做冲稳保判断。"
+    ].join("\n");
+  }
+
+  return [
+    "这轮模型回复没有通过候选边界校验，我先按服务端结构化结果给你安全版结论。",
+    "",
+    summarizeGroundedCandidates(grounding.summary),
+    "我不会凭感觉编学校；上面只代表当前候选可以继续核验，不代表最终填报结论。"
+  ].join("\n");
+}
+
+function summarizeGroundedCandidates(summary: ChatSummary): string {
+  const candidateNames = summary.candidates
+    .map((candidate) => `${candidate.bucket} · ${candidate.schoolName}（${candidate.majorName}）`)
+    .join("；");
+
+  return `当前结构化候选包括：${candidateNames}。`;
+}
+
+type OpenAiCompatibleConfig = {
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+};
+
+function getOpenAiCompatibleConfig(): OpenAiCompatibleConfig | null {
+  const baseUrl = process.env.AI_PROVIDER_BASE_URL?.trim();
+  const apiKey = process.env.AI_PROVIDER_API_KEY?.trim();
+  const model = process.env.AI_PROVIDER_MODEL?.trim();
+
+  if (
+    process.env.AI_DEFAULT_PROVIDER !== "openai-compatible" ||
+    !baseUrl ||
+    !apiKey ||
+    !model
+  ) {
+    return null;
+  }
+
   return {
-    provider: "openai-compatible",
-    content: buildDemoAssistantText(userMessage, systemContext)
+    baseUrl: baseUrl.replace(/\/+$/, ""),
+    apiKey,
+    model,
+    temperature: parseNumberEnv(process.env.AI_PROVIDER_TEMPERATURE, 0.2),
+    maxTokens: Math.trunc(parseNumberEnv(process.env.AI_PROVIDER_MAX_TOKENS, 900))
   };
+}
+
+async function callOpenAiCompatibleProvider(
+  config: OpenAiCompatibleConfig,
+  input: Required<AiGenerationInput>
+): Promise<string> {
+  const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify({
+      model: config.model,
+      temperature: config.temperature,
+      max_tokens: config.maxTokens,
+      messages: [
+        {
+          role: "system",
+          content: buildGroundedSystemPrompt()
+        },
+        {
+          role: "user",
+          content: buildGroundedUserPrompt(input)
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error("AI provider request failed");
+  }
+
+  const payload = (await response.json()) as ChatCompletionResponse;
+  const content = payload.choices?.[0]?.message?.content;
+
+  return typeof content === "string" ? content.trim() : "";
+}
+
+function buildGroundedSystemPrompt(): string {
+  return [
+    "你是河南高考志愿填报助手，只能解释服务端提供的结构化 summary。",
+    "不得新增候选学校或专业，不得编造学校、专业、分数、位次或计划数。",
+    "没有候选时，只能追问缺失信息或说明当前资料不足。",
+    "涉及候选时，必须围绕候选 evidence、riskTags、sources 和 verificationItems 解释。",
+    "必须区分官方数据、往年趋势、经验判断和待核验事项。",
+    "不要暴露内部实现词，例如 API、数据库表名、规则层、admission_records、MVP。"
+  ].join("\n");
+}
+
+function buildGroundedUserPrompt({ userMessage, systemContext, grounding }: Required<AiGenerationInput>): string {
+  const summaryForModel = {
+    dataMode: grounding.dataMode,
+    status: grounding.summary.status,
+    profile: grounding.summary.profile,
+    missingInfo: grounding.summary.missingInfo,
+    candidates: grounding.summary.candidates.map((candidate) => ({
+      bucket: candidate.bucket,
+      schoolName: candidate.schoolName,
+      majorName: candidate.majorName,
+      planType: candidate.planType,
+      subjectType: candidate.subjectType,
+      city: candidate.city,
+      evidence: candidate.evidence,
+      riskTags: candidate.riskTags,
+      status: candidate.status
+    })),
+    sources: grounding.summary.sources,
+    verificationItems: grounding.summary.verificationItems,
+    boundary: systemContext
+  };
+
+  return [
+    `用户最新消息：${userMessage}`,
+    "请基于下面 JSON 生成中文回复。只能使用 JSON 中的候选和证据，不得新增候选。",
+    JSON.stringify(summaryForModel, null, 2)
+  ].join("\n\n");
+}
+
+function violatesGrounding(content: string, summary: ChatSummary): boolean {
+  const knownSchoolNames = summary.candidates.map((candidate) => candidate.schoolName);
+  if (knownSchoolNames.length === 0) {
+    return hasCandidateLikeSchoolName(content);
+  }
+
+  const mentionedSchoolNames = Array.from(content.matchAll(/[\u4e00-\u9fa5A-Za-z0-9]+(?:大学|学院|学校)/g)).map(
+    (match) => match[0]
+  );
+
+  return mentionedSchoolNames.some(
+    (schoolName) => !knownSchoolNames.some((knownSchoolName) => schoolName.includes(knownSchoolName))
+  );
+}
+
+function hasCandidateLikeSchoolName(content: string): boolean {
+  return /[\u4e00-\u9fa5A-Za-z0-9]+(?:大学|学院|学校)/.test(content);
+}
+
+function parseNumberEnv(value: string | undefined, fallback: number): number {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function buildDemoAssistantText(userMessage: string, systemContext: string): string {

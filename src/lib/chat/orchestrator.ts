@@ -5,6 +5,7 @@ import {
 } from "@/lib/admissions/repository";
 import type { AdmissionRecord, EnrollmentPlan } from "@/lib/admissions/types";
 import {
+  getCandidateProfileForSession,
   getLatestCandidateProfileForUser,
   listChatSessionsForUser,
   persistChatTurn
@@ -25,13 +26,14 @@ import type {
 export async function runChatOrchestrator({
   message,
   userId,
+  sessionId,
   admissionRecords,
   enrollmentPlans,
   existingProfile
 }: ChatOrchestratorInput): Promise<ChatOrchestratorResult> {
   const extractedProfile = extractProfileFromMessage(message);
   const profile = mergeCandidateProfiles(
-    existingProfile ?? (await getLatestCandidateProfileForUser(userId)),
+    existingProfile ?? (await getProfileForChatTurn(userId, sessionId)),
     extractedProfile
   );
   const missingFields = getMissingProfileFields(profile);
@@ -55,7 +57,11 @@ export async function runChatOrchestrator({
   const systemContext = buildSystemContext(summary, admissionsLookup.dataMode);
   const generation = await generateAssistantText({
     userMessage: message,
-    systemContext
+    systemContext,
+    grounding: {
+      dataMode: admissionsLookup.dataMode,
+      summary
+    }
   });
   const assistantMessage = {
     id: `assistant-${Date.now()}`,
@@ -66,6 +72,7 @@ export async function runChatOrchestrator({
 
   await persistChatTurn({
     userId,
+    sessionId,
     userMessage: message,
     assistantMessage,
     profile
@@ -76,6 +83,17 @@ export async function runChatOrchestrator({
     summary,
     sessions: await listChatSessionsForUser(userId)
   };
+}
+
+async function getProfileForChatTurn(
+  userId: string,
+  sessionId: string | undefined
+): Promise<ExtractedProfile | null> {
+  if (sessionId) {
+    return getCandidateProfileForSession(userId, sessionId);
+  }
+
+  return getLatestCandidateProfileForUser(userId);
 }
 
 function mergeCandidateProfiles(

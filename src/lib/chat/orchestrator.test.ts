@@ -1,6 +1,26 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EnrollmentPlan } from "@/lib/admissions/types";
+import {
+  getCandidateProfileForSession,
+  getLatestCandidateProfileForUser,
+  persistChatTurn
+} from "@/lib/db/chat-repository";
 import { runChatOrchestrator } from "./orchestrator";
+
+vi.mock("@/lib/db/chat-repository", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/db/chat-repository")>();
+
+  return {
+    ...actual,
+    getCandidateProfileForSession: vi.fn(actual.getCandidateProfileForSession),
+    getLatestCandidateProfileForUser: vi.fn(actual.getLatestCandidateProfileForUser),
+    persistChatTurn: vi.fn(actual.persistChatTurn)
+  };
+});
+
+const mockedGetCandidateProfileForSession = vi.mocked(getCandidateProfileForSession);
+const mockedGetLatestCandidateProfileForUser = vi.mocked(getLatestCandidateProfileForUser);
+const mockedPersistChatTurn = vi.mocked(persistChatTurn);
 
 const matchingEnrollmentPlans: EnrollmentPlan[] = [
   {
@@ -23,6 +43,7 @@ const matchingEnrollmentPlans: EnrollmentPlan[] = [
 describe("runChatOrchestrator", () => {
   beforeEach(() => {
     process.env.DATABASE_URL = "disabled";
+    vi.clearAllMocks();
   });
 
   it("normalizes colloquial subject type and asks for missing rank", async () => {
@@ -132,6 +153,51 @@ describe("runChatOrchestrator", () => {
     expect(result.summary.sources.map((source) => source.id)).toContain("enrollment-plans-sample");
     expect(result.summary.sources.find((source) => source.id === "enrollment-plans-sample")?.detail).toContain(
       "已匹配 1 条当年招生计划"
+    );
+  });
+
+  it("continues from the requested session profile instead of the latest user profile", async () => {
+    mockedGetCandidateProfileForSession.mockResolvedValueOnce({
+      province: "河南",
+      score: 580,
+      subjectType: "物理类",
+      preferredRegions: [],
+      excludedRegions: [],
+      interestedMajors: [],
+      excludedMajors: []
+    });
+    mockedGetLatestCandidateProfileForUser.mockResolvedValueOnce({
+      province: "河南",
+      score: 610,
+      subjectType: "历史类",
+      preferredRegions: [],
+      excludedRegions: [],
+      interestedMajors: [],
+      excludedMajors: []
+    });
+
+    const result = await runChatOrchestrator({
+      message: "位次 3 万，想省内稳一点",
+      userId: "demo-user",
+      sessionId: "session-old",
+      admissionRecords: []
+    });
+
+    expect(mockedGetCandidateProfileForSession).toHaveBeenCalledWith("demo-user", "session-old");
+    expect(mockedGetLatestCandidateProfileForUser).not.toHaveBeenCalled();
+    expect(result.summary.profile.score).toBe(580);
+    expect(result.summary.profile.subjectType).toBe("物理类");
+    expect(result.summary.profile.rank).toBe(30000);
+    expect(mockedPersistChatTurn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "demo-user",
+        sessionId: "session-old",
+        profile: expect.objectContaining({
+          score: 580,
+          subjectType: "物理类",
+          rank: 30000
+        })
+      })
     );
   });
 });

@@ -98,6 +98,45 @@ describe("chat repository", () => {
     ]);
   });
 
+  it("persists a chat turn into the requested authenticated user session", async () => {
+    mockedHasDatabaseConnection.mockReturnValue(true);
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ id: "session-requested" }] })
+      .mockResolvedValue({ rows: [] });
+    mockedGetDbPool.mockReturnValue({ query } as never);
+    const assistantMessage: ChatMessage = {
+      id: "assistant-1",
+      role: "assistant",
+      content: "继续按这个会话画像判断。",
+      createdAt: "2026-06-09T08:31:00.000Z"
+    };
+
+    await persistChatTurn({
+      userId: "user-1",
+      sessionId: "session-requested",
+      userMessage: "位次 3 万，想稳一点",
+      assistantMessage
+    });
+
+    expect(query).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("where id = $1 and user_id = $2"),
+      ["session-requested", "user-1"]
+    );
+    expect(query).toHaveBeenNthCalledWith(2, expect.stringContaining("insert into chat_messages"), [
+      "session-requested",
+      "user-1",
+      "user",
+      "位次 3 万，想稳一点",
+      "2026-06-09T08:31:00.000Z"
+    ]);
+    expect(query).not.toHaveBeenCalledWith(
+      expect.stringContaining("where user_id = $1"),
+      ["user-1"]
+    );
+  });
+
   it("persists the extracted candidate profile for the authenticated user session", async () => {
     mockedHasDatabaseConnection.mockReturnValue(true);
     const query = vi

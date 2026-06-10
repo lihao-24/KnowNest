@@ -5,6 +5,7 @@ import { getDbPool, hasDatabaseConnection } from "./client";
 
 export type PersistChatTurnInput = {
   userId: string;
+  sessionId?: string;
   userMessage: string;
   assistantMessage: ChatMessage;
   profile?: CandidateProfile;
@@ -67,7 +68,9 @@ export async function persistChatTurn(input: PersistChatTurnInput): Promise<void
   }
 
   try {
-    const sessionId = await getOrCreateDefaultSession(input.userId);
+    const sessionId = input.sessionId
+      ? await getAuthenticatedSessionId(input.userId, input.sessionId)
+      : await getOrCreateDefaultSession(input.userId);
     const createdAt = input.assistantMessage.createdAt;
 
     await pool.query(
@@ -203,6 +206,30 @@ async function persistCandidateProfile({
     `,
     [sessionId, userId, profile, updatedAt]
   );
+}
+
+async function getAuthenticatedSessionId(userId: string, sessionId: string): Promise<string> {
+  const pool = getDbPool();
+  if (!pool) {
+    throw new Error("database pool unavailable");
+  }
+
+  const existing = await pool.query(
+    `
+      select id
+      from chat_sessions
+      where id = $1 and user_id = $2
+      limit 1
+    `,
+    [sessionId, userId]
+  );
+
+  const authenticatedSessionId = existing.rows[0]?.id;
+  if (!authenticatedSessionId) {
+    throw new Error("chat session not found");
+  }
+
+  return String(authenticatedSessionId);
 }
 
 async function getOrCreateDefaultSession(userId: string): Promise<string> {

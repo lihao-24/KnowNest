@@ -6,6 +6,7 @@ import type { CandidateGoal, CandidateProfile, SubjectType } from "@/lib/profile
 
 const chatRequestSchema = z.object({
   message: z.string().trim().min(1).max(4000),
+  sessionId: z.string().uuid().optional(),
   profile: z
     .object({
       province: z.literal("河南"),
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
   const result = await runChatOrchestrator({
     message: parsed.data.message,
     userId: user.id,
+    sessionId: parsed.data.sessionId,
     existingProfile: parsed.data.profile ? toExistingProfile(parsed.data.profile) : undefined
   });
 

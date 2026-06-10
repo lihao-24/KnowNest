@@ -66,6 +66,7 @@ export type ChatSession = {
 export type ChatOrchestratorInput = {
   message: string;
   userId: string;
+  sessionId?: string;
   admissionRecords?: AdmissionRecord[];
   enrollmentPlans?: EnrollmentPlan[];
   existingProfile?: ExtractedProfile | null;
